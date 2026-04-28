@@ -61,7 +61,8 @@ router.post('/:id/helpful', requireAuth, async (req, res) => {
 // POST /reviews/:id/reply — owner replies to review
 router.post('/:id/reply', requireAuth, async (req: AuthRequest, res: Response) => {
   const { reply } = req.body;
-  const review = await prisma.review.findUnique({ where: { id: req.params.id }, include: { listing: true } });
+  const review = await prisma.review.findUnique({ where: { id: req.params.id }, include: { listing: { select: { name: true, city: true, submittedById: true } } } }) as
+    (Awaited<ReturnType<typeof prisma.review.findUnique>> & { listing: { name: string; city: string | null; submittedById: string } }) | null;
   if (!review) return res.status(404).json({ error: 'Review not found' });
   if (review.listing.submittedById !== req.user!.id && req.user!.role !== 'ADMIN') {
     return res.status(403).json({ error: 'Not the listing owner' });

@@ -147,8 +147,8 @@ router.post('/bulk', requireAuth, async (req: AuthRequest, res: Response) => {
 router.delete('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
   const entry = await prisma.priceEntry.findUnique({
     where: { id: req.params.id },
-    include: { listing: { select: { submittedById: true } } },
-  });
+    include: { listing: { select: { name: true, phone: true, city: true, avgRating: true, submittedById: true } } },
+  }) as (Awaited<ReturnType<typeof prisma.priceEntry.findUnique>> & { listing: { name: string; phone: string | null; city: string | null; avgRating: number; submittedById: string } }) | null;
   if (!entry) return res.status(404).json({ error: 'Not found' });
   if (entry.listing.submittedById !== req.user!.id && req.user!.role !== 'ADMIN') {
     return res.status(403).json({ error: 'Forbidden' });

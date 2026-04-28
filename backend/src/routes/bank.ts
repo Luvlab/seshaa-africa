@@ -99,7 +99,7 @@ router.get('/applications', requireAuth, async (req: AuthRequest, res: Response)
   if (req.user!.role !== 'ADMIN') return res.status(403).json({ error: 'Admin only' });
   const { status } = req.query;
   const loans = await prisma.microLoan.findMany({
-    where: status ? { status: status as string } : {},
+    where: status ? { status: status as import('@prisma/client').LoanStatus } : {},
     include: { user: { select: { id: true, name: true, phone: true, country: true } } },
     orderBy: { createdAt: 'desc' },
     take: 100,

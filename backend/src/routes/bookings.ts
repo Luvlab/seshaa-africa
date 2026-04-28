@@ -80,8 +80,8 @@ router.patch('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
   const { status } = req.body;
   const booking = await prisma.booking.findUnique({
     where: { id: req.params.id },
-    include: { listing: true },
-  });
+    include: { listing: { select: { name: true, phone: true, address: true, submittedById: true } } },
+  }) as (Awaited<ReturnType<typeof prisma.booking.findUnique>> & { listing: { name: string; phone: string | null; address: string | null; submittedById: string } }) | null;
   if (!booking) return res.status(404).json({ error: 'Booking not found' });
 
   const isOwner = booking.listing.submittedById === req.user!.id;

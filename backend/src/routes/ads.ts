@@ -160,7 +160,7 @@ router.get('/', async (req, res) => {
     keywords: keywords ? keywords.split(',').filter(Boolean) : [],
   };
 
-  const ranked = await scoreAndRank(ads as ScoredAd[], context, 5);
+  const ranked = await scoreAndRank(ads as unknown as ScoredAd[], context, 5);
 
   // Track impressions asynchronously
   if (ranked.length && sessionId) {

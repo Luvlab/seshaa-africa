@@ -56,7 +56,7 @@ router.post('/check-eligibility/:listingId', requireAuth, async (req: AuthReques
   const listing = await prisma.listing.findUnique({
     where: { id: req.params.listingId },
     include: { proSubscription: true },
-  });
+  }) as (Awaited<ReturnType<typeof prisma.listing.findUnique>> & { proSubscription: { active: boolean } | null }) | null;
   if (!listing) return res.status(404).json({ error: 'Listing not found' });
 
   const eligible =

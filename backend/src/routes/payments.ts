@@ -102,14 +102,15 @@ router.post('/stripe/checkout', requireAuth, async (req: AuthRequest, res: Respo
 router.post('/stripe/webhook', async (req, res) => {
   if (!stripe || !process.env.STRIPE_WEBHOOK_SECRET) return res.status(200).json({});
 
-  let event: Stripe.Event;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let event: any;
   try {
     event = stripe.webhooks.constructEvent(req.body, req.headers['stripe-signature'] as string, process.env.STRIPE_WEBHOOK_SECRET);
   } catch { return res.status(400).send('Webhook error'); }
 
   if (event.type === 'checkout.session.completed') {
-    const session = event.data.object as Stripe.CheckoutSession;
-    const { listingId, plan, userId } = session.metadata || {};
+    const session = event.data.object as { metadata: { listingId?: string; plan?: string; userId?: string } | null };
+    const { listingId, plan, userId } = (session.metadata as { listingId?: string; plan?: string; userId?: string }) || {};
     if (listingId && plan) {
       await activateProSubscription(listingId, plan as 'MONTHLY' | 'ANNUAL', userId, 'stripe');
     }
@@ -168,7 +169,7 @@ router.post('/flutterwave/verify', requireAuth, async (req: AuthRequest, res: Re
   const data = await verifyRes.json() as { status: string; data?: { status: string; meta?: { listingId: string; plan: string } } };
 
   if (data.status === 'success' && data.data?.status === 'successful') {
-    const meta = data.data.meta || {};
+    const meta: { listingId?: string; plan?: string } = data.data.meta || {};
     const lid = meta.listingId || listingId;
     const p = meta.plan || plan;
     await activateProSubscription(lid, p as 'MONTHLY' | 'ANNUAL', req.user!.id, 'flutterwave');
