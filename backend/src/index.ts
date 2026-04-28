@@ -56,8 +56,8 @@ app.use('/api/classifieds', classifiedsRouter);
 app.use('/api/prices', pricesRouter);
 
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  console.error(err);
-  res.status(500).json({ error: 'Internal server error' });
+  console.error('[error]', err?.message, err?.stack);
+  res.status(500).json({ error: 'Internal server error', detail: err?.message });
 });
 
 // Only start the HTTP server when running locally (not on Vercel serverless)
