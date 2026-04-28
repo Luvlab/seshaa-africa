@@ -26,16 +26,17 @@ interface Tab {
 }
 
 const ALL_TABS: Tab[] = [
-  { id: 'home', path: '/', label: 'Home', icon: '🏠' },
-  { id: 'search', path: '/search', label: 'Directory', icon: '🔍' },
-  { id: 'classifieds', path: '/classifieds', label: 'Classifieds', icon: '🏷️' },
-  { id: 'prices', path: '/prices', label: 'Prices', icon: '📊' },
-  { id: 'messages', path: '/messages', label: 'Messages', icon: '💬' },
-  { id: 'bookings', path: '/bookings', label: 'Bookings', icon: '📅' },
-  { id: 'advertise', path: '/advertise', label: 'Advertise', icon: '📢' },
-  { id: 'ambassador', path: '/ambassador', label: 'Ambassador', icon: '🌟', roles: ['AMBASSADOR', 'ADMIN'] },
-  { id: 'salesrep', path: '/salesrep', label: 'Sales', icon: '💼', roles: ['SALES_REP', 'ADMIN'] },
-  { id: 'admin', path: '/admin', label: 'Admin', icon: '⚙️', roles: ['ADMIN'] },
+  { id: 'home',        path: '/',           label: 'Home',        icon: '🏠' },
+  { id: 'search',      path: '/search',     label: 'Directory',   icon: '🔍' },
+  { id: 'news',        path: '/news',       label: 'News',        icon: '📰' },
+  { id: 'classifieds', path: '/classifieds',label: 'Classifieds', icon: '🏷️' },
+  { id: 'prices',      path: '/prices',     label: 'Prices',      icon: '📊' },
+  { id: 'messages',    path: '/messages',   label: 'Messages',    icon: '💬' },
+  { id: 'bookings',    path: '/bookings',   label: 'Bookings',    icon: '📅' },
+  { id: 'advertise',   path: '/advertise',  label: 'Advertise',   icon: '📢' },
+  { id: 'ambassador',  path: '/ambassador', label: 'Ambassador',  icon: '🌟', roles: ['AMBASSADOR', 'ADMIN'] },
+  { id: 'salesrep',    path: '/salesrep',   label: 'Sales',       icon: '💼', roles: ['SALES_REP', 'ADMIN'] },
+  { id: 'admin',       path: '/admin',      label: 'Admin',       icon: '⚙️', roles: ['ADMIN'] },
 ];
 
 export default function Navbar() {

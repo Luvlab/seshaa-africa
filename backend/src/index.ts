@@ -19,6 +19,7 @@ import bookingsRouter from './routes/bookings';
 import bankRouter from './routes/bank';
 import certificationsRouter from './routes/certifications';
 import interestsRouter from './routes/interests';
+import newsRouter from './routes/news';
 import classifiedsRouter from './routes/classifieds';
 import pricesRouter from './routes/prices';
 
@@ -50,6 +51,7 @@ app.use('/api/bookings', bookingsRouter);
 app.use('/api/bank', bankRouter);
 app.use('/api/certifications', certificationsRouter);
 app.use('/api/interests', interestsRouter);
+app.use('/api/news', newsRouter);
 app.use('/api/classifieds', classifiedsRouter);
 app.use('/api/prices', pricesRouter);
 
