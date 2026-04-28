@@ -26,7 +26,22 @@ import pricesRouter from './routes/prices';
 const app = express();
 
 app.use(helmet());
-app.use(cors({ origin: config.corsOrigin, credentials: true }));
+
+const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173')
+  .split(',')
+  .map(o => o.trim())
+  .filter(Boolean);
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.some(o => origin === o || origin.endsWith('.vercel.app'))) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS blocked: ${origin}`));
+    }
+  },
+  credentials: true,
+}));
 app.use(morgan('dev'));
 
 // Raw body needed for Stripe webhook signature verification
