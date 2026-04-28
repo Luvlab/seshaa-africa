@@ -1,0 +1,95 @@
+{
+  "app": {
+    "name": "Seshaa",
+    "tagline": "Umthombo Wabantu Namabhizinisi e-Afrika",
+    "description": "Thola noma ubani, noma yiliphi ibhizinisi, noma kuphi e-Afrika"
+  },
+  "nav": {
+    "home": "Ikhaya",
+    "search": "Sesha",
+    "addListing": "Engeza Uludwe",
+    "advertise": "Xhasa",
+    "salesRep": "Ummeleli",
+    "login": "Ngena",
+    "register": "Bhalisa",
+    "profile": "Iphrofayili Yami"
+  },
+  "search": {
+    "placeholder": "Sesha igama, ucingo, ibhizinisi...",
+    "city": "Idolobha",
+    "country": "Izwe",
+    "category": "Isigaba",
+    "type": "Uhlobo",
+    "searchBtn": "Sesha",
+    "results": "{{count}} imiphumela etholakele",
+    "noResults": "Akukho oludwe. Yiba owokuqala ukwengeza!",
+    "filters": "Izihlungi",
+    "all": "Konke"
+  },
+  "listing": {
+    "personal": "Umuntu",
+    "business": "Ibhizinisi",
+    "government": "Uhulumeni",
+    "ngo": "NGO",
+    "phone": "Ucingo",
+    "phone2": "Ucingo Lwesibili",
+    "email": "I-imeyili",
+    "address": "Ikheli",
+    "city": "Idolobha",
+    "country": "Izwe",
+    "region": "Isifunda",
+    "website": "Iwebhusayithi",
+    "whatsapp": "WhatsApp",
+    "category": "Isigaba",
+    "description": "Incazelo",
+    "verified": "Kuqinisekisiwe",
+    "views": "{{count}} ukubukwa",
+    "addNew": "Engeza Oludwe Olusha",
+    "editListing": "Hlela Uludwe",
+    "submit": "Thumela",
+    "submitSuccess": "Uludwe luthunyiwe ngempumelelo!",
+    "callNow": "Shayela Manje",
+    "directions": "Iziqondiso",
+    "share": "Yabelana",
+    "report": "Bika"
+  },
+  "ads": {
+    "sponsored": "Uxhaswa",
+    "advertiseHere": "Xhasa Lapha",
+    "getStarted": "Fika izigidi zabantu base-Afrika. Qala namuhla.",
+    "contactSalesRep": "Xhumana noMmeleli waseNdaweni"
+  },
+  "salesrep": {
+    "title": "Yiba uMmeleli Wokuthengisa",
+    "earn": "Hola {{rate}}% yenhlawulo kuzo zonke izikhangiso ozidayisayo",
+    "territory": "Indawo Yakho",
+    "dashboard": "Idashbhodi Yami",
+    "totalEarned": "Imali Eyonke",
+    "unpaidBalance": "Ibhalansi Engakhokhiwe",
+    "adsPlaced": "Izikhangiso Ezibekiwe",
+    "apply": "Faka Isicelo Manje",
+    "leaderboard": "Abavikeli Abahle"
+  },
+  "auth": {
+    "login": "Ngena",
+    "register": "Bhalisa",
+    "name": "Igama Eligcwele",
+    "email": "Ikheli Le-imeyili",
+    "phone": "Inombolo Yocingo",
+    "password": "Iphasiwedi",
+    "country": "Izwe",
+    "language": "Ulimi Olukhethwa",
+    "loginBtn": "Ngena",
+    "registerBtn": "Dala I-Akhawunti",
+    "noAccount": "Awunayo i-akhawunti?",
+    "hasAccount": "Unayo i-akhawunti?",
+    "logout": "Phuma"
+  },
+  "footer": {
+    "about": "Mayelana",
+    "privacy": "Ubumfihlo",
+    "terms": "Imigomo",
+    "contact": "Xhumana",
+    "copyright": "© {{year}} Seshaa. Yenziwe ngeze ❤️ i-Afrika."
+  }
+}

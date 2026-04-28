@@ -1,0 +1,146 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String?   @unique
+  phone        String?   @unique
+  name         String
+  role         Role      @default(USER)
+  language     String    @default("en")
+  country      String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  listings     Listing[]
+  salesRep     SalesRep?
+}
+
+enum Role {
+  USER
+  BUSINESS_OWNER
+  SALES_REP
+  ADMIN
+}
+
+model Listing {
+  id           String       @id @default(uuid())
+  type         ListingType
+  name         String
+  phone        String?
+  phone2       String?
+  email        String?
+  address      String?
+  city         String
+  country      String
+  region       String?
+  zipCode      String?
+  latitude     Float?
+  longitude    Float?
+  category     String?
+  subcategory  String?
+  description  String?
+  website      String?
+  whatsapp     String?
+  verified     Boolean      @default(false)
+  active       Boolean      @default(true)
+  viewCount    Int          @default(0)
+  language     String       @default("en")
+  osmId        String?      @unique
+  isPro        Boolean      @default(false)
+  logoUrl      String?
+  photos       String[]
+  openingHours String?
+  submittedBy  User?        @relation(fields: [submittedById], references: [id])
+  submittedById String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  ads          Ad[]
+  tags         Tag[]
+
+  @@index([city, country])
+  @@index([category])
+  @@index([phone])
+  @@fulltext([name, description, address])
+}
+
+enum ListingType {
+  PERSONAL
+  BUSINESS
+  GOVERNMENT
+  NGO
+}
+
+model Tag {
+  id        String    @id @default(uuid())
+  name      String
+  listing   Listing   @relation(fields: [listingId], references: [id])
+  listingId String
+}
+
+model Ad {
+  id           String    @id @default(uuid())
+  title        String
+  imageUrl     String?
+  targetUrl    String
+  advertiser   String
+  contactPhone String?
+  listing      Listing?  @relation(fields: [listingId], references: [id])
+  listingId    String?
+  salesRep     SalesRep? @relation(fields: [salesRepId], references: [id])
+  salesRepId   String?
+  tier         AdTier    @default(BANNER)
+  country      String?
+  city         String?
+  category     String?
+  startDate    DateTime
+  endDate      DateTime
+  budget       Float
+  spent        Float     @default(0)
+  impressions  Int       @default(0)
+  clicks       Int       @default(0)
+  active       Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  commissions  Commission[]
+}
+
+enum AdTier {
+  BANNER
+  FEATURED
+  SPONSORED
+  PREMIUM
+}
+
+model SalesRep {
+  id           String       @id @default(uuid())
+  user         User         @relation(fields: [userId], references: [id])
+  userId       String       @unique
+  territory    String
+  country      String
+  commissionRate Float      @default(0.20)
+  totalEarned  Float        @default(0)
+  active       Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+  ads          Ad[]
+  commissions  Commission[]
+}
+
+model Commission {
+  id          String     @id @default(uuid())
+  salesRep    SalesRep   @relation(fields: [salesRepId], references: [id])
+  salesRepId  String
+  ad          Ad         @relation(fields: [adId], references: [id])
+  adId        String
+  amount      Float
+  rate        Float
+  paid        Boolean    @default(false)
+  paidAt      DateTime?
+  createdAt   DateTime   @default(now())
+}

@@ -1,0 +1,95 @@
+{
+  "app": {
+    "name": "Seshaa",
+    "tagline": "Afrika Nnipa ne Dwumadi Nkrataa",
+    "description": "Hwehwɛ obiara, adwuma biara, baabi biara wɔ Afrika"
+  },
+  "nav": {
+    "home": "Fie",
+    "search": "Hwehwɛ",
+    "addListing": "Fa Nsɛm Ka Ho",
+    "advertise": "Amanneɛbɔ",
+    "salesRep": "Ɔkansafo",
+    "login": "Bra Mu",
+    "register": "Kyerɛw wo din",
+    "profile": "Me Ho Nsɛm"
+  },
+  "search": {
+    "placeholder": "Hwehwɛ din, fon, adwuma...",
+    "city": "Kuro",
+    "country": "Ɔman",
+    "category": "Nkyerɛaee",
+    "type": "Susu",
+    "searchBtn": "Hwehwɛ",
+    "results": "Wohu {{count}} ntoasoɔ",
+    "noResults": "Woanhu nsɛm biara. Yɛ ɔhyɛase!",
+    "filters": "Nsiesie",
+    "all": "Nyinaa"
+  },
+  "listing": {
+    "personal": "Onipa",
+    "business": "Adwuma",
+    "government": "Aban",
+    "ngo": "NGO",
+    "phone": "Fon",
+    "phone2": "Fon Mmienu",
+    "email": "Email",
+    "address": "Adrɛse",
+    "city": "Kuro",
+    "country": "Ɔman",
+    "region": "Bɔ",
+    "website": "Website",
+    "whatsapp": "WhatsApp",
+    "category": "Nkyerɛaee",
+    "description": "Nsɛm",
+    "verified": "Wɔayi adi",
+    "views": "Ahwɛ {{count}}",
+    "addNew": "Fa Nsɛm Foforɔ Ka Ho",
+    "editListing": "Sesa Nsɛm",
+    "submit": "Fa Kɔ",
+    "submitSuccess": "Wɔde nsɛm koaa!",
+    "callNow": "Frɛ Seesei",
+    "directions": "Akwankyerɛ",
+    "share": "Kyɛ",
+    "report": "Bɔ Amanneɛ"
+  },
+  "ads": {
+    "sponsored": "Ɔboafoɔ",
+    "advertiseHere": "Bɔ Amanneɛ Ha",
+    "getStarted": "Kɔ Afrika nnipa ɔpepem. Hyɛ ase nnɛ.",
+    "contactSalesRep": "Kasa ne Ɔkansafo no"
+  },
+  "salesrep": {
+    "title": "Yɛ Adwuma Kansafo",
+    "earn": "Nya {{rate}}% aky£ kyere a wode nsa kaa amanneɛbɔ biara",
+    "territory": "Wo Asase",
+    "dashboard": "Me Dashboard",
+    "totalEarned": "Sikasem Nyinaa",
+    "unpaidBalance": "Sika a Wɔnto",
+    "adsPlaced": "Amanneɛbɔ a Wɔde Agu",
+    "apply": "Bisa Seesei",
+    "leaderboard": "Nnipa a Wɔyɛ Adeɛ"
+  },
+  "auth": {
+    "login": "Bra Mu",
+    "register": "Kyerɛw wo din",
+    "name": "Din Nyinaa",
+    "email": "Email Adrɛse",
+    "phone": "Fon Nɔma",
+    "password": "Ɔhintaɛ Asɛm",
+    "country": "Ɔman",
+    "language": "Kasa a Wopɛ",
+    "loginBtn": "Bra",
+    "registerBtn": "Yɛ Account",
+    "noAccount": "Wo nni account?",
+    "hasAccount": "Wo wɔ account?",
+    "logout": "Pue"
+  },
+  "footer": {
+    "about": "Fa Ho",
+    "privacy": "Ɔhintaɛ",
+    "terms": "Mmara",
+    "contact": "Ka Kyerɛ",
+    "copyright": "© {{year}} Seshaa. Yɛde ❤️ yɛe maa Afrika."
+  }
+}

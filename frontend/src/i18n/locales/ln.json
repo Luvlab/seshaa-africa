@@ -1,0 +1,95 @@
+{
+  "app": {
+    "name": "Seshaa",
+    "tagline": "Boteli ya Bato pe Misala ya Afríka",
+    "description": "Koluka moto nyonso, misala nyonso, esika nyonso na Afríka"
+  },
+  "nav": {
+    "home": "Ndako",
+    "search": "Koluka",
+    "addListing": "Kobakisa Lisi",
+    "advertise": "Lisambisi",
+    "salesRep": "Mokambi",
+    "login": "Kokota",
+    "register": "Kokomela",
+    "profile": "Profilo na ngai"
+  },
+  "search": {
+    "placeholder": "Luka nkombo, telefoni, mosala...",
+    "city": "Engumba",
+    "country": "Mboka",
+    "category": "Ndenge",
+    "type": "Motuka",
+    "searchBtn": "Koluka",
+    "results": "Biloko {{count}} euti",
+    "noResults": "Eloko te. Koma ya liboso kobakisa!",
+    "filters": "Filtre",
+    "all": "Nyonso"
+  },
+  "listing": {
+    "personal": "Moto",
+    "business": "Mosala",
+    "government": "Gavana",
+    "ngo": "ONG",
+    "phone": "Telefoni",
+    "phone2": "Telefoni ya Mibale",
+    "email": "Email",
+    "address": "Adiresi",
+    "city": "Engumba",
+    "country": "Mboka",
+    "region": "Etúká",
+    "website": "Site Web",
+    "whatsapp": "WhatsApp",
+    "category": "Ndenge",
+    "description": "Tángisa",
+    "verified": "Ekomisami",
+    "views": "Tomoni {{count}}",
+    "addNew": "Kobakisa Lisi Ya sika",
+    "editListing": "Kobongola Lisi",
+    "submit": "Kotinda",
+    "submitSuccess": "Lisi etindamaki malamu!",
+    "callNow": "Bela Sikoyo",
+    "directions": "Nzela",
+    "share": "Kokabola",
+    "report": "Lipota"
+  },
+  "ads": {
+    "sponsored": "Esalisami",
+    "advertiseHere": "Lisambisi Awa",
+    "getStarted": "Koma na ba millions ya Baafríkani. Bandela lelo.",
+    "contactSalesRep": "Samba na Mokambi ya mboka"
+  },
+  "salesrep": {
+    "title": "Koma Mokambi ya Bitumba",
+    "earn": "Zwa {{rate}}% komisio na lisambisi nyonso oli kotumba",
+    "territory": "Esika na yo",
+    "dashboard": "Dashboard na ngai",
+    "totalEarned": "Mbongo yonso",
+    "unpaidBalance": "Mbongo etikali",
+    "adsPlaced": "Bilisambisi etiamaki",
+    "apply": "Demanda Sikoyo",
+    "leaderboard": "Bafundi ya Malamu"
+  },
+  "auth": {
+    "login": "Kokota",
+    "register": "Kokomela",
+    "name": "Nkombo mobimba",
+    "email": "Adiresi Email",
+    "phone": "Nimero Telefoni",
+    "password": "Liloba ya Bosecret",
+    "country": "Mboka",
+    "language": "Monoko oponi",
+    "loginBtn": "Kota",
+    "registerBtn": "Sala Konto",
+    "noAccount": "Ozali na konto te?",
+    "hasAccount": "Ozali na konto?",
+    "logout": "Kobima"
+  },
+  "footer": {
+    "about": "Mpo na",
+    "privacy": "Bosecreto",
+    "terms": "Bilembo",
+    "contact": "Kokutana",
+    "copyright": "© {{year}} Seshaa. Esalamaki na ❤️ mpo na Afríka."
+  }
+}

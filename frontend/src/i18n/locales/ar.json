@@ -1,0 +1,95 @@
+{
+  "app": {
+    "name": "Seshaa",
+    "tagline": "دليل الأشخاص والأعمال في أفريقيا",
+    "description": "ابحث عن أي شخص، أي عمل، في أي مكان في أفريقيا"
+  },
+  "nav": {
+    "home": "الرئيسية",
+    "search": "بحث",
+    "addListing": "إضافة إدراج",
+    "advertise": "الإعلان",
+    "salesRep": "مندوب المبيعات",
+    "login": "تسجيل الدخول",
+    "register": "التسجيل",
+    "profile": "ملفي الشخصي"
+  },
+  "search": {
+    "placeholder": "ابحث بالاسم، الهاتف، العمل...",
+    "city": "المدينة",
+    "country": "البلد",
+    "category": "الفئة",
+    "type": "النوع",
+    "searchBtn": "بحث",
+    "results": "تم العثور على {{count}} نتيجة",
+    "noResults": "لم يتم العثور على قوائم. كن أول من يضيف!",
+    "filters": "الفلاتر",
+    "all": "الكل"
+  },
+  "listing": {
+    "personal": "شخصي",
+    "business": "عمل تجاري",
+    "government": "حكومي",
+    "ngo": "منظمة غير حكومية",
+    "phone": "الهاتف",
+    "phone2": "هاتف ثانوي",
+    "email": "البريد الإلكتروني",
+    "address": "العنوان",
+    "city": "المدينة",
+    "country": "البلد",
+    "region": "المنطقة",
+    "website": "الموقع الإلكتروني",
+    "whatsapp": "واتساب",
+    "category": "الفئة",
+    "description": "الوصف",
+    "verified": "موثق",
+    "views": "{{count}} مشاهدة",
+    "addNew": "إضافة إدراج جديد",
+    "editListing": "تعديل الإدراج",
+    "submit": "إرسال",
+    "submitSuccess": "تم إرسال الإدراج بنجاح!",
+    "callNow": "اتصل الآن",
+    "directions": "الاتجاهات",
+    "share": "مشاركة",
+    "report": "إبلاغ"
+  },
+  "ads": {
+    "sponsored": "ممول",
+    "advertiseHere": "اعلن هنا",
+    "getStarted": "تواصل مع ملايين الأفارقة. ابدأ اليوم.",
+    "contactSalesRep": "تواصل مع مندوب مبيعات محلي"
+  },
+  "salesrep": {
+    "title": "كن مندوب مبيعات",
+    "earn": "اكسب {{rate}}% عمولة على كل إعلان تبيعه",
+    "territory": "منطقتك",
+    "dashboard": "لوحة التحكم",
+    "totalEarned": "إجمالي الأرباح",
+    "unpaidBalance": "الرصيد غير المدفوع",
+    "adsPlaced": "الإعلانات المُدرجة",
+    "apply": "تقدم الآن",
+    "leaderboard": "أفضل البائعين"
+  },
+  "auth": {
+    "login": "تسجيل الدخول",
+    "register": "التسجيل",
+    "name": "الاسم الكامل",
+    "email": "البريد الإلكتروني",
+    "phone": "رقم الهاتف",
+    "password": "كلمة المرور",
+    "country": "البلد",
+    "language": "اللغة المفضلة",
+    "loginBtn": "دخول",
+    "registerBtn": "إنشاء حساب",
+    "noAccount": "ليس لديك حساب؟",
+    "hasAccount": "لديك حساب بالفعل؟",
+    "logout": "تسجيل الخروج"
+  },
+  "footer": {
+    "about": "حول",
+    "privacy": "الخصوصية",
+    "terms": "الشروط",
+    "contact": "تواصل",
+    "copyright": "© {{year}} Seshaa. صُنع بـ ❤️ لأفريقيا."
+  }
+}

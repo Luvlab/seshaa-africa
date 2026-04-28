@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "projects": [
+    {
+      "name": "seshaa-frontend",
+      "root": "frontend",
+      "framework": "vite"
+    },
+    {
+      "name": "seshaa-api",
+      "root": "backend"
+    }
+  ]
+}

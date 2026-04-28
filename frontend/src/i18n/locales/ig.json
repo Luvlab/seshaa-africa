@@ -1,0 +1,95 @@
+{
+  "app": {
+    "name": "Seshaa",
+    "tagline": "Ndepụta Ndị Mmadụ na Azụmahịa Africa",
+    "description": "Chọta onye ọ bụla, ọrụ ọ bụla, ebe ọ bụla na Africa"
+  },
+  "nav": {
+    "home": "Ụlọ",
+    "search": "Chọọ",
+    "addListing": "Tinye Ndepụta",
+    "advertise": "Kwuo Okwu",
+    "salesRep": "Onye Nnọchi",
+    "login": "Banye",
+    "register": "Deezie Onwe Gị",
+    "profile": "Profaịlụ M"
+  },
+  "search": {
+    "placeholder": "Chọọ aha, ekwentị, azụmahịa...",
+    "city": "Obodo",
+    "country": "Mba",
+    "category": "Udi",
+    "type": "Ụdị",
+    "searchBtn": "Chọọ",
+    "results": "Achọtara {{count}} nsochiụzọ",
+    "noResults": "Achọtaghị ndepụta. Bụrụ nke mbụ itinye!",
+    "filters": "Ọnụọgụ",
+    "all": "Nile"
+  },
+  "listing": {
+    "personal": "Onye Mmadụ",
+    "business": "Azụmahịa",
+    "government": "Gọọmenti",
+    "ngo": "NGO",
+    "phone": "Ekwentị",
+    "phone2": "Ekwentị Nke Abụọ",
+    "email": "Email",
+    "address": "Adreesị",
+    "city": "Obodo",
+    "country": "Mba",
+    "region": "Mpaghara",
+    "website": "Webụsaịtị",
+    "whatsapp": "WhatsApp",
+    "category": "Udi",
+    "description": "Nkọwa",
+    "verified": "Akwadoro",
+    "views": "Ọ fụtara oge {{count}}",
+    "addNew": "Tinye Ndepụta Ọhụrụ",
+    "editListing": "Dezie Ndepụta",
+    "submit": "Zipu",
+    "submitSuccess": "Enyefere ndepụta nke ọma!",
+    "callNow": "Kpọọ Ugbu a",
+    "directions": "Uzọ",
+    "share": "Kekọrịta",
+    "report": "Kọọ"
+  },
+  "ads": {
+    "sponsored": "Nkwado",
+    "advertiseHere": "Kwuo Okwu Ebe a",
+    "getStarted": "Rụọ ọrụ na nde ndị Africa. Bido taa.",
+    "contactSalesRep": "Kpọtụrụ Onye Nnọchi Mpaghara"
+  },
+  "salesrep": {
+    "title": "Bụrụ Onye Nnọchi Ahịa",
+    "earn": "Nweta {{rate}}% mbọ isi maka mgbasa ozi ọ bụla i re",
+    "territory": "Mpaghara Gị",
+    "dashboard": "Dashbọọdụ M",
+    "totalEarned": "Ego Nile Enwetara",
+    "unpaidBalance": "Ego E Rigbughị",
+    "adsPlaced": "Mgbasa Ozi Etinyere",
+    "apply": "Rịọ Ugbu a",
+    "leaderboard": "Ndị Kasị Ọ Dị Mma"
+  },
+  "auth": {
+    "login": "Banye",
+    "register": "Deezie Onwe Gị",
+    "name": "Aha Ọzọ",
+    "email": "Adreesị Email",
+    "phone": "Nọmba Ekwentị",
+    "password": "Paaswaadị",
+    "country": "Mba",
+    "language": "Asụsụ Ị Họọrọ",
+    "loginBtn": "Banye",
+    "registerBtn": "Mepụta Akaụntị",
+    "noAccount": "Ọ dịghị akaụntị gị?",
+    "hasAccount": "Ọ dị akaụntị gị?",
+    "logout": "Pụọ"
+  },
+  "footer": {
+    "about": "Maka",
+    "privacy": "Nzuzo",
+    "terms": "Ụkpụrụ",
+    "contact": "Kpọtụrụ",
+    "copyright": "© {{year}} Seshaa. E mebere ya n'ịhụnanya ❤️ Africa."
+  }
+}

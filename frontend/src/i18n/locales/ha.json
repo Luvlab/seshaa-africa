@@ -1,0 +1,95 @@
+{
+  "app": {
+    "name": "Seshaa",
+    "tagline": "Littafin Adireshi na Kasuwanci na Afrika",
+    "description": "Nemi kowa, kasuwanci kowane, ko'ina Afirka"
+  },
+  "nav": {
+    "home": "Gida",
+    "search": "Nemi",
+    "addListing": "Ƙara Jerin",
+    "advertise": "Yi Talla",
+    "salesRep": "Wakili",
+    "login": "Shiga",
+    "register": "Yi Rajista",
+    "profile": "Bayanan Kaina"
+  },
+  "search": {
+    "placeholder": "Nemi suna, waya, kasuwanci...",
+    "city": "Birni",
+    "country": "Ƙasa",
+    "category": "Nau'i",
+    "type": "Irin",
+    "searchBtn": "Nemi",
+    "results": "An sami sakamako {{count}}",
+    "noResults": "Ba a sami jerin ba. Ka zama na farko da ka ƙara!",
+    "filters": "Tace",
+    "all": "Duka"
+  },
+  "listing": {
+    "personal": "Na Mutum",
+    "business": "Kasuwanci",
+    "government": "Gwamnati",
+    "ngo": "NGO",
+    "phone": "Waya",
+    "phone2": "Waya ta Biyu",
+    "email": "Email",
+    "address": "Adireshi",
+    "city": "Birni",
+    "country": "Ƙasa",
+    "region": "Yanki",
+    "website": "Shafin Yanar Gizo",
+    "whatsapp": "WhatsApp",
+    "category": "Nau'i",
+    "description": "Bayanai",
+    "verified": "An Tabbatar",
+    "views": "Kallo {{count}}",
+    "addNew": "Ƙara Sabon Jeri",
+    "editListing": "Gyara Jeri",
+    "submit": "Aika",
+    "submitSuccess": "An aika jerin cikin nasara!",
+    "callNow": "Kira Yanzu",
+    "directions": "Nuni",
+    "share": "Raba",
+    "report": "Rahoton"
+  },
+  "ads": {
+    "sponsored": "Mai Tallafawa",
+    "advertiseHere": "Yi Talla A nan",
+    "getStarted": "Isa miliyoyin Afirikawa. Fara yau.",
+    "contactSalesRep": "Tuntubi Wakili na Gari"
+  },
+  "salesrep": {
+    "title": "Zama Wakili na Tallace-tallace",
+    "earn": "Samu kashi {{rate}} daga kowane talla da kuka siyar",
+    "territory": "Yankinku",
+    "dashboard": "Allon Kaina",
+    "totalEarned": "Jimlar Kuɗi",
+    "unpaidBalance": "Kuɗin Da Ba'a Biya",
+    "adsPlaced": "Tallace-tallace Da aka Sanya",
+    "apply": "Nema Yanzu",
+    "leaderboard": "Mafi Nasara"
+  },
+  "auth": {
+    "login": "Shiga",
+    "register": "Yi Rajista",
+    "name": "Cikakken Suna",
+    "email": "Adireshin Email",
+    "phone": "Lambar Waya",
+    "password": "Kalmar Sirri",
+    "country": "Ƙasa",
+    "language": "Yaren da Ka fi so",
+    "loginBtn": "Shiga",
+    "registerBtn": "Buɗe Asusun",
+    "noAccount": "Ba ka da asusun?",
+    "hasAccount": "Kana da asusun?",
+    "logout": "Fita"
+  },
+  "footer": {
+    "about": "Game da",
+    "privacy": "Sirri",
+    "terms": "Sharuɗɗa",
+    "contact": "Tuntuɓa",
+    "copyright": "© {{year}} Seshaa. An yi da ❤️ domin Afirka."
+  }
+}

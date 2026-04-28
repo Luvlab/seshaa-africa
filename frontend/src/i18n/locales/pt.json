@@ -1,0 +1,95 @@
+{
+  "app": {
+    "name": "Seshaa",
+    "tagline": "Diretório de Pessoas e Negócios da África",
+    "description": "Encontre qualquer pessoa, qualquer negócio, em qualquer lugar da África"
+  },
+  "nav": {
+    "home": "Início",
+    "search": "Pesquisar",
+    "addListing": "Adicionar Listagem",
+    "advertise": "Publicitar",
+    "salesRep": "Representante",
+    "login": "Entrar",
+    "register": "Registrar",
+    "profile": "Meu Perfil"
+  },
+  "search": {
+    "placeholder": "Pesquisar nome, telefone, negócio...",
+    "city": "Cidade",
+    "country": "País",
+    "category": "Categoria",
+    "type": "Tipo",
+    "searchBtn": "Pesquisar",
+    "results": "{{count}} resultados encontrados",
+    "noResults": "Nenhuma listagem encontrada. Seja o primeiro a adicionar!",
+    "filters": "Filtros",
+    "all": "Todos"
+  },
+  "listing": {
+    "personal": "Pessoal",
+    "business": "Negócio",
+    "government": "Governo",
+    "ngo": "ONG",
+    "phone": "Telefone",
+    "phone2": "Telefone Secundário",
+    "email": "Email",
+    "address": "Endereço",
+    "city": "Cidade",
+    "country": "País",
+    "region": "Região",
+    "website": "Site",
+    "whatsapp": "WhatsApp",
+    "category": "Categoria",
+    "description": "Descrição",
+    "verified": "Verificado",
+    "views": "{{count}} visualizações",
+    "addNew": "Adicionar Nova Listagem",
+    "editListing": "Editar Listagem",
+    "submit": "Enviar",
+    "submitSuccess": "Listagem enviada com sucesso!",
+    "callNow": "Ligar Agora",
+    "directions": "Direções",
+    "share": "Compartilhar",
+    "report": "Reportar"
+  },
+  "ads": {
+    "sponsored": "Patrocinado",
+    "advertiseHere": "Anuncie Aqui",
+    "getStarted": "Alcance milhões de africanos. Comece hoje.",
+    "contactSalesRep": "Contacte um Representante Local"
+  },
+  "salesrep": {
+    "title": "Torne-se Representante de Vendas",
+    "earn": "Ganhe {{rate}}% de comissão em cada anúncio que vender",
+    "territory": "Seu Território",
+    "dashboard": "Meu Painel",
+    "totalEarned": "Total Ganho",
+    "unpaidBalance": "Saldo Não Pago",
+    "adsPlaced": "Anúncios Colocados",
+    "apply": "Candidatar-se Agora",
+    "leaderboard": "Melhores Vendedores"
+  },
+  "auth": {
+    "login": "Entrar",
+    "register": "Registrar",
+    "name": "Nome Completo",
+    "email": "Endereço de Email",
+    "phone": "Número de Telefone",
+    "password": "Senha",
+    "country": "País",
+    "language": "Idioma Preferido",
+    "loginBtn": "Entrar",
+    "registerBtn": "Criar Conta",
+    "noAccount": "Não tem conta?",
+    "hasAccount": "Já tem conta?",
+    "logout": "Sair"
+  },
+  "footer": {
+    "about": "Sobre",
+    "privacy": "Privacidade",
+    "terms": "Termos",
+    "contact": "Contacto",
+    "copyright": "© {{year}} Seshaa. Feito com ❤️ para África."
+  }
+}

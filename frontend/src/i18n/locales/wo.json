@@ -1,0 +1,95 @@
+{
+  "app": {
+    "name": "Seshaa",
+    "tagline": "Répertoire bi bu Nit yi ak Liggéey yi ci Afrig",
+    "description": "Seet boo bëgg, liggéey buy bëgg, foofu nekk ci Afrig"
+  },
+  "nav": {
+    "home": "Keur",
+    "search": "Seet",
+    "addListing": "Yokk Limoongo",
+    "advertise": "Reklam",
+    "salesRep": "Délégué",
+    "login": "Dugg",
+    "register": "Bindal sa xam",
+    "profile": "Sa Profil"
+  },
+  "search": {
+    "placeholder": "Seet tur, telefon, liggéey...",
+    "city": "Dëkk",
+    "country": "Réew",
+    "category": "Wàll",
+    "type": "Xeetu",
+    "searchBtn": "Seet",
+    "results": "{{count}} jëfandikukat yiñu gis",
+    "noResults": "Amul limoongo. Mën a def ak yow ci kanam!",
+    "filters": "Filtre yi",
+    "all": "Yépp"
+  },
+  "listing": {
+    "personal": "Nit",
+    "business": "Liggéey",
+    "government": "Gouvernement",
+    "ngo": "ONG",
+    "phone": "Telefon",
+    "phone2": "Telefon Ñaareel",
+    "email": "Iimeel",
+    "address": "Adiress",
+    "city": "Dëkk",
+    "country": "Réew",
+    "region": "Région",
+    "website": "Site web",
+    "whatsapp": "WhatsApp",
+    "category": "Wàll",
+    "description": "Melokaan",
+    "verified": "Nettali",
+    "views": "Xool {{count}}",
+    "addNew": "Yokk Limoongo bu bees",
+    "editListing": "Soppi Limoongo",
+    "submit": "Yónnee",
+    "submitSuccess": "Limoongo yónnee na!",
+    "callNow": "Wollu Léegi",
+    "directions": "Yoon",
+    "share": "Fàggal",
+    "report": "Jëgël"
+  },
+  "ads": {
+    "sponsored": "Sàllteeku",
+    "advertiseHere": "Reklam Fii",
+    "getStarted": "Jot miliyoŋ Afriken. Tambali tey.",
+    "contactSalesRep": "Jokkoo ak Délégué bu ci kanam"
+  },
+  "salesrep": {
+    "title": "Dëkkal Délégué bu Jaay",
+    "earn": "Am {{rate}}% komisyon ci reklaamu yëpp nga jaay",
+    "territory": "Sa Territwar",
+    "dashboard": "Sa Tableau de Bord",
+    "totalEarned": "Xaalis yépp",
+    "unpaidBalance": "Xaalis bu sañ sañ",
+    "adsPlaced": "Reklam yi dingi def",
+    "apply": "Sóobu Léegi",
+    "leaderboard": "Yi Rafet ci Kanam"
+  },
+  "auth": {
+    "login": "Dugg",
+    "register": "Bindal sa xam",
+    "name": "Tur bi mu bëgga",
+    "email": "Adiress Iimeel",
+    "phone": "Nimero Telefon",
+    "password": "Waxtaan bu suur",
+    "country": "Réew",
+    "language": "Làkk bu la neex",
+    "loginBtn": "Dugg",
+    "registerBtn": "Dëkkantal konte",
+    "noAccount": "Amul sa konte?",
+    "hasAccount": "Am nga konte?",
+    "logout": "Génne"
+  },
+  "footer": {
+    "about": "Ci kanam",
+    "privacy": "Sirr",
+    "terms": "Règlement",
+    "contact": "Jokkoo",
+    "copyright": "© {{year}} Seshaa. Def ak ❤️ ci Afrig."
+  }
+}

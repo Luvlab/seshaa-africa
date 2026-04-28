@@ -1,0 +1,95 @@
+{
+  "app": {
+    "name": "Seshaa",
+    "tagline": "Ìwé Àkọsílẹ̀ Ènìyàn àti Òwò Áfríkà",
+    "description": "Wá ẹnikẹni, òwò èyíkéyìí, níbikíbi ní Áfríkà"
+  },
+  "nav": {
+    "home": "Ilé",
+    "search": "Wá",
+    "addListing": "Ṣàfikún Àkójọ",
+    "advertise": "Ṣe Ìpolówó",
+    "salesRep": "Aṣojú",
+    "login": "Wọlé",
+    "register": "Forúkọsílẹ̀",
+    "profile": "Ìwé-Àkọsílẹ̀ Mi"
+  },
+  "search": {
+    "placeholder": "Wá orukọ, fóònù, òwò...",
+    "city": "Ìlú",
+    "country": "Orílẹ̀-èdè",
+    "category": "Ẹ̀ka",
+    "type": "Irú",
+    "searchBtn": "Wá",
+    "results": "A rí àbájáde {{count}}",
+    "noResults": "A kò rí àkójọ kankan. Jẹ́ kí ìwọ jẹ́ ẹni àkọ́kọ́!",
+    "filters": "Àwọn Àlẹ̀mọ́",
+    "all": "Gbogbo"
+  },
+  "listing": {
+    "personal": "Tikalararẹ",
+    "business": "Òwò",
+    "government": "Ìjọba",
+    "ngo": "NGO",
+    "phone": "Fóònu",
+    "phone2": "Fóònu Kejì",
+    "email": "Email",
+    "address": "Àdírẹ́sì",
+    "city": "Ìlú",
+    "country": "Orílẹ̀-èdè",
+    "region": "Agbègbè",
+    "website": "Ìkànsí Ayélujára",
+    "whatsapp": "WhatsApp",
+    "category": "Ẹ̀ka",
+    "description": "Àpèjúwe",
+    "verified": "Ó ti jẹ́ ìmúdájú",
+    "views": "Àwọn ojú ìwò {{count}}",
+    "addNew": "Ṣàfikún Àkójọ Tuntun",
+    "editListing": "Ṣàtúnṣe Àkójọ",
+    "submit": "Fi sílẹ̀",
+    "submitSuccess": "A fi àkójọ sílẹ̀ pẹ̀lú àṣeyọrí!",
+    "callNow": "Pè Ní Báyìí",
+    "directions": "Àwọn Ìtọ́sọ́nà",
+    "share": "Pin",
+    "report": "Ìjábọ̀"
+  },
+  "ads": {
+    "sponsored": "Àtìlẹ́yìn",
+    "advertiseHere": "Ṣe Ìpolówó Níhìn-ín",
+    "getStarted": "Dé ọ̀dọ̀ mílíọ̀nù àwọn ará Áfríkà. Bẹ̀rẹ̀ lónìí.",
+    "contactSalesRep": "Kan sí Aṣojú Àdúgbò"
+  },
+  "salesrep": {
+    "title": "Di Aṣojú Tita",
+    "earn": "Gba ìdá ọgọ́rùn-ún {{rate}} lórí ìpolówó kọọkan tí o tà",
+    "territory": "Agbègbè Rẹ",
+    "dashboard": "Dáṣíbọ̀dù Mi",
+    "totalEarned": "Àpapọ̀ Owó",
+    "unpaidBalance": "Owó Tí A Kò Sanwó",
+    "adsPlaced": "Àwọn Ìpolówó",
+    "apply": "Béèrè Ní Báyìí",
+    "leaderboard": "Àwọn Tó Dára Jù"
+  },
+  "auth": {
+    "login": "Wọlé",
+    "register": "Forúkọsílẹ̀",
+    "name": "Orúkọ Kíkún",
+    "email": "Àdírẹ́sì Email",
+    "phone": "Nọ́mbà Fóònu",
+    "password": "Ọ̀rọ̀ Aṣínà",
+    "country": "Orílẹ̀-èdè",
+    "language": "Èdè Àṣàyàn",
+    "loginBtn": "Wọlé",
+    "registerBtn": "Ṣẹ̀dá Àkáǹtì",
+    "noAccount": "Kò sí àkáǹtì?",
+    "hasAccount": "Ní àkáǹtì tẹ́lẹ̀?",
+    "logout": "Jáde"
+  },
+  "footer": {
+    "about": "Nípa",
+    "privacy": "Àṣírí",
+    "terms": "Àwọn Ìlànà",
+    "contact": "Kànsí",
+    "copyright": "© {{year}} Seshaa. A ṣe pẹ̀lú ❤️ fún Áfríkà."
+  }
+}

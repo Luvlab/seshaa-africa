@@ -1,0 +1,95 @@
+{
+  "app": {
+    "name": "Seshaa",
+    "tagline": "Saraka ya Watu na Biashara Afrika",
+    "description": "Tafuta mtu yeyote, biashara yoyote, popote Afrika"
+  },
+  "nav": {
+    "home": "Nyumbani",
+    "search": "Tafuta",
+    "addListing": "Ongeza Orodha",
+    "advertise": "Tangaza",
+    "salesRep": "Mwakilishi",
+    "login": "Ingia",
+    "register": "Jisajili",
+    "profile": "Wasifu Wangu"
+  },
+  "search": {
+    "placeholder": "Tafuta jina, simu, biashara...",
+    "city": "Mji",
+    "country": "Nchi",
+    "category": "Jamii",
+    "type": "Aina",
+    "searchBtn": "Tafuta",
+    "results": "{{count}} matokeo yamepatikana",
+    "noResults": "Hakuna orodha zilizopatikana. Kuwa wa kwanza kuongeza!",
+    "filters": "Vichujio",
+    "all": "Yote"
+  },
+  "listing": {
+    "personal": "Binafsi",
+    "business": "Biashara",
+    "government": "Serikali",
+    "ngo": "NGO",
+    "phone": "Simu",
+    "phone2": "Simu ya Pili",
+    "email": "Barua pepe",
+    "address": "Anwani",
+    "city": "Mji",
+    "country": "Nchi",
+    "region": "Mkoa",
+    "website": "Tovuti",
+    "whatsapp": "WhatsApp",
+    "category": "Jamii",
+    "description": "Maelezo",
+    "verified": "Imethibitishwa",
+    "views": "Mara {{count}} zimeangaliwa",
+    "addNew": "Ongeza Orodha Mpya",
+    "editListing": "Hariri Orodha",
+    "submit": "Wasilisha",
+    "submitSuccess": "Orodha imewasilishwa!",
+    "callNow": "Piga simu sasa",
+    "directions": "Maelekezo",
+    "share": "Shiriki",
+    "report": "Ripoti"
+  },
+  "ads": {
+    "sponsored": "Imeandaliwa",
+    "advertiseHere": "Tangaza Hapa",
+    "getStarted": "Fikia mamilioni ya Waafrika. Anza leo.",
+    "contactSalesRep": "Wasiliana na Mwakilishi wa Karibu"
+  },
+  "salesrep": {
+    "title": "Kuwa Mwakilishi wa Mauzo",
+    "earn": "Pata asilimia {{rate}} ya kila tangazo unalouza",
+    "territory": "Eneo Lako",
+    "dashboard": "Dashibodi Yangu",
+    "totalEarned": "Jumla Iliyopatikana",
+    "unpaidBalance": "Salio Halijalipiwa",
+    "adsPlaced": "Matangazo Yaliyowekwa",
+    "apply": "Omba Sasa",
+    "leaderboard": "Wafanyabiashara Bora"
+  },
+  "auth": {
+    "login": "Ingia",
+    "register": "Jisajili",
+    "name": "Jina Kamili",
+    "email": "Anwani ya Barua pepe",
+    "phone": "Nambari ya Simu",
+    "password": "Nenosiri",
+    "country": "Nchi",
+    "language": "Lugha Unayopendelea",
+    "loginBtn": "Ingia",
+    "registerBtn": "Fungua Akaunti",
+    "noAccount": "Huna akaunti?",
+    "hasAccount": "Una akaunti tayari?",
+    "logout": "Toka"
+  },
+  "footer": {
+    "about": "Kuhusu",
+    "privacy": "Faragha",
+    "terms": "Masharti",
+    "contact": "Mawasiliano",
+    "copyright": "© {{year}} Seshaa. Imetengenezwa kwa ❤️ kwa Afrika."
+  }
+}

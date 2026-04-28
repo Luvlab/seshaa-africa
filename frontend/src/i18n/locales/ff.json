@@ -1,0 +1,95 @@
+{
+  "app": {
+    "name": "Seshaa",
+    "tagline": "Limoowo Yimɓe e Ngalu Afrik",
+    "description": "Yiy ko fof, ngalu koo fof, to fof Afrik"
+  },
+  "nav": {
+    "home": "Galle",
+    "search": "Yiy",
+    "addListing": "Entuu Limoongo",
+    "advertise": "Wakkilaare",
+    "salesRep": "Ganndo",
+    "login": "Naatnu",
+    "register": "Deggol",
+    "profile": "Mbelten Am"
+  },
+  "search": {
+    "placeholder": "Yiy ɗum, telefon, ngalu...",
+    "city": "Wuro",
+    "country": "Leydi",
+    "category": "Ñiiɓal",
+    "type": "Ɗuum",
+    "searchBtn": "Yiy",
+    "results": "{{count}} ñiɓaaɗe mbi'aama",
+    "noResults": "Alaa limooje. Arto ka fuu!",
+    "filters": "Siftoreeje",
+    "all": "Fof"
+  },
+  "listing": {
+    "personal": "Neɗɗo",
+    "business": "Ngalu",
+    "government": "Laamu",
+    "ngo": "NGO",
+    "phone": "Telefon",
+    "phone2": "Telefon Ɗimmo",
+    "email": "Iimeel",
+    "address": "Adreese",
+    "city": "Wuro",
+    "country": "Leydi",
+    "region": "Diiwaan",
+    "website": "Geese",
+    "whatsapp": "WhatsApp",
+    "category": "Ñiiɓal",
+    "description": "Haala",
+    "verified": "Timminaa",
+    "views": "Ɗeen {{count}} jiyaama",
+    "addNew": "Entuu Limoongo Kesum",
+    "editListing": "Feññina Limoongo",
+    "submit": "Neld",
+    "submitSuccess": "Limoongo neldaa!",
+    "callNow": "Ewnu Jooni",
+    "directions": "Laawol",
+    "share": "Fodd",
+    "report": "Jaaɓinal"
+  },
+  "ads": {
+    "sponsored": "Wallitinaa",
+    "advertiseHere": "Wakkilaare Ɗoo",
+    "getStarted": "Jooɗor miliyoŋaaji Afriknaaɓe. Fuɗɗo hannde.",
+    "contactSalesRep": "Naan Ganndo Ɗum"
+  },
+  "salesrep": {
+    "title": "Artu Ganndo Ngalu",
+    "earn": "Heɓ {{rate}} naa ɓurɗam wakkilaare kala ngo kadi njokku",
+    "territory": "Leydi Maa",
+    "dashboard": "Njoɓdi Am",
+    "totalEarned": "Kaalisi Heɓaaɗi",
+    "unpaidBalance": "Kaalisi Yo Njoɓee",
+    "adsPlaced": "Wakkilaaje Entaaɗe",
+    "apply": "Sood Jooni",
+    "leaderboard": "Ko Laaɓi Fooɗi"
+  },
+  "auth": {
+    "login": "Naatnu",
+    "register": "Deggol",
+    "name": "Innde Am",
+    "email": "Adreese Iimeel",
+    "phone": "Nambari Telefon",
+    "password": "Jaɓɓordi",
+    "country": "Leydi",
+    "language": "Demngal Suɓaaɗo",
+    "loginBtn": "Naatnu",
+    "registerBtn": "Uddit Asikiraaji",
+    "noAccount": "Alaa asikiraaji?",
+    "hasAccount": "Ana asikiraaji?",
+    "logout": "Woppitu"
+  },
+  "footer": {
+    "about": "Ko dow",
+    "privacy": "Sirru",
+    "terms": "Yeeɓitaare",
+    "contact": "Naan",
+    "copyright": "© {{year}} Seshaa. Waɗaama e ❤️ ngam Afrik."
+  }
+}

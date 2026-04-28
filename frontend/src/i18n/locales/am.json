@@ -1,0 +1,95 @@
+{
+  "app": {
+    "name": "Seshaa",
+    "tagline": "የአፍሪካ ሰዎችና ንግድ ማውጫ",
+    "description": "ማንንም፣ ማንኛውንም ንግድ፣ በአፍሪካ ማናቸውም ቦታ ያግኙ"
+  },
+  "nav": {
+    "home": "መነሻ",
+    "search": "ፈልግ",
+    "addListing": "ዝርዝር ጨምር",
+    "advertise": "ማስታወቂያ",
+    "salesRep": "የሽያጭ ወኪል",
+    "login": "ግባ",
+    "register": "ተመዝገብ",
+    "profile": "የእኔ መገለጫ"
+  },
+  "search": {
+    "placeholder": "ስም፣ ስልክ፣ ንግድ ፈልግ...",
+    "city": "ከተማ",
+    "country": "ሀገር",
+    "category": "ምድብ",
+    "type": "ዓይነት",
+    "searchBtn": "ፈልግ",
+    "results": "{{count}} ውጤቶች ተገኝተዋል",
+    "noResults": "ዝርዝር አልተገኘም። የመጀመሪያ ጨምሪ!",
+    "filters": "ማጣሪያዎች",
+    "all": "ሁሉም"
+  },
+  "listing": {
+    "personal": "ግለሰብ",
+    "business": "ንግድ",
+    "government": "መንግስት",
+    "ngo": "NGO",
+    "phone": "ስልክ",
+    "phone2": "ሁለተኛ ስልክ",
+    "email": "ኢሜይል",
+    "address": "አድራሻ",
+    "city": "ከተማ",
+    "country": "ሀገር",
+    "region": "ክልል",
+    "website": "ድህረ ገጽ",
+    "whatsapp": "WhatsApp",
+    "category": "ምድብ",
+    "description": "መግለጫ",
+    "verified": "ተረጋግጧል",
+    "views": "{{count}} ጊዜ ተመልክቷል",
+    "addNew": "አዲስ ዝርዝር ጨምር",
+    "editListing": "ዝርዝር አስተካክል",
+    "submit": "አስገባ",
+    "submitSuccess": "ዝርዝር በተሳካ ሁኔታ ተልኳል!",
+    "callNow": "አሁን ደውል",
+    "directions": "አቅጣጫዎች",
+    "share": "አጋራ",
+    "report": "ሪፖርት"
+  },
+  "ads": {
+    "sponsored": "የተደገፈ",
+    "advertiseHere": "እዚህ አስታውቅ",
+    "getStarted": "ሚሊዮን አፍሪካውያን ደርሱ። ዛሬ ጀምሩ።",
+    "contactSalesRep": "የአካባቢ ሽያጭ ወኪልን ያናግሩ"
+  },
+  "salesrep": {
+    "title": "የሽያጭ ወኪል ሁን",
+    "earn": "ለሚሸጡት ማስታወቂያ {{rate}}% ኮሚሽን ያግኙ",
+    "territory": "ክልልዎ",
+    "dashboard": "የእኔ ዳሽቦርድ",
+    "totalEarned": "ጠቅላላ ገቢ",
+    "unpaidBalance": "ያልተከፈለ ቀሪ",
+    "adsPlaced": "የቀረቡ ማስታወቂያዎች",
+    "apply": "አሁን አመልክቱ",
+    "leaderboard": "ምርጥ ሻጮች"
+  },
+  "auth": {
+    "login": "ግባ",
+    "register": "ተመዝገብ",
+    "name": "ሙሉ ስም",
+    "email": "የኢሜይል አድራሻ",
+    "phone": "የስልክ ቁጥር",
+    "password": "암호",
+    "country": "ሀገር",
+    "language": "የሚፈልጉት ቋንቋ",
+    "loginBtn": "ግባ",
+    "registerBtn": "አካውንት ፍጠር",
+    "noAccount": "አካውንት የለዎትም?",
+    "hasAccount": "አካውንት አለዎት?",
+    "logout": "ውጣ"
+  },
+  "footer": {
+    "about": "ስለ",
+    "privacy": "ግላዊነት",
+    "terms": "ውሎች",
+    "contact": "ያናጋሩ",
+    "copyright": "© {{year}} Seshaa. ለአፍሪካ ❤️ ተሰርቷል።"
+  }
+}
