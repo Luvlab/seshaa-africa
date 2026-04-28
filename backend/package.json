@@ -16,6 +16,9 @@
     "scrape:dry": "ts-node src/scraper/osm.ts --dry-run",
     "scrape:all": "ts-node src/scraper/osm.ts"
   },
+  "engines": {
+    "node": "22.x"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
