@@ -63,7 +63,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero */}
-      <div className="bg-gradient-to-br from-green-700 via-green-600 to-emerald-500 text-white">
+      <div className="text-white" style={{ background: 'linear-gradient(135deg, var(--cp-dark), var(--cp))' }}>
         <div className="max-w-4xl mx-auto px-4 py-16 text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-3">
             🌍 {t('app.tagline')}
@@ -93,7 +93,8 @@ export default function HomePage() {
                 <Zap size={14} /> AI
               </button>
               <button
-                className="bg-green-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-green-700"
+                className="px-6 py-3 rounded-xl font-semibold text-white hover:opacity-90 transition-opacity"
+                style={{ backgroundColor: 'var(--cp)' }}
                 onClick={handleSearch}
               >
                 {t('search.searchBtn')}

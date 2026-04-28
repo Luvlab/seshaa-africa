@@ -10,24 +10,38 @@ datasource db {
 }
 
 model User {
-  id           String    @id @default(uuid())
-  email        String?   @unique
-  phone        String?   @unique
+  id           String       @id @default(uuid())
+  email        String?      @unique
+  phone        String?      @unique
   name         String
-  role         Role      @default(USER)
-  language     String    @default("en")
+  role         Role         @default(USER)
+  language     String       @default("en")
   country      String?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
   listings     Listing[]
   salesRep     SalesRep?
+  ambassador   Ambassador?
+  reviews      Review[]
+  bookings     Booking[]
+  microLoans   MicroLoan[]
+  classifieds  Classified[]
 }
 
 enum Role {
   USER
   BUSINESS_OWNER
   SALES_REP
+  AMBASSADOR
   ADMIN
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  NO_SHOW
 }
 
 model Listing {
@@ -58,12 +72,23 @@ model Listing {
   logoUrl      String?
   photos       String[]
   openingHours String?
-  submittedBy  User?        @relation(fields: [submittedById], references: [id])
-  submittedById String?
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
-  ads          Ad[]
-  tags         Tag[]
+  avgRating      Float           @default(0)
+  reviewCount    Int             @default(0)
+  bookable       Boolean         @default(false)
+  submittedBy    User?           @relation(fields: [submittedById], references: [id])
+  submittedById  String?
+  enteredBy      Ambassador?     @relation("AmbassadorListings", fields: [enteredById], references: [id])
+  enteredById    String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  ads            Ad[]
+  proSubscription ProSubscription?
+  tags           Tag[]
+  reviews        Review[]
+  bookings       Booking[]
+  certification  SeshaaCertification?
+  awards         SeshaaAward[]
+  priceEntries   PriceEntry[]
 
   @@index([city, country])
   @@index([category])
@@ -86,29 +111,72 @@ model Tag {
 }
 
 model Ad {
-  id           String    @id @default(uuid())
-  title        String
-  imageUrl     String?
-  targetUrl    String
-  advertiser   String
-  contactPhone String?
-  listing      Listing?  @relation(fields: [listingId], references: [id])
-  listingId    String?
-  salesRep     SalesRep? @relation(fields: [salesRepId], references: [id])
-  salesRepId   String?
-  tier         AdTier    @default(BANNER)
-  country      String?
-  city         String?
-  category     String?
-  startDate    DateTime
-  endDate      DateTime
-  budget       Float
-  spent        Float     @default(0)
-  impressions  Int       @default(0)
-  clicks       Int       @default(0)
-  active       Boolean   @default(true)
-  createdAt    DateTime  @default(now())
-  commissions  Commission[]
+  id              String    @id @default(uuid())
+  title           String
+  description     String?
+  imageUrl        String?
+  targetUrl       String
+  advertiser      String
+  contactPhone    String?
+  listing         Listing?  @relation(fields: [listingId], references: [id])
+  listingId       String?
+  salesRep        SalesRep? @relation(fields: [salesRepId], references: [id])
+  salesRepId      String?
+  tier            AdTier    @default(BANNER)
+  country         String?
+  city            String?
+  countries       String[]  // multi-country targeting
+  category        String?
+  targetKeywords  String[]  // keyword targeting for algorithm
+  targetInterests String[]  // interest category targeting
+  packageId       String?   // which preset package was used
+  dailyBudget     Float?
+  startDate       DateTime
+  endDate         DateTime
+  budget          Float
+  spent           Float     @default(0)
+  impressions     Int       @default(0)
+  clicks          Int       @default(0)
+  ctr             Float     @default(0)  // click-through rate
+  active          Boolean   @default(true)
+  approved        Boolean   @default(true)
+  userId          String?   // advertiser user id
+  createdAt       DateTime  @default(now())
+  commissions     Commission[]
+  impressionLogs  AdImpression[]
+
+  @@index([tier, active])
+  @@index([country, city, active])
+}
+
+model UserInterest {
+  id          String   @id @default(uuid())
+  userId      String?  @unique
+  sessionId   String   @unique
+  country     String?
+  city        String?
+  categories  String[]  // interested categories
+  keywords    String[]  // recent search/browse terms (last 20)
+  useType     String?   // "personal" | "business" | "both"
+  surveyDone  Boolean   @default(false)
+  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime  @default(now())
+
+  @@index([userId])
+  @@index([sessionId])
+}
+
+model AdImpression {
+  id        String   @id @default(uuid())
+  ad        Ad       @relation(fields: [adId], references: [id])
+  adId      String
+  userId    String?
+  sessionId String?
+  page      String?
+  shownAt   DateTime @default(now())
+
+  @@index([adId, sessionId])
+  @@index([adId, userId])
 }
 
 enum AdTier {
@@ -143,4 +211,202 @@ model Commission {
   paid        Boolean    @default(false)
   paidAt      DateTime?
   createdAt   DateTime   @default(now())
+}
+
+// Ambassador: earns kickback by entering listings + selling Pro subscriptions
+model Ambassador {
+  id               String              @id @default(uuid())
+  user             User                @relation(fields: [userId], references: [id])
+  userId           String              @unique
+  country          String
+  city             String?
+  listingKickback  Float               @default(0.005) // $0.005 per verified listing entered
+  proKickbackRate  Float               @default(0.15)  // 15% of Pro subscription sold
+  totalEarned      Float               @default(0)
+  pendingPayout    Float               @default(0)
+  active           Boolean             @default(true)
+  createdAt        DateTime            @default(now())
+  listingsEntered  Listing[]           @relation("AmbassadorListings")
+  proSales         ProSubscription[]
+  payouts          AmbassadorPayout[]
+}
+
+model ProSubscription {
+  id            String       @id @default(uuid())
+  listing       Listing      @relation(fields: [listingId], references: [id])
+  listingId     String       @unique
+  plan          ProPlan      @default(MONTHLY)
+  price         Float
+  ambassador    Ambassador?  @relation(fields: [ambassadorId], references: [id])
+  ambassadorId  String?
+  kickback      Float        @default(0)
+  active        Boolean      @default(true)
+  startDate     DateTime     @default(now())
+  endDate       DateTime?
+  stickerCode   String?      @unique  // e.g. SESHAA-NG-AB12CD
+  stickerSent   Boolean      @default(false)
+  createdAt     DateTime     @default(now())
+}
+
+enum ProPlan {
+  MONTHLY
+  ANNUAL
+}
+
+model AmbassadorPayout {
+  id           String     @id @default(uuid())
+  ambassador   Ambassador @relation(fields: [ambassadorId], references: [id])
+  ambassadorId String
+  amount       Float
+  method       String     @default("mobile_money")
+  reference    String?
+  paid         Boolean    @default(false)
+  paidAt       DateTime?
+  createdAt    DateTime   @default(now())
+}
+
+model Review {
+  id           String    @id @default(uuid())
+  listing      Listing   @relation(fields: [listingId], references: [id])
+  listingId    String
+  user         User      @relation(fields: [userId], references: [id])
+  userId       String
+  rating       Int       // 1–5
+  comment      String?
+  helpfulCount Int       @default(0)
+  ownerReply   String?
+  createdAt    DateTime  @default(now())
+
+  @@unique([listingId, userId])
+  @@index([listingId])
+}
+
+model SeshaaCertification {
+  id          String     @id @default(uuid())
+  listing     Listing    @relation(fields: [listingId], references: [id])
+  listingId   String     @unique
+  level       CertLevel  @default(STANDARD)
+  awardedAt   DateTime   @default(now())
+  validUntil  DateTime?
+  notes       String?
+}
+
+enum CertLevel {
+  STANDARD
+  GOLD
+  PLATINUM
+}
+
+model SeshaaAward {
+  id          String   @id @default(uuid())
+  listing     Listing  @relation(fields: [listingId], references: [id])
+  listingId   String
+  category    String   // e.g. "Best Restaurant", "Best Salon"
+  city        String?
+  country     String
+  year        Int
+  rank        Int      @default(1)
+  createdAt   DateTime @default(now())
+
+  @@unique([category, city, country, year, rank])
+  @@index([country, year])
+}
+
+// Seshaa Bank — micro-loans funded by 5% of Pro subscription revenue, only for women entrepreneurs
+model MicroLoan {
+  id              String       @id @default(uuid())
+  user            User         @relation(fields: [userId], references: [id])
+  userId          String
+  listingId       String?      // optional: if they own a business on the platform
+  amount          Float
+  purpose         String
+  status          LoanStatus   @default(PENDING)
+  approvedAmount  Float?
+  disbursedAt     DateTime?
+  repaidAt        DateTime?
+  repaymentMethod String?      // mobile_money, celo, bank
+  dueDate         DateTime?
+  interestRate    Float        @default(0)  // 0% interest by default
+  notes           String?
+  createdAt       DateTime     @default(now())
+
+  @@index([userId])
+  @@index([status])
+}
+
+enum LoanStatus {
+  PENDING
+  APPROVED
+  DISBURSED
+  REPAID
+  DEFAULTED
+  REJECTED
+}
+
+// Seshaa Classifieds — buy/sell personal items (Craigslist-style)
+model Classified {
+  id          String           @id @default(uuid())
+  title       String
+  description String?
+  price       Float
+  currency    String           @default("USD")
+  category    String
+  condition   String           @default("USED")
+  images      String[]
+  city        String
+  country     String
+  user        User             @relation(fields: [userId], references: [id])
+  userId      String
+  status      ClassifiedStatus @default(ACTIVE)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([city, country])
+  @@index([category])
+  @@index([status])
+}
+
+enum ClassifiedStatus {
+  ACTIVE
+  SOLD
+  EXPIRED
+}
+
+// Price Comparison — businesses list their prices for comparison
+model PriceEntry {
+  id        String   @id @default(uuid())
+  listing   Listing  @relation(fields: [listingId], references: [id])
+  listingId String
+  item      String
+  price     Float
+  unit      String?
+  currency  String   @default("USD")
+  category  String
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  @@unique([listingId, item])
+  @@index([category, item])
+  @@index([listingId])
+}
+
+model Booking {
+  id          String        @id @default(uuid())
+  listing     Listing       @relation(fields: [listingId], references: [id])
+  listingId   String
+  user        User          @relation(fields: [userId], references: [id])
+  userId      String
+  service     String        // e.g. "chauffeur", "catering", "beauty", "garage"
+  date        DateTime
+  duration    Int?          // minutes
+  notes       String?
+  status      BookingStatus @default(PENDING)
+  totalPrice  Float?
+  guestCount  Int           @default(1)
+  contactName String?
+  contactPhone String?
+  createdAt   DateTime      @default(now())
+
+  @@index([listingId])
+  @@index([userId])
 }

@@ -11,15 +11,28 @@ import aiRouter from './routes/ai';
 import chatRouter from './routes/chat';
 import adminRouter from './routes/admin';
 import uploadRouter from './routes/upload';
+import ambassadorRouter from './routes/ambassador';
+import paymentsRouter from './routes/payments';
+import geoRouter from './routes/geo';
+import reviewsRouter from './routes/reviews';
+import bookingsRouter from './routes/bookings';
+import bankRouter from './routes/bank';
+import certificationsRouter from './routes/certifications';
+import interestsRouter from './routes/interests';
+import classifiedsRouter from './routes/classifieds';
+import pricesRouter from './routes/prices';
 
 const app = express();
 
 app.use(helmet());
 app.use(cors({ origin: config.corsOrigin, credentials: true }));
 app.use(morgan('dev'));
+
+// Raw body needed for Stripe webhook signature verification
+app.use('/api/payments/stripe/webhook', express.raw({ type: 'application/json' }));
 app.use(express.json());
 
-app.get('/health', (_req, res) => res.json({ status: 'ok', version: '1.0.0', app: 'Seshaa API' }));
+app.get('/health', (_req, res) => res.json({ status: 'ok', version: '2.0.0', app: 'Seshaa API' }));
 
 app.use('/api/auth', authRouter);
 app.use('/api/listings', listingsRouter);
@@ -29,6 +42,16 @@ app.use('/api/ai', aiRouter);
 app.use('/api/chat', chatRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/upload', uploadRouter);
+app.use('/api/ambassador', ambassadorRouter);
+app.use('/api/payments', paymentsRouter);
+app.use('/api/geo', geoRouter);
+app.use('/api/reviews', reviewsRouter);
+app.use('/api/bookings', bookingsRouter);
+app.use('/api/bank', bankRouter);
+app.use('/api/certifications', certificationsRouter);
+app.use('/api/interests', interestsRouter);
+app.use('/api/classifieds', classifiedsRouter);
+app.use('/api/prices', pricesRouter);
 
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error(err);
@@ -36,7 +59,7 @@ app.use((err: Error, _req: express.Request, res: express.Response, _next: expres
 });
 
 app.listen(config.port, () => {
-  console.log(`🌍 Seshaa API running on port ${config.port}`);
+  console.log(`🌍 Seshaa API v2 running on port ${config.port}`);
 });
 
 export default app;

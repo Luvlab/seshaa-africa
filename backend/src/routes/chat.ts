@@ -66,7 +66,7 @@ router.post('/rooms', requireAuth, async (req: AuthRequest, res: Response) => {
 
 // GET /chat/rooms/:id/messages
 router.get('/rooms/:id/messages', requireAuth, async (req: AuthRequest, res: Response) => {
-  const room = rooms.get(req.params.id);
+  const room = rooms.get(req.params['id'] as string);
   if (!room || !room.participants.includes(req.user!.id)) return res.status(404).json({ error: 'Room not found' });
 
   // Mark all as read
@@ -79,7 +79,7 @@ router.get('/rooms/:id/messages', requireAuth, async (req: AuthRequest, res: Res
 
 // POST /chat/rooms/:id/messages
 router.post('/rooms/:id/messages', requireAuth, async (req: AuthRequest, res: Response) => {
-  const room = rooms.get(req.params.id);
+  const room = rooms.get(req.params['id'] as string);
   if (!room || !room.participants.includes(req.user!.id)) return res.status(404).json({ error: 'Room not found' });
 
   const { content, type = 'text', metadata } = req.body;
@@ -105,7 +105,7 @@ router.post('/rooms/:id/messages', requireAuth, async (req: AuthRequest, res: Re
 
 // POST /chat/rooms/:id/share — share a listing or address
 router.post('/rooms/:id/share', requireAuth, async (req: AuthRequest, res: Response) => {
-  const room = rooms.get(req.params.id);
+  const room = rooms.get(req.params['id'] as string);
   if (!room || !room.participants.includes(req.user!.id)) return res.status(404).json({ error: 'Room not found' });
 
   const { shareType, payload } = req.body; // shareType: 'listing' | 'address' | 'event'

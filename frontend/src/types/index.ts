@@ -1,6 +1,9 @@
-export type UserRole = 'USER' | 'BUSINESS_OWNER' | 'SALES_REP' | 'ADMIN';
+export type UserRole = 'USER' | 'BUSINESS_OWNER' | 'SALES_REP' | 'AMBASSADOR' | 'ADMIN';
 export type ListingType = 'PERSONAL' | 'BUSINESS' | 'GOVERNMENT' | 'NGO';
 export type AdTier = 'BANNER' | 'FEATURED' | 'SPONSORED' | 'PREMIUM';
+export type BookingStatus = 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED' | 'NO_SHOW';
+export type LoanStatus = 'PENDING' | 'APPROVED' | 'DISBURSED' | 'REPAID' | 'DEFAULTED' | 'REJECTED';
+export type CertLevel = 'STANDARD' | 'GOLD' | 'PLATINUM';
 
 export interface User {
   id: string;
@@ -11,9 +14,6 @@ export interface User {
   language: string;
   country?: string;
   avatarUrl?: string;
-  bio?: string;
-  following?: string[];
-  followers?: string[];
   createdAt: string;
 }
 
@@ -28,7 +28,6 @@ export interface Listing {
   city: string;
   country: string;
   region?: string;
-  zipCode?: string;
   latitude?: number;
   longitude?: number;
   category?: string;
@@ -41,14 +40,17 @@ export interface Listing {
   viewCount: number;
   submittedById?: string;
   tags: Tag[];
-  ads?: Ad[];
   createdAt: string;
   updatedAt: string;
   isPro?: boolean;
+  bookable?: boolean;
   logoUrl?: string;
   photos?: string[];
   openingHours?: Record<string, string>;
-  socialLinks?: Record<string, string>;
+  avgRating: number;
+  reviewCount: number;
+  certification?: SeshaaCertification;
+  awards?: SeshaaAward[];
 }
 
 export interface Tag {
@@ -100,6 +102,66 @@ export interface Commission {
   paid: boolean;
   paidAt?: string;
   ad: Ad;
+  createdAt: string;
+}
+
+export interface Review {
+  id: string;
+  listingId: string;
+  userId: string;
+  rating: number;
+  comment?: string;
+  helpfulCount: number;
+  ownerReply?: string;
+  createdAt: string;
+  user: Pick<User, 'id' | 'name'>;
+}
+
+export interface Booking {
+  id: string;
+  listingId: string;
+  userId: string;
+  service: string;
+  date: string;
+  duration?: number;
+  notes?: string;
+  status: BookingStatus;
+  totalPrice?: number;
+  guestCount: number;
+  contactName?: string;
+  contactPhone?: string;
+  createdAt: string;
+  listing?: Pick<Listing, 'id' | 'name' | 'address' | 'city' | 'country' | 'phone' | 'logoUrl'>;
+}
+
+export interface SeshaaCertification {
+  id: string;
+  listingId: string;
+  level: CertLevel;
+  awardedAt: string;
+  validUntil?: string;
+}
+
+export interface SeshaaAward {
+  id: string;
+  listingId: string;
+  category: string;
+  city?: string;
+  country: string;
+  year: number;
+  rank: number;
+}
+
+export interface MicroLoan {
+  id: string;
+  userId: string;
+  listingId?: string;
+  amount: number;
+  purpose: string;
+  status: LoanStatus;
+  approvedAmount?: number;
+  repaymentMethod?: string;
+  dueDate?: string;
   createdAt: string;
 }
 
@@ -156,12 +218,9 @@ export interface Event {
   title: string;
   description?: string;
   date: string;
-  endDate?: string;
   location: string;
   city: string;
   country: string;
-  latitude?: number;
-  longitude?: number;
   listingId?: string;
   organizerId: string;
   isPublic: boolean;
@@ -171,7 +230,6 @@ export interface Event {
   createdAt: string;
 }
 
-// Search
 export interface SearchFilters {
   q?: string;
   city?: string;
@@ -180,6 +238,8 @@ export interface SearchFilters {
   type?: ListingType;
   page?: number;
   limit?: number;
+  bookable?: boolean;
+  minRating?: number;
 }
 
 export interface SearchResult {
@@ -196,8 +256,40 @@ export interface AISearchResult {
   suggestions: string[];
 }
 
-// Portal tiers
-export type PortalType = 'consumer' | 'business' | 'advertiser' | 'salesrep' | 'admin';
+export type ClassifiedStatus = 'ACTIVE' | 'SOLD' | 'EXPIRED';
+export type ClassifiedCondition = 'NEW' | 'USED' | 'REFURBISHED';
+
+export interface Classified {
+  id: string;
+  title: string;
+  description?: string;
+  price: number;
+  currency: string;
+  category: string;
+  condition: ClassifiedCondition;
+  images: string[];
+  city: string;
+  country: string;
+  userId: string;
+  status: ClassifiedStatus;
+  createdAt: string;
+  updatedAt: string;
+  user?: Pick<User, 'id' | 'name'>;
+}
+
+export interface PriceEntry {
+  id: string;
+  listingId: string;
+  item: string;
+  price: number;
+  unit?: string;
+  currency: string;
+  category: string;
+  updatedAt: string;
+  listing?: Pick<Listing, 'id' | 'name' | 'city' | 'country' | 'phone' | 'logoUrl' | 'avgRating' | 'reviewCount' | 'verified'>;
+}
+
+export type PortalType = 'consumer' | 'business' | 'advertiser' | 'salesrep' | 'ambassador' | 'admin';
 
 export interface ProFeatures {
   featuredPlacement: boolean;
@@ -207,4 +299,7 @@ export interface ProFeatures {
   prioritySupport: boolean;
   verifiedBadge: boolean;
   multipleLocations: boolean;
+  onlineBookings: boolean;
+  proWindowSticker: boolean;
+  reviewReplies: boolean;
 }

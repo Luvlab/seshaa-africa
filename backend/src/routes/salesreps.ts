@@ -20,8 +20,8 @@ router.get('/dashboard', requireAuth, async (req: AuthRequest, res: Response) =>
 
   if (!salesRep) return res.status(404).json({ error: 'Not a sales rep' });
 
-  const unpaid = salesRep.commissions.filter(c => !c.paid).reduce((sum, c) => sum + c.amount, 0);
-  const paid = salesRep.commissions.filter(c => c.paid).reduce((sum, c) => sum + c.amount, 0);
+  const unpaid = salesRep.commissions.filter(c => !c.paid).reduce((sum: number, c: { amount: number }) => sum + c.amount, 0);
+  const paid = salesRep.commissions.filter(c => c.paid).reduce((sum: number, c: { amount: number }) => sum + c.amount, 0);
 
   const adCount = await prisma.ad.count({ where: { salesRepId: salesRep.id } });
 

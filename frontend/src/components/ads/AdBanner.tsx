@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { X, ExternalLink } from 'lucide-react';
 import { adsApi } from '../../services/api';
+import { useInterestsStore } from '../../store/interests';
 import type { Ad, AdTier } from '../../types';
 import clsx from 'clsx';
 
@@ -21,15 +21,23 @@ interface Props {
 }
 
 export default function AdBanner({ country, city, category, tier = 'BANNER', className }: Props) {
-  const { t } = useTranslation();
   const [ads, setAds] = useState<Ad[]>([]);
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
+  const { sessionId, categories, keywords } = useInterestsStore();
 
   useEffect(() => {
-    adsApi.getContextual({ country, city, category, tier })
+    adsApi.getContextual({
+      country,
+      city,
+      category,
+      tier,
+      sessionId,
+      interests: categories.join(','),
+      keywords: keywords.join(','),
+    })
       .then(r => setAds(r.data))
       .catch(() => {});
-  }, [country, city, category, tier]);
+  }, [country, city, category, tier, sessionId]);
 
   const handleClick = async (ad: Ad) => {
     await adsApi.click(ad.id).catch(() => {});
@@ -39,8 +47,8 @@ export default function AdBanner({ country, city, category, tier = 'BANNER', cla
   const visible = ads.filter(a => !dismissed.has(a.id));
   if (!visible.length) return (
     <div className={clsx('rounded-lg p-4 text-center text-sm text-gray-400 border border-dashed border-gray-200', className)}>
-      <p className="font-medium text-gray-500">{t('ads.advertiseHere')}</p>
-      <p className="text-xs mt-1">{t('ads.getStarted')}</p>
+      <p className="font-medium text-gray-500">Advertise here</p>
+      <p className="text-xs mt-1">Reach thousands of Africans daily</p>
     </div>
   );
 
@@ -49,7 +57,7 @@ export default function AdBanner({ country, city, category, tier = 'BANNER', cla
   return (
     <div className={clsx('rounded-lg overflow-hidden relative', TIER_STYLES[ad.tier], className)}>
       <span className="absolute top-2 left-2 text-xs bg-white/80 text-gray-500 px-2 py-0.5 rounded-full font-medium">
-        {t('ads.sponsored')}
+        Sponsored
       </span>
       <button
         className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"

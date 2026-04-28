@@ -130,4 +130,86 @@ router.get('/scraper/status', requireAuth, adminOnly, async (_req, res) => {
   });
 });
 
+// GET /admin/financials — full financial dashboard (revenue, costs, loan fund)
+router.get('/financials', requireAuth, adminOnly, async (_req, res) => {
+  const [
+    totalRevenue,
+    activeProSubs,
+    monthlyRevenue,
+    annualRevenue,
+    commissionsPaid,
+    commissionsPending,
+    ambassadorPayouts,
+    loanStats,
+    adRevenue,
+  ] = await Promise.all([
+    prisma.proSubscription.aggregate({ _sum: { price: true }, where: { active: true } }),
+    prisma.proSubscription.count({ where: { active: true } }),
+    prisma.proSubscription.aggregate({ _sum: { price: true }, where: { active: true, plan: 'MONTHLY' } }),
+    prisma.proSubscription.aggregate({ _sum: { price: true }, where: { active: true, plan: 'ANNUAL' } }),
+    prisma.commission.aggregate({ _sum: { amount: true }, where: { paid: true } }),
+    prisma.commission.aggregate({ _sum: { amount: true }, where: { paid: false } }),
+    prisma.ambassadorPayout.aggregate({ _sum: { amount: true }, where: { paid: true } }),
+    prisma.microLoan.aggregate({ _sum: { approvedAmount: true, amount: true }, _count: true }),
+    prisma.ad.aggregate({ _sum: { spent: true }, where: { active: true } }),
+  ]);
+
+  const totalProRevenue = totalRevenue._sum.price || 0;
+  const loanFund = totalProRevenue * 0.05; // 5% of Pro revenue → loan fund
+  const disbursedLoans = await prisma.microLoan.aggregate({
+    _sum: { approvedAmount: true },
+    where: { status: { in: ['DISBURSED', 'REPAID'] } },
+  });
+  const repaidLoans = await prisma.microLoan.aggregate({
+    _sum: { approvedAmount: true },
+    where: { status: 'REPAID' },
+  });
+
+  const mrr = (monthlyRevenue._sum.price || 0) + ((annualRevenue._sum.price || 0) / 12);
+
+  res.json({
+    revenue: {
+      totalProSubscriptions: totalProRevenue,
+      activeSubscriptions: activeProSubs,
+      monthlyRecurringRevenue: Math.round(mrr * 100) / 100,
+      adRevenue: adRevenue._sum.spent || 0,
+    },
+    costs: {
+      salesCommissionsPaid: commissionsPaid._sum.amount || 0,
+      salesCommissionsPending: commissionsPending._sum.amount || 0,
+      ambassadorPayoutsPaid: ambassadorPayouts._sum.amount || 0,
+      estimatedInfraNote: 'Neon DB + Vercel hosting + Claude API — check provider dashboards for live costs',
+    },
+    loanFund: {
+      totalAllocated: Math.round(loanFund * 100) / 100,
+      totalDisbursed: disbursedLoans._sum.approvedAmount || 0,
+      totalRepaid: repaidLoans._sum.approvedAmount || 0,
+      available: Math.round((loanFund - (disbursedLoans._sum.approvedAmount || 0) + (repaidLoans._sum.approvedAmount || 0)) * 100) / 100,
+      totalApplications: loanStats._count,
+    },
+    net: {
+      estimated: Math.round((totalProRevenue - (commissionsPaid._sum.amount || 0) - (ambassadorPayouts._sum.amount || 0) - loanFund) * 100) / 100,
+    },
+  });
+});
+
+// POST /admin/ambassador-payouts/approve/:id
+router.post('/ambassador-payouts/approve/:id', requireAuth, adminOnly, async (req, res) => {
+  const payout = await prisma.ambassadorPayout.update({
+    where: { id: req.params.id },
+    data: { paid: true, paidAt: new Date() },
+  });
+  res.json(payout);
+});
+
+// GET /admin/ambassador-payouts — pending payouts
+router.get('/ambassador-payouts', requireAuth, adminOnly, async (_req, res) => {
+  const payouts = await prisma.ambassadorPayout.findMany({
+    where: { paid: false },
+    include: { ambassador: { include: { user: { select: { name: true, phone: true, country: true } } } } },
+    orderBy: { createdAt: 'desc' },
+  });
+  res.json(payouts);
+});
+
 export default router;

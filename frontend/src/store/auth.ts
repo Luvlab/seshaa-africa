@@ -11,6 +11,8 @@ interface AuthState {
   logout: () => void;
   isAdmin: () => boolean;
   isSalesRep: () => boolean;
+  isAmbassador: () => boolean;
+  availablePortals: () => PortalType[];
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -23,6 +25,7 @@ export const useAuthStore = create<AuthState>()(
         const portal: PortalType =
           user.role === 'ADMIN' ? 'admin' :
           user.role === 'SALES_REP' ? 'salesrep' :
+          user.role === 'AMBASSADOR' ? 'ambassador' :
           user.role === 'BUSINESS_OWNER' ? 'business' : 'consumer';
         set({ user, token, portal });
       },
@@ -30,6 +33,18 @@ export const useAuthStore = create<AuthState>()(
       logout: () => set({ user: null, token: null, portal: 'consumer' }),
       isAdmin: () => get().user?.role === 'ADMIN',
       isSalesRep: () => get().user?.role === 'SALES_REP',
+      isAmbassador: () => get().user?.role === 'AMBASSADOR' || get().user?.role === 'ADMIN',
+      availablePortals: () => {
+        const user = get().user;
+        if (!user) return [];
+        switch (user.role) {
+          case 'ADMIN': return ['consumer', 'business', 'advertiser', 'salesrep', 'ambassador', 'admin'];
+          case 'SALES_REP': return ['consumer', 'salesrep'];
+          case 'AMBASSADOR': return ['consumer', 'ambassador'];
+          case 'BUSINESS_OWNER': return ['consumer', 'business', 'advertiser'];
+          default: return ['consumer'];
+        }
+      },
     }),
     { name: 'seshaa-auth' }
   )

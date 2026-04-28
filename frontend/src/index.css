@@ -2,21 +2,35 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Country-based theme colors — updated at runtime by theme store */
+:root {
+  --cp: #008751;        /* primary (from flag) */
+  --cp-dark: #006633;
+  --cp-light: #e6f4ec;
+  --cs: #ffffff;        /* secondary */
+  --ca: #FCD116;        /* accent */
+  --ct: #ffffff;        /* text on primary */
+}
+
 @layer base {
   body {
     margin: 0;
     font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    background: #f8f9fa;
   }
 
   #root {
     width: 100%;
     min-height: 100svh;
+    display: flex;
+    flex-direction: column;
   }
 
-  /* RTL support for Arabic */
+  /* RTL support */
   [dir="rtl"] .ms-auto { margin-inline-start: auto; }
+  [dir="rtl"] .me-auto { margin-inline-end: auto; }
 }
 
 @layer utilities {
@@ -26,4 +40,42 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
+
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Country-color utility classes */
+  .bg-theme { background-color: var(--cp); }
+  .bg-theme-dark { background-color: var(--cp-dark); }
+  .bg-theme-light { background-color: var(--cp-light); }
+  .text-theme { color: var(--cp); }
+  .border-theme { border-color: var(--cp); }
+  .ring-theme { --tw-ring-color: var(--cp); }
+
+  /* Smooth tab indicator */
+  .tab-active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background-color: var(--cp);
+    border-radius: 3px 3px 0 0;
+  }
+}
+
+/* Star rating animation */
+.star-fill { transition: color 0.15s ease; }
+
+/* Booking card hover */
+.booking-card:hover { transform: translateY(-1px); }
+
+/* Mobile bottom tab bar safe area */
+.mobile-tab-bar {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
