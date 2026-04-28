@@ -60,8 +60,11 @@ app.use((err: Error, _req: express.Request, res: express.Response, _next: expres
   res.status(500).json({ error: 'Internal server error' });
 });
 
-app.listen(config.port, () => {
-  console.log(`🌍 Seshaa API v2 running on port ${config.port}`);
-});
+// Only start the HTTP server when running locally (not on Vercel serverless)
+if (process.env.VERCEL !== '1') {
+  app.listen(config.port, () => {
+    console.log(`🌍 Seshaa API v2 running on port ${config.port}`);
+  });
+}
 
 export default app;

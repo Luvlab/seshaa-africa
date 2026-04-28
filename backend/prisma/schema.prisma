@@ -1,12 +1,9 @@
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
 }
 
 model User {
@@ -93,7 +90,7 @@ model Listing {
   @@index([city, country])
   @@index([category])
   @@index([phone])
-  @@fulltext([name, description, address])
+  @@index([name])
 }
 
 enum ListingType {
