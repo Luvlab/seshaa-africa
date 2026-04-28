@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, TrendingUp, Star, MapPin, Phone, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
+import { Search, TrendingUp, Star, MapPin, Phone, RefreshCw } from 'lucide-react';
 import { pricesApi } from '../services/api';
 import type { PriceEntry } from '../types';
 

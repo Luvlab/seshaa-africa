@@ -66,10 +66,6 @@ export default function Navbar() {
     return tab.roles.includes(user.role);
   });
 
-  const activeTab = visibleTabs.find(tab =>
-    tab.path === '/' ? location.pathname === '/' : location.pathname.startsWith(tab.path)
-  );
-
   const availablePortals = useAuthStore(s => s.availablePortals());
 
   const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {

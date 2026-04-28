@@ -201,7 +201,7 @@ function ClassifiedCard({ item }: { item: Classified }) {
 }
 
 export default function ClassifiedsPage() {
-  const { isAuthenticated } = useAuthStore();
+  const { user } = useAuthStore();
   const [items, setItems] = useState<Classified[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -233,7 +233,7 @@ export default function ClassifiedsPage() {
           <p className="text-sm text-gray-500 mt-0.5">Buy and sell safely across Africa</p>
         </div>
         <button
-          onClick={() => isAuthenticated() ? setShowPost(true) : alert('Please sign in to post')}
+          onClick={() => !!user ? setShowPost(true) : alert('Please sign in to post')}
           className="flex items-center gap-2 px-5 py-2.5 text-white rounded-full font-semibold text-sm"
           style={{ backgroundColor: 'var(--cp)' }}
         >
@@ -316,7 +316,7 @@ export default function ClassifiedsPage() {
           <p className="text-5xl mb-3">📦</p>
           <p className="font-medium">No listings found</p>
           <p className="text-sm mt-1">Be the first to post in this category</p>
-          <button onClick={() => isAuthenticated() ? setShowPost(true) : alert('Please sign in')} className="mt-3 text-sm font-semibold" style={{ color: 'var(--cp)' }}>
+          <button onClick={() => !!user ? setShowPost(true) : alert('Please sign in')} className="mt-3 text-sm font-semibold" style={{ color: 'var(--cp)' }}>
             Post a free ad
           </button>
         </div>

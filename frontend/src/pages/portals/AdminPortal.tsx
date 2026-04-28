@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Users, List, Megaphone, TrendingUp, Shield, DollarSign, Award, Send, CheckCircle, X } from 'lucide-react';
+import { List, Megaphone, TrendingUp, Shield, DollarSign, Award, Send, CheckCircle, X } from 'lucide-react';
 import { adminApi } from '../../services/api';
 
 interface Stats {
