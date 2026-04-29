@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Search, Plus, Menu, X, Globe, MessageCircle, Bell, User, ChevronDown, Sparkles } from 'lucide-react';
@@ -66,7 +66,16 @@ export default function Navbar() {
     return tab.roles.includes(user.role);
   });
 
-  const availablePortals = useAuthStore(s => s.availablePortals());
+  const availablePortals = useMemo<PortalType[]>(() => {
+    if (!user) return [];
+    switch (user.role) {
+      case 'ADMIN':         return ['consumer', 'business', 'advertiser', 'salesrep', 'ambassador', 'admin'];
+      case 'SALES_REP':     return ['consumer', 'salesrep'];
+      case 'AMBASSADOR':    return ['consumer', 'ambassador'];
+      case 'BUSINESS_OWNER':return ['consumer', 'business', 'advertiser'];
+      default:              return ['consumer'];
+    }
+  }, [user]);
 
   const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && searchQ.trim()) {
