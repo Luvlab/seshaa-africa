@@ -48,6 +48,7 @@ app.use(morgan('dev'));
 app.use('/api/payments/stripe/webhook', express.raw({ type: 'application/json' }));
 app.use(express.json());
 
+app.get('/', (_req, res) => res.redirect('/health'));
 app.get('/health', (_req, res) => res.json({ status: 'ok', version: '2.0.0', app: 'Seshaa API' }));
 
 app.use('/api/auth', authRouter);
