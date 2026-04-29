@@ -103,8 +103,8 @@ async function fetchCategory(category: string): Promise<NewsItem[]> {
   );
 
   const items: NewsItem[] = results
-    .filter((r): r is PromiseFulfilledResult<NewsItem[]> => r.status === 'fulfilled')
-    .flatMap(r => r.value)
+    .filter(r => r.status === 'fulfilled')
+    .flatMap(r => (r as PromiseFulfilledResult<NewsItem[]>).value)
     .filter(item => item.title && item.link)
     .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
 

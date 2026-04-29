@@ -97,13 +97,14 @@ router.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
 
 // PATCH /classifieds/:id — update or mark as sold
 router.patch('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
-  const item = await prisma.classified.findUnique({ where: { id: req.params.id } });
+  const id = req.params.id as string;
+  const item = await prisma.classified.findUnique({ where: { id } });
   if (!item) return res.status(404).json({ error: 'Not found' });
   if (item.userId !== req.user!.id && req.user!.role !== 'ADMIN') return res.status(403).json({ error: 'Forbidden' });
 
   const { title, description, price, status, images } = req.body;
   const updated = await prisma.classified.update({
-    where: { id: req.params.id },
+    where: { id },
     data: {
       ...(title !== undefined ? { title } : {}),
       ...(description !== undefined ? { description } : {}),
@@ -117,11 +118,12 @@ router.patch('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
 
 // DELETE /classifieds/:id
 router.delete('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
-  const item = await prisma.classified.findUnique({ where: { id: req.params.id } });
+  const id = req.params.id as string;
+  const item = await prisma.classified.findUnique({ where: { id } });
   if (!item) return res.status(404).json({ error: 'Not found' });
   if (item.userId !== req.user!.id && req.user!.role !== 'ADMIN') return res.status(403).json({ error: 'Forbidden' });
 
-  await prisma.classified.delete({ where: { id: req.params.id } });
+  await prisma.classified.delete({ where: { id } });
   res.json({ success: true });
 });
 

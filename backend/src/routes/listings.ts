@@ -63,13 +63,14 @@ router.get('/', optionalAuth, async (req: AuthRequest, res: Response) => {
 
 // GET /listings/:id
 router.get('/:id', optionalAuth, async (req: AuthRequest, res: Response) => {
+  const id = req.params.id as string;
   const listing = await prisma.listing.findUnique({
-    where: { id: req.params.id },
+    where: { id },
     include: { tags: true, ads: { where: { active: true } } },
   });
   if (!listing) return res.status(404).json({ error: 'Listing not found' });
 
-  await prisma.listing.update({ where: { id: req.params.id }, data: { viewCount: { increment: 1 } } });
+  await prisma.listing.update({ where: { id }, data: { viewCount: { increment: 1 } } });
   res.json(listing);
 });
 
@@ -95,7 +96,8 @@ router.post('/', optionalAuth, async (req: AuthRequest, res: Response) => {
 
 // PUT /listings/:id
 router.put('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
-  const listing = await prisma.listing.findUnique({ where: { id: req.params.id } });
+  const id = req.params.id as string;
+  const listing = await prisma.listing.findUnique({ where: { id } });
   if (!listing) return res.status(404).json({ error: 'Not found' });
   if (listing.submittedById !== req.user?.id && req.user?.role !== 'ADMIN') {
     return res.status(403).json({ error: 'Forbidden' });
@@ -106,7 +108,7 @@ router.put('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
 
   const { tags, ...data } = parsed.data;
   const updated = await prisma.listing.update({
-    where: { id: req.params.id },
+    where: { id },
     data: {
       ...data,
       tags: tags ? { deleteMany: {}, create: tags.map(name => ({ name })) } : undefined,
@@ -119,13 +121,14 @@ router.put('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
 
 // DELETE /listings/:id
 router.delete('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
-  const listing = await prisma.listing.findUnique({ where: { id: req.params.id } });
+  const id = req.params.id as string;
+  const listing = await prisma.listing.findUnique({ where: { id } });
   if (!listing) return res.status(404).json({ error: 'Not found' });
   if (listing.submittedById !== req.user?.id && req.user?.role !== 'ADMIN') {
     return res.status(403).json({ error: 'Forbidden' });
   }
 
-  await prisma.listing.update({ where: { id: req.params.id }, data: { active: false } });
+  await prisma.listing.update({ where: { id }, data: { active: false } });
   res.json({ success: true });
 });
 

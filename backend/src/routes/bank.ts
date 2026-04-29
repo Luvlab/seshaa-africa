@@ -90,7 +90,7 @@ router.patch('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
   if (status === 'DISBURSED') update.disbursedAt = new Date();
   if (status === 'REPAID') update.repaidAt = new Date();
 
-  const loan = await prisma.microLoan.update({ where: { id: req.params.id }, data: update });
+  const loan = await prisma.microLoan.update({ where: { id: req.params.id as string }, data: update });
   res.json(loan);
 });
 

@@ -26,13 +26,14 @@ router.get('/my', requireAuth, async (req: AuthRequest, res: Response) => {
 
 // GET /bookings/listing/:listingId — listing owner sees their incoming bookings
 router.get('/listing/:listingId', requireAuth, async (req: AuthRequest, res: Response) => {
-  const listing = await prisma.listing.findUnique({ where: { id: req.params.listingId } });
+  const listingId = req.params.listingId as string;
+  const listing = await prisma.listing.findUnique({ where: { id: listingId } });
   if (!listing) return res.status(404).json({ error: 'Listing not found' });
   if (listing.submittedById !== req.user!.id && req.user!.role !== 'ADMIN') {
     return res.status(403).json({ error: 'Forbidden' });
   }
   const bookings = await prisma.booking.findMany({
-    where: { listingId: req.params.listingId },
+    where: { listingId },
     include: { user: { select: { id: true, name: true, phone: true } } },
     orderBy: { date: 'asc' },
   });
@@ -77,9 +78,10 @@ router.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
 
 // PATCH /bookings/:id — update booking status (owner or admin)
 router.patch('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
+  const id = req.params.id as string;
   const { status } = req.body;
   const booking = await prisma.booking.findUnique({
-    where: { id: req.params.id },
+    where: { id },
     include: { listing: { select: { name: true, phone: true, address: true, submittedById: true } } },
   }) as (Awaited<ReturnType<typeof prisma.booking.findUnique>> & { listing: { name: string; phone: string | null; address: string | null; submittedById: string } }) | null;
   if (!booking) return res.status(404).json({ error: 'Booking not found' });
@@ -91,7 +93,7 @@ router.patch('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
   if (!isOwner && !isGuest && !isAdmin) return res.status(403).json({ error: 'Forbidden' });
   if (isGuest && status !== 'CANCELLED') return res.status(403).json({ error: 'Guests can only cancel' });
 
-  const updated = await prisma.booking.update({ where: { id: req.params.id }, data: { status } });
+  const updated = await prisma.booking.update({ where: { id }, data: { status } });
   res.json(updated);
 });
 

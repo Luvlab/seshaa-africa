@@ -39,7 +39,7 @@ const OSM_CATEGORY_MAP: Record<string, string> = {
   beauty: 'beauty', hairdresser: 'beauty', massage: 'beauty', cosmetics: 'beauty',
   car_repair: 'auto', car_wash: 'auto', tyres: 'auto', auto_parts: 'auto',
   farm: 'agriculture', greenhouse: 'agriculture', agrarian: 'agriculture',
-  construction: 'construction', hardware: 'construction',
+  construction: 'construction',
   townhall: 'government', police: 'government', post_office: 'government', embassy: 'government',
   courthouse: 'government', fire_station: 'government',
   ngo: 'ngo', social_facility: 'ngo', charity: 'ngo',

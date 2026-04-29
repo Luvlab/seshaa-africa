@@ -145,8 +145,9 @@ router.post('/bulk', requireAuth, async (req: AuthRequest, res: Response) => {
 
 // DELETE /prices/:id
 router.delete('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
+  const id = req.params.id as string;
   const entry = await prisma.priceEntry.findUnique({
-    where: { id: req.params.id },
+    where: { id },
     include: { listing: { select: { name: true, phone: true, city: true, avgRating: true, submittedById: true } } },
   }) as (Awaited<ReturnType<typeof prisma.priceEntry.findUnique>> & { listing: { name: string; phone: string | null; city: string | null; avgRating: number; submittedById: string } }) | null;
   if (!entry) return res.status(404).json({ error: 'Not found' });
@@ -154,7 +155,7 @@ router.delete('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
     return res.status(403).json({ error: 'Forbidden' });
   }
 
-  await prisma.priceEntry.delete({ where: { id: req.params.id } });
+  await prisma.priceEntry.delete({ where: { id } });
   res.json({ success: true });
 });
 

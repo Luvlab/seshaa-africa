@@ -63,7 +63,7 @@ router.get('/listings', requireAuth, adminOnly, async (req, res) => {
 // POST /admin/listings/:id/verify
 router.post('/listings/:id/verify', requireAuth, adminOnly, async (req, res) => {
   const listing = await prisma.listing.update({
-    where: { id: req.params.id },
+    where: { id: req.params.id as string },
     data: { verified: true },
   });
   res.json(listing);
@@ -71,7 +71,7 @@ router.post('/listings/:id/verify', requireAuth, adminOnly, async (req, res) => 
 
 // POST /admin/listings/:id/reject
 router.post('/listings/:id/reject', requireAuth, adminOnly, async (req, res) => {
-  await prisma.listing.update({ where: { id: req.params.id }, data: { active: false } });
+  await prisma.listing.update({ where: { id: req.params.id as string }, data: { active: false } });
   res.json({ success: true });
 });
 
@@ -196,7 +196,7 @@ router.get('/financials', requireAuth, adminOnly, async (_req, res) => {
 // POST /admin/ambassador-payouts/approve/:id
 router.post('/ambassador-payouts/approve/:id', requireAuth, adminOnly, async (req, res) => {
   const payout = await prisma.ambassadorPayout.update({
-    where: { id: req.params.id },
+    where: { id: req.params.id as string },
     data: { paid: true, paidAt: new Date() },
   });
   res.json(payout);

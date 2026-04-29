@@ -43,9 +43,10 @@ router.get('/verify/:code', async (req, res) => {
 
 // GET /certifications/listing/:listingId — get certification + awards for a listing (public)
 router.get('/listing/:listingId', async (req, res) => {
-  const cert = await prisma.seshaaCertification.findUnique({ where: { listingId: req.params.listingId } });
+  const listingId = req.params.listingId as string;
+  const cert = await prisma.seshaaCertification.findUnique({ where: { listingId } });
   const awards = await prisma.seshaaAward.findMany({
-    where: { listingId: req.params.listingId },
+    where: { listingId },
     orderBy: [{ year: 'desc' }, { rank: 'asc' }],
   });
   res.json({ certification: cert, awards });
@@ -53,8 +54,9 @@ router.get('/listing/:listingId', async (req, res) => {
 
 // POST /certifications/check-eligibility/:listingId — auto-check if listing qualifies for certification
 router.post('/check-eligibility/:listingId', requireAuth, async (req: AuthRequest, res: Response) => {
+  const listingId = req.params.listingId as string;
   const listing = await prisma.listing.findUnique({
-    where: { id: req.params.listingId },
+    where: { id: listingId },
     include: { proSubscription: true },
   }) as (Awaited<ReturnType<typeof prisma.listing.findUnique>> & { proSubscription: { active: boolean } | null }) | null;
   if (!listing) return res.status(404).json({ error: 'Listing not found' });
@@ -72,9 +74,9 @@ router.post('/check-eligibility/:listingId', requireAuth, async (req: AuthReques
 
   if (eligible) {
     const cert = await prisma.seshaaCertification.upsert({
-      where: { listingId: req.params.listingId },
+      where: { listingId },
       create: {
-        listingId: req.params.listingId,
+        listingId,
         level: level as 'STANDARD' | 'GOLD' | 'PLATINUM',
         validUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
       },

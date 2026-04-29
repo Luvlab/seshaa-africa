@@ -280,13 +280,14 @@ router.get('/my/stats', requireAuth, async (req: AuthRequest, res: Response) => 
 
 // PATCH /ads/:id — pause/resume/edit campaign
 router.patch('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
-  const ad = await prisma.ad.findUnique({ where: { id: req.params.id } });
+  const id = req.params.id as string;
+  const ad = await prisma.ad.findUnique({ where: { id } });
   if (!ad) return res.status(404).json({ error: 'Ad not found' });
   if (ad.userId !== req.user!.id && req.user!.role !== 'ADMIN') return res.status(403).json({ error: 'Forbidden' });
 
   const { active, title, description, imageUrl } = req.body;
   const updated = await prisma.ad.update({
-    where: { id: req.params.id },
+    where: { id },
     data: {
       ...(active !== undefined ? { active } : {}),
       ...(title ? { title } : {}),
