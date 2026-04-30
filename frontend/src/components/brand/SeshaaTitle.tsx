@@ -1,162 +1,161 @@
 /**
  * SeshaaTitle — animated "seshaa.[country]" title.
  *
- * On mount: slot-machines fast through all African countries,
- * slows down, lands on "seshaa.africa".
- * Then transitions to the user's active country code in local spelling.
- *
- * Used in Navbar (compact) and AuthPage (larger).
+ * Startup: fast slot-machine through all 54 African countries in English,
+ * slows down, ALWAYS lands on "seshaa.africa".
+ * After 1.5 s: if a country is active, crossfades to that country's name
+ * in the current UI language (English → "nigeria", French → "sénégal", etc.)
  */
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 
-// ── Country suffixes in local / official language ─────────────────────────────
-export const COUNTRY_SLUGS: Record<string, string> = {
-  DZ: 'al-jazāʾir',   // Arabic
-  AO: 'angola',
-  BJ: 'bénin',
-  BW: 'botswana',
-  BF: 'burkina-faso',
-  BI: 'burundi',
-  CV: 'cabo-verde',
-  CM: 'kamerun',      // French/Fulfulde
-  CF: 'ködörösêse',
-  TD: 'tchad',
-  KM: 'komori',
-  CD: 'kongo',
-  CG: 'kongo',
-  CI: "côte-d'ivoire",
-  DJ: 'jabuuti',
-  EG: 'miṣr',         // Arabic
-  GQ: 'guinea',
-  ER: 'eritrea',
-  ET: 'ityop̣p̣əya',   // Amharic
-  GA: 'gabon',
-  GM: 'gambia',
-  GH: 'ghana',
-  GN: 'gine',
-  GW: 'guiné-bissau',
-  KE: 'kenya',
-  LS: 'lesotho',
-  LR: 'liberia',
-  LY: 'lībīyā',       // Arabic
-  MG: 'madagasikara',
-  MW: 'malawi',
-  ML: 'mali',
-  MR: 'mūrītāniyā',
-  MU: 'moris',        // Creole
-  MA: 'al-maġrib',    // Arabic
-  MZ: 'moçambique',
-  NA: 'namibia',
-  NE: 'nizhèr',       // Hausa
-  NG: 'naìjíríà',     // Yoruba
-  RW: 'u-rwanda',
-  ST: 'são-tomé',
-  SN: 'sénégal',
-  SL: 'sierra-leone',
-  SO: 'soomaaliya',
-  ZA: 'mzansi',       // Zulu
-  SS: 'south-sudan',
-  SD: 'as-sūdān',     // Arabic
-  SZ: 'eswatini',
-  TZ: 'tanzania',
-  TG: 'togo',
-  TN: 'tūnis',        // Arabic
-  UG: 'yuganda',      // Luganda
-  ZM: 'zambia',
-  ZW: 'zimbabwe',
+// ── English slugs — used for slot machine + settled display when lang = en ──
+export const ENGLISH_SLUGS: Record<string, string> = {
+  DZ: 'algeria',      AO: 'angola',        BJ: 'benin',
+  BW: 'botswana',     BF: 'burkina-faso',  BI: 'burundi',
+  CV: 'cabo-verde',   CM: 'cameroon',      CF: 'central-africa',
+  TD: 'chad',         KM: 'comoros',       CD: 'dr-congo',
+  CG: 'congo',        CI: 'ivory-coast',   DJ: 'djibouti',
+  EG: 'egypt',        GQ: 'eq-guinea',     ER: 'eritrea',
+  ET: 'ethiopia',     GA: 'gabon',         GM: 'gambia',
+  GH: 'ghana',        GN: 'guinea',        GW: 'guinea-bissau',
+  KE: 'kenya',        LS: 'lesotho',       LR: 'liberia',
+  LY: 'libya',        MG: 'madagascar',    MW: 'malawi',
+  ML: 'mali',         MR: 'mauritania',    MU: 'mauritius',
+  MA: 'morocco',      MZ: 'mozambique',    NA: 'namibia',
+  NE: 'niger',        NG: 'nigeria',       RW: 'rwanda',
+  ST: 'sao-tome',     SN: 'senegal',       SL: 'sierra-leone',
+  SO: 'somalia',      ZA: 'south-africa',  SS: 'south-sudan',
+  SD: 'sudan',        SZ: 'eswatini',      TZ: 'tanzania',
+  TG: 'togo',         TN: 'tunisia',       UG: 'uganda',
+  ZM: 'zambia',       ZW: 'zimbabwe',
 };
 
-// Flat array for the slot machine (shuffled feel)
-const SLOT_LIST = Object.values(COUNTRY_SLUGS);
+// ── Local-language slugs — shown when UI is NOT English ─────────────────────
+export const LOCAL_SLUGS: Record<string, string> = {
+  DZ: 'al-jazāʾir',   AO: 'angola',        BJ: 'bénin',
+  BW: 'botswana',     BF: 'burkina-faso',  BI: 'burundi',
+  CV: 'cabo-verde',   CM: 'kamerun',       CF: 'ködörösêse',
+  TD: 'tchad',        KM: 'komori',        CD: 'kongo',
+  CG: 'kongo',        CI: "côte-d'ivoire", DJ: 'jabuuti',
+  EG: 'miṣr',         GQ: 'guinea',        ER: 'eritrea',
+  ET: "ityop̣p̣əya",   GA: 'gabon',         GM: 'gambia',
+  GH: 'ghana',        GN: 'gine',          GW: 'guiné-bissau',
+  KE: 'kenya',        LS: 'lesotho',       LR: 'liberia',
+  LY: 'lībīyā',       MG: 'madagasikara',  MW: 'malawi',
+  ML: 'mali',         MR: 'mūrītāniyā',    MU: 'moris',
+  MA: 'al-maġrib',    MZ: 'moçambique',    NA: 'namibia',
+  NE: 'nizhèr',       NG: 'naìjíríà',      RW: 'u-rwanda',
+  ST: 'são-tomé',     SN: 'sénégal',       SL: 'sierra-leone',
+  SO: 'soomaaliya',   ZA: 'mzansi',        SS: 'south-sudan',
+  SD: 'as-sūdān',     SZ: 'eswatini',      TZ: 'tanzania',
+  TG: 'togo',         TN: 'tūnis',         UG: 'yuganda',
+  ZM: 'zambia',       ZW: 'zimbabwe',
+};
+
+// Slot-machine list always uses English (readable at speed)
+const SLOT_LIST = Object.values(ENGLISH_SLUGS);
 
 interface Props {
-  /** country ISO-2 from theme store — null before selection */
   countryCode?: string;
-  /** visual size */
   size?: 'sm' | 'md' | 'lg';
   className?: string;
 }
 
-const SIZE_STYLES = {
-  sm: { main: '1.05rem', dot: '0.95rem', height: 32 },
-  md: { main: '1.5rem',  dot: '1.3rem',  height: 44 },
-  lg: { main: '2.2rem',  dot: '2rem',    height: 64 },
+const SIZE: Record<string, { main: string; dot: string }> = {
+  sm: { main: '1.1rem',  dot: '0.95rem' },
+  md: { main: '1.55rem', dot: '1.3rem'  },
+  lg: { main: '2.4rem',  dot: '2.05rem' },
 };
 
 export default function SeshaaTitle({ countryCode, size = 'sm', className = '' }: Props) {
-  const [suffix, setSuffix]     = useState(SLOT_LIST[0]);
-  const [fading, setFading]     = useState(false);
-  const [settled, setSettled]   = useState(false);
-  const intervalRef             = useRef<ReturnType<typeof setInterval> | null>(null);
-  const idxRef                  = useRef(0);
+  const { i18n } = useTranslation();
+  const isEnglish = i18n.language.startsWith('en');
 
-  const { main, dot, height } = SIZE_STYLES[size];
+  const [suffix, setSuffix] = useState(SLOT_LIST[0]);
+  const [fading, setFading] = useState(false);
+  const [settled, setSettled] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const ivRef    = useRef<ReturnType<typeof setInterval> | null>(null);
+  const idxRef   = useRef(0);
 
-  // Final suffix: prefer user's country; fallback to "africa"
-  const finalSuffix = countryCode
-    ? (COUNTRY_SLUGS[countryCode.toUpperCase()] ?? countryCode.toLowerCase())
-    : 'africa';
+  const { main, dot } = SIZE[size] ?? SIZE.sm;
 
-  // ── Slot machine on mount ──────────────────────────────────────────────────
+  // Country suffix to show once settled — always "africa" first, then country
+  const countrySuffix = countryCode
+    ? ((isEnglish ? ENGLISH_SLUGS : LOCAL_SLUGS)[countryCode.toUpperCase()] ?? countryCode.toLowerCase())
+    : null;
+
+  // ── Slot-machine animation on mount ─────────────────────────────────────
   useEffect(() => {
-    let speed = 60;           // ms per tick — starts fast
+    const FAST_TICKS = 30;
+    const SLOW_TICKS = 14;
     let ticks = 0;
-    const totalFast = 28;     // how many fast ticks before slowing
-    const totalSlow = 12;     // slow ticks before landing
 
-    const tick = () => {
-      ticks++;
-
-      if (ticks <= totalFast) {
-        // Fast phase: cycle through list
+    const run = (delay: number) => {
+      ivRef.current = setInterval(() => {
+        ticks++;
         idxRef.current = (idxRef.current + 1) % SLOT_LIST.length;
         setSuffix(SLOT_LIST[idxRef.current]);
-        speed = 60;
-      } else if (ticks <= totalFast + totalSlow) {
-        // Slow-down phase
-        idxRef.current = (idxRef.current + 1) % SLOT_LIST.length;
-        setSuffix(SLOT_LIST[idxRef.current]);
-        speed = 60 + (ticks - totalFast) * 30; // 90ms → 420ms
-      } else {
-        // Land
-        clearInterval(intervalRef.current!);
-        setFading(true);
-        setTimeout(() => {
-          setSuffix(finalSuffix);
-          setFading(false);
-          setSettled(true);
-        }, 250);
-        return;
-      }
 
-      // Restart with new speed
-      clearInterval(intervalRef.current!);
-      intervalRef.current = setInterval(tick, speed);
+        clearInterval(ivRef.current!);
+
+        if (ticks < FAST_TICKS) {
+          run(55);
+        } else if (ticks < FAST_TICKS + SLOW_TICKS) {
+          const extra = (ticks - FAST_TICKS + 1) * 35;
+          run(55 + extra);            // 90 ms → 545 ms
+        } else {
+          // Land on "africa"
+          setFading(true);
+          timerRef.current = setTimeout(() => {
+            setSuffix('africa');
+            setFading(false);
+            setSettled(true);
+
+            // After 1.5 s, switch to user's country (if set)
+            if (countryCode) {
+              timerRef.current = setTimeout(() => {
+                setFading(true);
+                timerRef.current = setTimeout(() => {
+                  setSuffix(
+                    (isEnglish ? ENGLISH_SLUGS : LOCAL_SLUGS)[countryCode.toUpperCase()]
+                    ?? countryCode.toLowerCase()
+                  );
+                  setFading(false);
+                }, 260);
+              }, 1500);
+            }
+          }, 260);
+        }
+      }, delay);
     };
 
-    intervalRef.current = setInterval(tick, speed);
-    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+    run(55);
+    return () => {
+      clearInterval(ivRef.current!);
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ── When country changes after settled — smooth crossfade ─────────────────
+  // ── Country or language changes after settle ─────────────────────────────
   useEffect(() => {
     if (!settled) return;
+    const target = countrySuffix ?? 'africa';
+    if (suffix === target) return;
     setFading(true);
-    const t = setTimeout(() => {
-      setSuffix(finalSuffix);
+    timerRef.current = setTimeout(() => {
+      setSuffix(target);
       setFading(false);
-    }, 250);
-    return () => clearTimeout(t);
+    }, 260);
+    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [finalSuffix, settled]);
+  }, [countrySuffix, settled]);
 
   return (
-    <div
-      className={`flex items-baseline gap-0 select-none ${className}`}
-      style={{ height, lineHeight: 1 }}
-    >
-      {/* "seshaa" — always visible, bold italic white-outlined green */}
+    <div className={`flex items-center gap-0 select-none leading-none ${className}`}>
+      {/* "seshaa" — green fill, white stroke */}
       <span
         style={{
           fontSize: main,
@@ -165,7 +164,6 @@ export default function SeshaaTitle({ countryCode, size = 'sm', className = '' }
           fontFamily: '"Arial Black","Arial Bold",Arial,sans-serif',
           color: '#008751',
           WebkitTextStroke: '1.5px white',
-          paintOrder: 'stroke fill',
           letterSpacing: '-0.02em',
           lineHeight: 1,
         }}
@@ -173,7 +171,7 @@ export default function SeshaaTitle({ countryCode, size = 'sm', className = '' }
         seshaa
       </span>
 
-      {/* ".[country]" — fades during transitions */}
+      {/* ".[country]" — white, fades on transitions */}
       <span
         style={{
           fontSize: dot,
@@ -181,10 +179,11 @@ export default function SeshaaTitle({ countryCode, size = 'sm', className = '' }
           fontStyle: 'italic',
           fontFamily: '"Arial Black","Arial Bold",Arial,sans-serif',
           color: 'white',
-          opacity: fading ? 0 : 0.9,
-          transition: 'opacity 0.25s ease',
+          opacity: fading ? 0 : 1,
+          transition: 'opacity 0.26s ease',
           lineHeight: 1,
           letterSpacing: '-0.01em',
+          whiteSpace: 'nowrap',
         }}
       >
         .{suffix}

@@ -92,20 +92,21 @@ export default function Navbar() {
 
   return (
     <nav className="sticky top-0 z-50 shadow-md" style={{ backgroundColor: 'var(--cp)' }}>
-      {/* Main header row */}
-      <div className="max-w-7xl mx-auto px-3 py-2.5 flex items-center gap-3">
-        {/* Seshaa animated title — slot-machines through Africa then lands on active country */}
-        <Link to="/" className="shrink-0 flex items-center" style={{ height: 40 }}>
-          <SeshaaTitle
-            countryCode={countryCode}
-            size="sm"
-            className="px-1"
-          />
+      {/* ── Main header row — full viewport width, 56px fixed height ── */}
+      <div className="w-full px-4 sm:px-6 h-14 flex items-center gap-3">
+
+        {/* Seshaa animated title — fixed width so flag/search don't shift during animation */}
+        <Link
+          to="/"
+          className="shrink-0 flex items-center h-full overflow-hidden"
+          style={{ width: 176 }}
+        >
+          <SeshaaTitle countryCode={countryCode} size="sm" />
         </Link>
 
-        {/* Country flag badge — opens proper picker, no more ugly prompt */}
+        {/* Country flag badge */}
         <button
-          className="flex items-center gap-1.5 text-xs bg-white/20 hover:bg-white/30 text-white px-2.5 py-1.5 rounded-full transition-colors"
+          className="shrink-0 flex items-center gap-1.5 text-xs bg-white/20 hover:bg-white/30 text-white px-2.5 py-1.5 rounded-full transition-colors"
           onClick={() => setCountryPickerOpen(true)}
           title={`${theme.name} — tap to change`}
         >
@@ -116,8 +117,8 @@ export default function Navbar() {
           <ChevronDown size={10} />
         </button>
 
-        {/* Search bar */}
-        <div className="flex-1 max-w-lg hidden md:flex items-center bg-white/15 hover:bg-white/25 rounded-full px-3.5 py-1.5 gap-2 transition-colors">
+        {/* Search bar — grows to fill available space */}
+        <div className="flex-1 hidden md:flex items-center bg-white/15 hover:bg-white/25 rounded-full px-3.5 py-1.5 gap-2 transition-colors h-9">
           <Search size={15} className="text-white/70 shrink-0" />
           <input
             className="bg-transparent text-white placeholder-white/60 outline-none flex-1 text-sm"
@@ -135,7 +136,7 @@ export default function Navbar() {
           </button>
         </div>
 
-        {/* Right controls */}
+        {/* Right controls — all vertically centered via parent items-center */}
         <div className="flex items-center gap-1.5 ms-auto">
           {/* Language */}
           <div className="relative">
@@ -228,9 +229,9 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Tab strip — desktop */}
+      {/* Tab strip — desktop, full width */}
       <div className="hidden md:block bg-black/15 border-t border-white/10">
-        <div className="max-w-7xl mx-auto px-3 flex items-center gap-0.5 overflow-x-auto scrollbar-none">
+        <div className="w-full px-4 sm:px-6 flex items-center gap-0.5 overflow-x-auto scrollbar-none">
           {visibleTabs.map(tab => {
             const isActive = tab.path === '/'
               ? location.pathname === '/'

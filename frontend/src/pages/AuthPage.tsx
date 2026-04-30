@@ -3,8 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { Phone, Mail, Lock, Eye, EyeOff, Globe, ArrowRight, User } from 'lucide-react';
 import { authApi } from '../services/api';
 import { useAuthStore } from '../store/auth';
-import { useThemeStore } from '../store/theme';
-import SeshaaTitle from '../components/brand/SeshaaTitle';
 
 declare global {
   interface Window {
@@ -25,7 +23,6 @@ type Mode = 'login' | 'register';
 export default function AuthPage() {
   const navigate = useNavigate();
   const { setAuth } = useAuthStore();
-  const { countryCode } = useThemeStore();
   const [mode, setMode] = useState<Mode>('login');
   const [inputType, setInputType] = useState<'phone' | 'email'>('phone');
   const [form, setForm] = useState({ name: '', identifier: '', password: '', country: '' });
@@ -99,11 +96,6 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Top brand bar */}
-      <div className="px-5 py-4" style={{ backgroundColor: 'var(--cp)' }}>
-        <SeshaaTitle countryCode={countryCode} size="lg" />
-      </div>
-
       <div className="flex-1 flex flex-col justify-center px-5 py-8 max-w-md mx-auto w-full">
 
         {/* Title */}
