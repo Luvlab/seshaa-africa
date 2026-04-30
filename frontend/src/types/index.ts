@@ -46,7 +46,7 @@ export interface Listing {
   bookable?: boolean;
   logoUrl?: string;
   photos?: string[];
-  openingHours?: Record<string, string>;
+  openingHours?: string;
   avgRating: number;
   reviewCount: number;
   certification?: SeshaaCertification;

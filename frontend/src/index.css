@@ -69,6 +69,12 @@
   }
 }
 
+/* ── Global icon style: outlined + minimalist ────────────────────────────── */
+/* All Lucide icons rendered with stroke-width 1.5 — thin, outlined, clear   */
+svg.lucide {
+  stroke-width: 1.5 !important;
+}
+
 /* Star rating animation */
 .star-fill { transition: color 0.15s ease; }
 

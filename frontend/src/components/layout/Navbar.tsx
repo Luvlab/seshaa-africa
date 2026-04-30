@@ -1,9 +1,12 @@
 import { useState, useMemo } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Search, Plus, Menu, X, Globe, MessageCircle, Bell, User, ChevronDown, Sparkles } from 'lucide-react';
+import { Search, Plus, Menu, X, MessageCircle, Bell, User, ChevronDown, Sparkles } from 'lucide-react';
 import { useAuthStore } from '../../store/auth';
 import { useThemeStore } from '../../store/theme';
+import LogoRotator from '../brand/LogoRotator';
+import CountryPicker from './CountryPicker';
+import AfricaIcon from '../brand/AfricaIcon';
 import { LANGUAGES } from '../../i18n';
 import clsx from 'clsx';
 import type { PortalType } from '../../types';
@@ -34,8 +37,10 @@ const ALL_TABS: Tab[] = [
   { id: 'messages',    path: '/messages',   label: 'Messages',    icon: '💬' },
   { id: 'bookings',    path: '/bookings',   label: 'Bookings',    icon: '📅' },
   { id: 'advertise',   path: '/advertise',  label: 'Advertise',   icon: '📢' },
-  { id: 'ambassador',  path: '/ambassador', label: 'Ambassador',  icon: '🌟', roles: ['AMBASSADOR', 'ADMIN'] },
+  { id: 'events',      path: '/events',     label: 'Events',      icon: '🎉' },
+  { id: 'ambassador',  path: '/ambassador',  label: 'Ambassador',  icon: '🌟', roles: ['AMBASSADOR', 'ADMIN'] },
   { id: 'salesrep',    path: '/salesrep',   label: 'Sales',       icon: '💼', roles: ['SALES_REP', 'ADMIN'] },
+  { id: 'translate',   path: '/translate',  label: 'Translate',   icon: '🌐' },
   { id: 'admin',       path: '/admin',      label: 'Admin',       icon: '⚙️', roles: ['ADMIN'] },
 ];
 
@@ -49,6 +54,7 @@ export default function Navbar() {
   const [langOpen, setLangOpen] = useState(false);
   const [portalOpen, setPortalOpen] = useState(false);
   const [searchQ, setSearchQ] = useState('');
+  const [countryPickerOpen, setCountryPickerOpen] = useState(false);
 
   const currentLang = LANGUAGES.find(l => l.code === i18n.language) || LANGUAGES[0];
 
@@ -89,23 +95,25 @@ export default function Navbar() {
     <nav className="sticky top-0 z-50 shadow-md" style={{ backgroundColor: 'var(--cp)' }}>
       {/* Main header row */}
       <div className="max-w-7xl mx-auto px-3 py-2.5 flex items-center gap-3">
-        {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 font-bold text-xl shrink-0 text-white">
-          <span className="text-2xl">🌍</span>
-          <span className="hidden sm:inline tracking-tight">Seshaa</span>
-          <span className="text-xs opacity-60 hidden lg:inline">.africa</span>
+        {/* Rotating logo — responsive width: small on mobile, full on desktop */}
+        <Link
+          to="/"
+          className="shrink-0 flex items-center w-[72px] sm:w-[110px] md:w-[130px]"
+          style={{ height: 40 }}
+        >
+          <LogoRotator />
         </Link>
 
-        {/* Country flag badge */}
+        {/* Country flag badge — opens proper picker, no more ugly prompt */}
         <button
-          className="hidden sm:flex items-center gap-1 text-xs bg-white/20 hover:bg-white/30 text-white px-2 py-1 rounded-full"
-          onClick={() => {
-            const code = prompt('Enter 2-letter country code (e.g. NG, KE, ZA):')?.toUpperCase();
-            if (code) applyTheme(code);
-          }}
-          title={`Viewing as: ${theme.name}`}
+          className="flex items-center gap-1.5 text-xs bg-white/20 hover:bg-white/30 text-white px-2.5 py-1.5 rounded-full transition-colors"
+          onClick={() => setCountryPickerOpen(true)}
+          title={`${theme.name} — tap to change`}
         >
-          <span className="font-medium">{countryCode}</span>
+          <span className="text-base leading-none">
+            {countryCode.toUpperCase().split('').map(c => String.fromCodePoint(0x1F1E6 - 65 + c.charCodeAt(0))).join('')}
+          </span>
+          <span className="font-semibold hidden sm:inline">{theme.name}</span>
           <ChevronDown size={10} />
         </button>
 
@@ -136,7 +144,7 @@ export default function Navbar() {
               className="flex items-center gap-1 text-white/90 text-sm px-2 py-1 rounded-lg hover:bg-white/20"
               onClick={() => setLangOpen(v => !v)}
             >
-              <Globe size={14} />
+              <AfricaIcon size={16} color="#FCD116" />
               <span className="hidden sm:inline text-xs">{currentLang.nativeName}</span>
             </button>
             {langOpen && (
@@ -208,7 +216,7 @@ export default function Navbar() {
           )}
 
           <Link
-            to="/search?bookable=true"
+            to="/add-listing"
             className="hidden lg:flex items-center gap-1 bg-white/20 hover:bg-white/30 text-white text-xs font-semibold px-3 py-1.5 rounded-full border border-white/30"
           >
             <Plus size={13} /> Add Listing
@@ -288,6 +296,15 @@ export default function Navbar() {
         <div className="hidden">
           <Bell size={18} />
         </div>
+      )}
+
+      {/* Country picker modal */}
+      {countryPickerOpen && (
+        <CountryPicker
+          currentCode={countryCode}
+          onSelect={code => applyTheme(code)}
+          onClose={() => setCountryPickerOpen(false)}
+        />
       )}
     </nav>
   );

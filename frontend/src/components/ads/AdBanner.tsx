@@ -46,9 +46,19 @@ export default function AdBanner({ country, city, category, tier = 'BANNER', cla
 
   const visible = ads.filter(a => !dismissed.has(a.id));
   if (!visible.length) return (
-    <div className={clsx('rounded-lg p-4 text-center text-sm text-gray-400 border border-dashed border-gray-200', className)}>
-      <p className="font-medium text-gray-500">Advertise here</p>
-      <p className="text-xs mt-1">Reach thousands of Africans daily</p>
+    <div className={clsx(
+      'rounded-2xl p-6 text-center border-2 border-dashed border-orange-200 bg-orange-50',
+      className
+    )}>
+      <p className="text-2xl mb-1">📢</p>
+      <p className="font-bold text-gray-800 text-base">Advertise here</p>
+      <p className="text-sm text-gray-500 mt-1 mb-4">Reach thousands of Africans daily</p>
+      <a
+        href="/advertise"
+        className="inline-block bg-orange-500 hover:bg-orange-600 text-white font-bold px-5 py-2.5 rounded-xl text-sm transition-colors"
+      >
+        Buy Advertising →
+      </a>
     </div>
   );
 

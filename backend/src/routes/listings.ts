@@ -22,15 +22,19 @@ const ListingSchema = z.object({
   description: z.string().max(1000).optional(),
   website: z.string().url().optional().or(z.literal('')),
   whatsapp: z.string().optional(),
+  openingHours: z.string().optional(),
   latitude: z.number().optional(),
   longitude: z.number().optional(),
   language: z.string().default('en'),
   tags: z.array(z.string()).optional(),
+  tier: z.enum(['SILVER', 'GOLD', 'DIAMOND']).default('SILVER'),
+  bookable: z.boolean().default(false),
+  isPro: z.boolean().default(false),
 });
 
 // GET /listings - search & browse
 router.get('/', optionalAuth, async (req: AuthRequest, res: Response) => {
-  const { q, city, country, category, type, page = '1', limit = '20' } = req.query as Record<string, string>;
+  const { q, city, country, category, type, submittedById, tier, page = '1', limit = '20' } = req.query as Record<string, string>;
   const skip = (parseInt(page) - 1) * parseInt(limit);
 
   const where: Record<string, unknown> = { active: true };
@@ -38,6 +42,8 @@ router.get('/', optionalAuth, async (req: AuthRequest, res: Response) => {
   if (city) where.city = { contains: city, mode: 'insensitive' };
   if (category) where.category = category;
   if (type) where.type = type;
+  if (tier) where.tier = tier;
+  if (submittedById) where.submittedById = submittedById;
   if (q) {
     where.OR = [
       { name: { contains: q, mode: 'insensitive' } },
@@ -152,6 +158,35 @@ router.get('/meta/categories', async (_req, res) => {
     orderBy: { category: 'asc' },
   });
   res.json(categories.map(c => c.category).filter(Boolean));
+});
+
+// GET /listings/osm-search?q=...&countryCode=...
+router.get('/osm-search', async (req, res) => {
+  const { q, countryCode } = req.query as Record<string, string>;
+  if (!q) return res.status(400).json({ error: 'q is required' });
+
+  const params = new URLSearchParams({
+    q,
+    format: 'json',
+    limit: '7',
+    addressdetails: '1',
+  });
+  if (countryCode) params.set('countrycodes', countryCode);
+
+  try {
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?${params.toString()}`,
+      { headers: { 'User-Agent': 'Seshaa/1.0 (info@seshaa.africa)' } }
+    );
+    if (!response.ok) {
+      return res.status(502).json({ error: 'Upstream error from Nominatim' });
+    }
+    const data = await response.json();
+    res.json(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal error' });
+  }
 });
 
 export default router;

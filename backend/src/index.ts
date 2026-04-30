@@ -22,6 +22,9 @@ import interestsRouter from './routes/interests';
 import newsRouter from './routes/news';
 import classifiedsRouter from './routes/classifieds';
 import pricesRouter from './routes/prices';
+import translationsRouter from './routes/translations';
+import eventsRouter from './routes/events';
+import promotionsRouter from './routes/promotions';
 
 const app = express();
 
@@ -70,6 +73,9 @@ app.use('/api/interests', interestsRouter);
 app.use('/api/news', newsRouter);
 app.use('/api/classifieds', classifiedsRouter);
 app.use('/api/prices', pricesRouter);
+app.use('/api/translations', translationsRouter);
+app.use('/api/events', eventsRouter);
+app.use('/api/promotions', promotionsRouter);
 
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error(err);

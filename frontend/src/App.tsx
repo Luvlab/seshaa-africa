@@ -6,7 +6,6 @@ import Navbar from './components/layout/Navbar';
 import MobileTabBar from './components/layout/MobileTabBar';
 import Footer from './components/layout/Footer';
 import { useThemeStore } from './store/theme';
-import { useInterestsStore } from './store/interests';
 import InterestSurvey from './components/ads/InterestSurvey';
 
 // Primary tabs — loaded eagerly once, kept alive in the background
@@ -21,16 +20,23 @@ import AdvertiserPortal from './pages/portals/AdvertiserPortal';
 import AmbassadorPortal from './pages/portals/AmbassadorPortal';
 import SalesRepPortal from './pages/portals/SalesRepPortal';
 import AdminPortal from './pages/portals/AdminPortal';
+import AddListingPage from './pages/AddListingPage';
+import TranslatePage from './pages/TranslatePage';
+import BusinessPortal from './pages/portals/BusinessPortal';
+import EventsPage from './pages/EventsPage';
 
 // Detail/modal pages — still lazy-loaded (rarely visited)
 const ListingDetail = lazy(() => import('./pages/ListingDetail'));
 const VerifyPage = lazy(() => import('./pages/VerifyPage'));
+const AuthPage = lazy(() => import('./pages/AuthPage'));
+const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 
 // Tab paths — all kept mounted simultaneously
 const TAB_PATHS = [
   '/', '/search', '/news', '/classifieds', '/prices',
   '/messages', '/bookings', '/advertise',
   '/ambassador', '/salesrep', '/admin',
+  '/add-listing', '/translate', '/business', '/events',
 ];
 
 // ── Error Boundary ──────────────────────────────────────────────────────────
@@ -102,6 +108,10 @@ function TabContainer() {
     { path: '/ambassador',  el: <ErrorBoundary key="ambassador"><AmbassadorPortal /></ErrorBoundary> },
     { path: '/salesrep',    el: <ErrorBoundary key="salesrep"><SalesRepPortal /></ErrorBoundary> },
     { path: '/admin',       el: <ErrorBoundary key="admin"><AdminPortal /></ErrorBoundary> },
+    { path: '/add-listing', el: <ErrorBoundary key="add-listing"><AddListingPage /></ErrorBoundary> },
+    { path: '/translate',   el: <ErrorBoundary key="translate"><TranslatePage /></ErrorBoundary> },
+    { path: '/business',    el: <ErrorBoundary key="business"><BusinessPortal /></ErrorBoundary> },
+    { path: '/events',      el: <ErrorBoundary key="events"><EventsPage /></ErrorBoundary> },
   ];
 
   return (
@@ -121,6 +131,8 @@ function TabContainer() {
           <Routes>
             <Route path="/listing/:id" element={<ListingDetail />} />
             <Route path="/verify/:code" element={<VerifyPage />} />
+            <Route path="/auth" element={<AuthPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
             <Route path="*" element={
               <div className="text-center py-20 text-gray-400">
                 <p className="text-6xl mb-4">🌍</p>
@@ -140,15 +152,15 @@ function TabContainer() {
 // ── Root app ─────────────────────────────────────────────────────────────────
 export default function App() {
   const { detectFromIP, applyTheme, countryCode } = useThemeStore();
-  const { surveyDone } = useInterestsStore();
   const [showSurvey, setShowSurvey] = useState(false);
 
   useEffect(() => {
     applyTheme(countryCode);
     detectFromIP();
-    if (!surveyDone) {
-      const t = setTimeout(() => setShowSurvey(true), 3000);
-      return () => clearTimeout(t);
+    // Show personalisation survey only for brand-new signups (flag set by AuthPage after register)
+    if (sessionStorage.getItem('seshaa-new-signup')) {
+      sessionStorage.removeItem('seshaa-new-signup');
+      setShowSurvey(true);
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 

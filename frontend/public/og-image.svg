@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <!-- Background gradient -->
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#004d2b"/>
+      <stop offset="100%" style="stop-color:#008751"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.08"/>
+      <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#shine)"/>
+
+  <!-- Decorative circles -->
+  <circle cx="1050" cy="80"  r="200" fill="#ffffff" fill-opacity="0.04"/>
+  <circle cx="1100" cy="500" r="150" fill="#ffffff" fill-opacity="0.04"/>
+  <circle cx="80"   cy="550" r="120" fill="#FCD116" fill-opacity="0.07"/>
+
+  <!-- Africa outline (simplified, decorative) -->
+  <g transform="translate(820, 60)" opacity="0.18">
+    <path d="M130,10 C150,10 200,30 210,80 C220,130 200,160 220,200
+             C240,240 250,270 240,310 C230,350 210,380 200,420
+             C190,460 185,500 170,530 C155,560 130,580 110,575
+             C90,570 70,545 60,510 C50,475 55,440 45,400
+             C35,360 20,330 15,290 C10,250 20,210 10,170
+             C0,130 5,90 30,60 C55,30 110,10 130,10Z"
+      fill="none" stroke="#FCD116" stroke-width="8"/>
+  </g>
+
+  <!-- Main brand text -->
+  <text x="100" y="240"
+    font-family="Arial Black, Arial, sans-serif"
+    font-size="130" font-weight="900" font-style="italic"
+    fill="#ffffff" paint-order="stroke fill"
+    stroke="#90EE30" stroke-width="6">seshaa.</text>
+
+  <!-- Tagline -->
+  <text x="104" y="310"
+    font-family="Arial, sans-serif"
+    font-size="34" font-weight="600"
+    fill="#ffffff" fill-opacity="0.85">
+    Seshaa and you will find.
+  </text>
+
+  <!-- Description -->
+  <text x="104" y="370"
+    font-family="Arial, sans-serif"
+    font-size="26" font-weight="400"
+    fill="#ffffff" fill-opacity="0.65">
+    Africa's business directory — all 54 countries, all languages
+  </text>
+
+  <!-- Country flags strip -->
+  <text x="100" y="450" font-size="42" font-family="Arial">🇳🇬 🇰🇪 🇿🇦 🇬🇭 🇪🇬 🇪🇹 🇹🇿 🇸🇳 🇺🇬 🇷🇼 🇨🇮 🇨🇲</text>
+
+  <!-- Bottom bar -->
+  <rect x="0" y="580" width="1200" height="50" fill="#000000" fill-opacity="0.3"/>
+  <text x="100" y="613"
+    font-family="Arial, sans-serif" font-size="22" font-weight="600"
+    fill="#FCD116">seshaa.africa</text>
+  <text x="800" y="613"
+    font-family="Arial, sans-serif" font-size="18"
+    fill="#ffffff" fill-opacity="0.6">Find anyone, any business, anywhere in Africa</text>
+
+  <!-- Green dot accent -->
+  <circle cx="70" cy="608" r="6" fill="#90EE30"/>
+</svg>

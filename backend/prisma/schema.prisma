@@ -23,6 +23,10 @@ model User {
   bookings     Booking[]
   microLoans   MicroLoan[]
   classifieds  Classified[]
+  translationSuggestions TranslationSuggestion[]
+  translationVotes       TranslationVote[]
+  eventsSubmitted        Event[]
+  eventAttendances       EventAttendee[]
 }
 
 enum Role {
@@ -78,6 +82,7 @@ model Listing {
   enteredById    String?
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
+  tier           ListingTier     @default(SILVER)
   ads            Ad[]
   proSubscription ProSubscription?
   tags           Tag[]
@@ -86,6 +91,8 @@ model Listing {
   certification  SeshaaCertification?
   awards         SeshaaAward[]
   priceEntries   PriceEntry[]
+  events         Event[]
+  promotions     BusinessPromotion[]
 
   @@index([city, country])
   @@index([category])
@@ -226,6 +233,7 @@ model Ambassador {
   listingsEntered  Listing[]           @relation("AmbassadorListings")
   proSales         ProSubscription[]
   payouts          AmbassadorPayout[]
+  featuredEvents   Event[]             @relation("AmbassadorFeaturedEvents")
 }
 
 model ProSubscription {
@@ -406,4 +414,124 @@ model Booking {
 
   @@index([listingId])
   @@index([userId])
+}
+
+// ─── Listing Tiers ────────────────────────────────────────────────────────────
+enum ListingTier {
+  SILVER    // Free — basic name/phone/city/country
+  GOLD      // $9/month — full profile, photos, hours, WhatsApp, analytics
+  DIAMOND   // $19/month — featured placement, booking, QR code, priority search
+}
+
+// ─── Community Translations ───────────────────────────────────────────────────
+// Ambassadors and users can suggest & vote on translations for any UI string.
+
+model TranslationSuggestion {
+  id        String   @id @default(uuid())
+  lang      String   // language code e.g. "yo", "lg", "om"
+  key       String   // dot-notation key e.g. "search.placeholder"
+  value     String   // the suggested translation text
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  votes     Int      @default(0)
+  approved  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  upvotes   TranslationVote[]
+
+  @@index([lang, key])
+}
+
+model TranslationVote {
+  id           String                @id @default(uuid())
+  suggestionId String
+  suggestion   TranslationSuggestion @relation(fields: [suggestionId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User                  @relation(fields: [userId], references: [id])
+  createdAt    DateTime              @default(now())
+
+  @@unique([suggestionId, userId])
+}
+
+// ─── Crowd-sourced Events ─────────────────────────────────────────────────────
+model Event {
+  id            String        @id @default(uuid())
+  title         String
+  description   String?
+  startDate     DateTime
+  endDate       DateTime?
+  venue         String?
+  city          String
+  country       String
+  latitude      Float?
+  longitude     Float?
+  category      String?
+  imageUrl      String?
+  ticketUrl     String?
+  price         Float?
+  currency      String        @default("USD")
+  isFree        Boolean       @default(true)
+  listingId     String?
+  listing       Listing?      @relation(fields: [listingId], references: [id])
+  submittedById String?
+  submittedBy   User?         @relation(fields: [submittedById], references: [id])
+  featuredById  String?
+  featuredBy    Ambassador?   @relation("AmbassadorFeaturedEvents", fields: [featuredById], references: [id])
+  status        EventStatus   @default(PENDING)
+  views         Int           @default(0)
+  attendees     EventAttendee[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([city, country])
+  @@index([startDate, status])
+  @@index([status])
+}
+
+enum EventStatus {
+  PENDING
+  APPROVED
+  FEATURED
+  CANCELLED
+}
+
+model EventAttendee {
+  id        String   @id @default(uuid())
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId   String
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  createdAt DateTime @default(now())
+
+  @@unique([eventId, userId])
+  @@index([eventId])
+}
+
+// ─── Business Promotions ──────────────────────────────────────────────────────
+// Business owners (GOLD/DIAMOND) can post offers, deals, announcements.
+model BusinessPromotion {
+  id          String        @id @default(uuid())
+  listing     Listing       @relation(fields: [listingId], references: [id])
+  listingId   String
+  type        PromotionType @default(OFFER)
+  title       String
+  description String?
+  imageUrl    String?
+  discount    Float?        // e.g. 20 for "20% off"
+  couponCode  String?
+  startDate   DateTime      @default(now())
+  endDate     DateTime?
+  active      Boolean       @default(true)
+  views       Int           @default(0)
+  clicks      Int           @default(0)
+  createdAt   DateTime      @default(now())
+
+  @@index([listingId, active])
+  @@index([active, endDate])
+}
+
+enum PromotionType {
+  OFFER        // discount / deal
+  ANNOUNCEMENT // general news from the business
+  HIRING       // job opening
+  NEW_PRODUCT  // new product or service launch
 }

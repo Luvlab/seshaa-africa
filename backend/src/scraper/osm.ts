@@ -142,10 +142,10 @@ function extractWebsite(tags: Record<string, string>): string | null {
   } catch { return null; }
 }
 
-async function queryOverpass(bbox: number[], cityName: string): Promise<OSMElement[]> {
+export async function queryOverpass(bbox: number[], cityName: string): Promise<OSMElement[]> {
   const [west, south, east, north] = bbox;
   const query = `
-[out:json][timeout:90][maxsize:134217728];
+[out:json][timeout:45][maxsize:67108864];
 (
   node["name"]["amenity"](${south},${west},${north},${east});
   node["name"]["shop"](${south},${west},${north},${east});
@@ -206,7 +206,7 @@ function osmToListing(el: OSMElement, city: string, country: string) {
   };
 }
 
-async function scrapeCity(
+export async function scrapeCity(
   cityConfig: typeof AFRICAN_CITIES[number],
   dryRun = false
 ): Promise<number> {

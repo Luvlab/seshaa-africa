@@ -90,6 +90,8 @@ export const authApi = {
 export const salesRepApi = {
   dashboard: () => api.get('/salesreps/dashboard'),
   leaderboard: () => api.get('/salesreps/leaderboard'),
+  apply: (data: { name: string; phone: string; country: string; city?: string; why?: string }) =>
+    api.post('/salesreps/apply', data),
 };
 
 // Ambassador
@@ -179,6 +181,45 @@ export const adminApi = {
   loanApplications: (status?: string) => api.get('/bank/applications', { params: { status } }),
   updateLoan: (id: string, data: { status: string; approvedAmount?: number; notes?: string }) =>
     api.patch(`/bank/${id}`, data),
+  getHero: () => api.get('/admin/hero'),
+  setHero: (data: object) => api.post('/admin/hero', data),
+  scrapeCounts: () => api.get<{ counts: { city: string; country: string; count: number }[]; total: number }>('/admin/scrape/counts'),
+  scrapeCity: (city: string, country: string) => api.post<{ ok: boolean; city: string; country: string; inserted: number }>('/admin/scrape', { city, country }),
+  getSalesReps: () => api.get('/admin/salesreps'),
+  approveSalesRep: (id: string) => api.post(`/admin/salesreps/${id}/approve`),
+  rejectSalesRep: (id: string) => api.delete(`/admin/salesreps/${id}`),
+};
+
+// Community Translations
+export const translationApi = {
+  forLang: (lang: string) => api.get(`/translations/${lang}`),
+  full: (lang: string) => api.get(`/translations/${lang}/full`),
+  stats: () => api.get('/translations/stats/all'),
+  suggest: (lang: string, key: string, value: string) =>
+    api.post('/translations/suggest', { lang, key, value }),
+  vote: (id: string) => api.post(`/translations/${id}/vote`),
+  unvote: (id: string) => api.delete(`/translations/${id}/vote`),
+};
+
+// Events
+export const eventsApi = {
+  list:      (p?: object) => api.get('/events', { params: p }),
+  get:       (id: string) => api.get(`/events/${id}`),
+  create:    (d: object)  => api.post('/events', d),
+  update:    (id: string, d: object) => api.put(`/events/${id}`, d),
+  remove:    (id: string) => api.delete(`/events/${id}`),
+  attend:    (id: string) => api.post(`/events/${id}/attend`),
+  attendees: (id: string) => api.get(`/events/${id}/attendees`),
+  feature:   (id: string) => api.post(`/events/${id}/feature`),
+};
+
+// Business Promotions
+export const promotionsApi = {
+  list:   (p?: object) => api.get('/promotions', { params: p }),
+  get:    (id: string) => api.get(`/promotions/${id}`),
+  create: (d: object)  => api.post('/promotions', d),
+  update: (id: string, d: object) => api.put(`/promotions/${id}`, d),
+  remove: (id: string) => api.delete(`/promotions/${id}`),
 };
 
 export default api;

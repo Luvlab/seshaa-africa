@@ -5,6 +5,47 @@ import { requireAuth, AuthRequest } from '../middleware/auth';
 
 const router = Router();
 
+// POST /salesreps/apply — public application (no auth required)
+router.post('/apply', async (req, res) => {
+  const { name, phone, country, city, why } = req.body as {
+    name: string; phone: string; country: string; city?: string; why?: string;
+  };
+
+  if (!name?.trim() || !phone?.trim() || !country?.trim()) {
+    return res.status(400).json({ error: 'Name, phone, and country are required' });
+  }
+
+  // Find or create user by phone
+  let user = await prisma.user.findFirst({ where: { phone } });
+  if (!user) {
+    user = await prisma.user.create({
+      data: { name: name.trim(), phone: phone.trim(), country: country.trim(), role: 'USER' },
+    });
+  }
+
+  // Check if already a sales rep
+  const existing = await prisma.salesRep.findUnique({ where: { userId: user.id } });
+  if (existing) {
+    if (existing.active) return res.status(400).json({ error: 'Already an active sales rep' });
+    return res.json({ ok: true, pending: true, message: 'Your application is already under review.' });
+  }
+
+  const territory = city ? `${city.trim()}, ${country.trim()}` : country.trim();
+  await prisma.salesRep.create({
+    data: { userId: user.id, territory, country: country.trim(), active: false },
+  });
+
+  // Optionally store the "why" in a note — append to territory field
+  if (why?.trim()) {
+    await prisma.salesRep.update({
+      where: { userId: user.id },
+      data: { territory: `${territory} — ${why.trim().slice(0, 200)}` },
+    });
+  }
+
+  res.json({ ok: true, message: 'Application submitted! We\'ll review it within 24 hours.' });
+});
+
 
 // GET /salesreps/dashboard - rep's commission summary
 router.get('/dashboard', requireAuth, async (req: AuthRequest, res: Response) => {
