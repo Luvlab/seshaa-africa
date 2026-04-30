@@ -6,142 +6,105 @@
 import { useState, useEffect, useRef } from 'react';
 
 // ── Brand palette ────────────────────────────────────────────────────────────
-const G  = '#008751';   // Seshaa dark green
-const G2 = '#006640';   // Darker green for depth
-const L  = '#90EE30';   // Lime / outline green
+const G  = '#008751';   // Seshaa green fill
+const G2 = '#006640';   // Darker green (taglines)
+const W  = 'white';     // White outline
 
-// ── Open-hand SVG path (simplified) ─────────────────────────────────────────
-function Hand({ x = 0, y = 0, scale = 1, color = G }: { x?: number; y?: number; scale?: number; color?: string }) {
-  return (
-    <g transform={`translate(${x},${y}) scale(${scale})`}>
-      {/* Palm */}
-      <ellipse cx="20" cy="28" rx="15" ry="12" fill={color} />
-      {/* Fingers */}
-      <rect x="7"  y="10" width="5" height="20" rx="2.5" fill={color} />
-      <rect x="13" y="6"  width="5" height="24" rx="2.5" fill={color} />
-      <rect x="19" y="5"  width="5" height="25" rx="2.5" fill={color} />
-      <rect x="25" y="7"  width="5" height="23" rx="2.5" fill={color} />
-      {/* Thumb */}
-      <ellipse cx="5" cy="26" rx="4" ry="7" fill={color} transform="rotate(-15 5 26)" />
-    </g>
-  );
-}
+// ── Six logo SVGs — all: italic · white outline · green fill ─────────────────
 
-// ── Six logo SVGs ─────────────────────────────────────────────────────────────
-
-/** 1 · Italic outline — bold italic with thick lime stroke */
+/** 1 · Arial Black italic — thick white outline, tight */
 function LogoItalicOutline() {
   return (
     <svg viewBox="0 0 180 50" xmlns="http://www.w3.org/2000/svg">
       <text
-        x="174" y="41" textAnchor="end"
+        x="175" y="41" textAnchor="end"
         fontSize="42" fontWeight="900" fontStyle="italic"
         fontFamily='"Arial Black","Arial Bold",Arial,sans-serif'
-        stroke={L} strokeWidth="6" strokeLinejoin="round"
+        stroke={W} strokeWidth="7" strokeLinejoin="round"
         fill={G} paintOrder="stroke fill"
       >seshaa.</text>
     </svg>
   );
 }
 
-/** 2 · Bold solid — heavy black weight, no outline */
+/** 2 · Georgia serif italic — white outline, elegant feel */
 function LogoBoldSolid() {
   return (
-    <svg viewBox="0 0 180 48" xmlns="http://www.w3.org/2000/svg">
+    <svg viewBox="0 0 180 50" xmlns="http://www.w3.org/2000/svg">
       <text
-        x="176" y="40" textAnchor="end"
-        fontSize="40" fontWeight="900"
-        fontFamily='"Arial Black","Arial Bold",Arial,sans-serif'
-        fill={G} letterSpacing="-1"
+        x="175" y="42" textAnchor="end"
+        fontSize="43" fontWeight="900" fontStyle="italic"
+        fontFamily='Georgia,"Times New Roman",serif'
+        stroke={W} strokeWidth="6" strokeLinejoin="round"
+        fill={G} paintOrder="stroke fill"
       >seshaa.</text>
     </svg>
   );
 }
 
-/** 3 · Handmark — wordmark with open hand beside it */
+/** 3 · Extra heavy outline — sticker / neon sign effect */
 function LogoHandmark() {
   return (
-    <svg viewBox="0 0 220 52" xmlns="http://www.w3.org/2000/svg">
-      {/* Lime outline hand (left side) */}
-      <Hand x={1} y={6} scale={0.85} color={L} />
-      <Hand x={3} y={8} scale={0.82} color={G} />
-      {/* Wordmark right-aligned */}
+    <svg viewBox="0 0 180 50" xmlns="http://www.w3.org/2000/svg">
       <text
-        x="216" y="40" textAnchor="end"
-        fontSize="36" fontWeight="900" fontStyle="italic"
+        x="175" y="41" textAnchor="end"
+        fontSize="40" fontWeight="900" fontStyle="italic"
         fontFamily='"Arial Black","Arial Bold",Arial,sans-serif'
-        stroke={L} strokeWidth="5" strokeLinejoin="round"
+        stroke={W} strokeWidth="10" strokeLinejoin="round"
         fill={G} paintOrder="stroke fill"
       >seshaa.</text>
     </svg>
   );
 }
 
-/** 4 · Bubble sticker — rounded bubbly white-outlined style */
+/** 4 · With tagline — italic + "and you will find." */
 function LogoBubble() {
   return (
-    <svg viewBox="0 0 180 52" xmlns="http://www.w3.org/2000/svg">
+    <svg viewBox="0 0 180 54" xmlns="http://www.w3.org/2000/svg">
       <text
-        x="176" y="40" textAnchor="end"
-        fontSize="40" fontWeight="900" fontStyle="italic"
-        fontFamily='"Arial Rounded MT Bold","Arial Black",Arial,sans-serif'
-        stroke="white" strokeWidth="6" strokeLinejoin="round"
+        x="175" y="38" textAnchor="end"
+        fontSize="38" fontWeight="900" fontStyle="italic"
+        fontFamily='"Arial Black","Arial Bold",Arial,sans-serif'
+        stroke={W} strokeWidth="6" strokeLinejoin="round"
         fill={G} paintOrder="stroke fill"
       >seshaa.</text>
-      {/* Tagline */}
       <text
-        x="176" y="50" textAnchor="end"
-        fontSize="9" fontWeight="700"
+        x="175" y="51" textAnchor="end"
+        fontSize="9.5" fontWeight="700" fontStyle="italic"
         fontFamily='Arial,sans-serif'
-        fill={G2} letterSpacing="0.5"
+        fill={G2} letterSpacing="0.3"
       >and you will find.</text>
     </svg>
   );
 }
 
-/** 5 · Retro caps — all caps, chunky, dual-tone */
+/** 5 · Condensed / letter-spaced — italic, white outline */
 function LogoRetroCaps() {
   return (
-    <svg viewBox="0 0 200 52" xmlns="http://www.w3.org/2000/svg">
-      {/* Shadow layer */}
-      <text
-        x="198" y="42" textAnchor="end"
-        fontSize="38" fontWeight="900"
-        fontFamily='"Arial Black","Arial Bold",Arial,sans-serif'
-        fill={G2} letterSpacing="3"
-      >SESHAA.</text>
-      {/* Main layer */}
+    <svg viewBox="0 0 200 50" xmlns="http://www.w3.org/2000/svg">
       <text
         x="196" y="40" textAnchor="end"
-        fontSize="38" fontWeight="900"
+        fontSize="37" fontWeight="900" fontStyle="italic"
         fontFamily='"Arial Black","Arial Bold",Arial,sans-serif'
-        stroke={L} strokeWidth="4" strokeLinejoin="miter"
+        stroke={W} strokeWidth="6" strokeLinejoin="round"
         fill={G} paintOrder="stroke fill"
-        letterSpacing="3"
-      >SESHAA.</text>
+        letterSpacing="2"
+      >seshaa.</text>
     </svg>
   );
 }
 
-/** 6 · Script hand — script-style italic with hand underneath */
+/** 6 · Narrow stroke serif italic — fine white outline */
 function LogoScriptHand() {
   return (
-    <svg viewBox="0 0 200 56" xmlns="http://www.w3.org/2000/svg">
-      {/* Main word right-aligned */}
+    <svg viewBox="0 0 180 50" xmlns="http://www.w3.org/2000/svg">
       <text
-        x="196" y="36" textAnchor="end"
-        fontSize="38" fontWeight="900" fontStyle="italic"
-        fontFamily='Georgia,"Times New Roman",serif'
-        stroke={L} strokeWidth="5" strokeLinejoin="round"
+        x="175" y="42" textAnchor="end"
+        fontSize="43" fontWeight="900" fontStyle="italic"
+        fontFamily='"Palatino Linotype",Palatino,Georgia,serif'
+        stroke={W} strokeWidth="5" strokeLinejoin="round"
         fill={G} paintOrder="stroke fill"
       >seshaa.</text>
-      {/* Tagline */}
-      <text
-        x="196" y="50" textAnchor="end"
-        fontSize="9" fontWeight="600" fontStyle="italic"
-        fontFamily='Georgia,serif'
-        fill={G2}
-      >and you will find.</text>
     </svg>
   );
 }
