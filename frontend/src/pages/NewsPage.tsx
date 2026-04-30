@@ -189,7 +189,7 @@ export default function NewsPage() {
       </div>
 
       {loading ? (
-        <div className="grid md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {[1,2,3,4,5,6].map(i => (
             <div key={i} className="bg-white rounded-2xl border overflow-hidden animate-pulse">
               <div className="h-40 bg-gray-200"/>
@@ -214,7 +214,7 @@ export default function NewsPage() {
         <>
           {/* Featured row */}
           {featured.length >= 2 && (
-            <div className="grid md:grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               {featured.slice(0, 2).map(item => <FeaturedCard key={item.id} item={item}/>)}
             </div>
           )}
@@ -229,7 +229,7 @@ export default function NewsPage() {
           </div>
 
           {/* Grid */}
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {rest.map(item => <NewsCard key={item.id} item={item}/>)}
           </div>
         </>

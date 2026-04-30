@@ -192,7 +192,7 @@ export default function AddListingPage() {
           <p className="text-gray-500 mt-2">Choose a plan. You can upgrade anytime.</p>
         </div>
 
-        <div className="grid sm:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
           {TIERS.map(t => (
             <button
               key={t.id}
@@ -378,7 +378,7 @@ export default function AddListingPage() {
           {/* Type */}
           <div>
             <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Listing Type</label>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {LISTING_TYPES.map(t => (
                 <button
                   key={t} type="button"

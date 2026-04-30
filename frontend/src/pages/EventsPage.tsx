@@ -161,22 +161,22 @@ export default function EventsPage() {
 
       <div className="max-w-5xl mx-auto px-4 py-6">
         {/* Filter bar */}
-        <div className="flex flex-wrap gap-3 mb-6">
+        <div className="flex flex-col sm:flex-row flex-wrap gap-3 mb-6">
           {/* Search */}
           <input
             type="text"
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search events…"
-            className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-purple-400 bg-white min-w-[180px]"
+            className="w-full sm:w-auto sm:flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-purple-400 bg-white"
           />
 
           {/* Country */}
-          <div className="relative">
+          <div className="relative w-full sm:w-auto">
             <select
               value={country}
               onChange={e => setCountry(e.target.value)}
-              className="appearance-none border border-gray-200 rounded-xl pl-4 pr-8 py-2.5 text-sm outline-none focus:border-purple-400 bg-white"
+              className="appearance-none w-full sm:w-auto border border-gray-200 rounded-xl pl-4 pr-8 py-2.5 text-sm outline-none focus:border-purple-400 bg-white"
             >
               <option value="">All countries</option>
               {AFRICAN_COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}

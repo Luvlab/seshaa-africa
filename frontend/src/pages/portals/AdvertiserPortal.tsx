@@ -160,7 +160,7 @@ export default function AdvertiserPortal() {
             {step === 1 && (
               <div>
                 <h2 className="font-bold text-gray-800 text-lg mb-4">Choose your advertising package</h2>
-                <div className="grid md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {PACKAGES.map(p => (
                     <button
                       key={p.id}
@@ -209,7 +209,7 @@ export default function AdvertiserPortal() {
             {step === 2 && (
               <div className="bg-white rounded-2xl border p-6">
                 <h2 className="font-bold text-gray-800 text-lg mb-5">Ad Details</h2>
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium text-gray-600">Ad Title *</label>
                     <input className="w-full border rounded-xl px-4 py-2.5 mt-1 text-sm outline-none focus:border-orange-400"
@@ -260,7 +260,7 @@ export default function AdvertiserPortal() {
               <div className="bg-white rounded-2xl border p-6">
                 <h2 className="font-bold text-gray-800 text-lg mb-1">Targeting</h2>
                 <p className="text-sm text-gray-500 mb-5">Leave blank for Africa-wide reach</p>
-                <div className="grid md:grid-cols-3 gap-4 mb-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                   <div>
                     <label className="text-sm font-medium text-gray-600">Country</label>
                     <input className="w-full border rounded-xl px-4 py-2.5 mt-1 text-sm outline-none focus:border-orange-400"
@@ -280,7 +280,7 @@ export default function AdvertiserPortal() {
                       placeholder="e.g. health" />
                   </div>
                 </div>
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium text-gray-600">Keywords (comma-separated)</label>
                     <input className="w-full border rounded-xl px-4 py-2.5 mt-1 text-sm outline-none focus:border-orange-400"

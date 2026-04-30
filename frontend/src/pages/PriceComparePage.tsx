@@ -68,7 +68,7 @@ export default function PriceComparePage() {
         <p className="text-sm text-gray-500 mt-1">Compare prices from different businesses in your city</p>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Left: Category picker */}
         <div className="md:col-span-1">
           <div className="bg-white rounded-2xl border overflow-hidden">

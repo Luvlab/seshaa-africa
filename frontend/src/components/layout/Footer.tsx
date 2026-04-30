@@ -5,13 +5,18 @@ export default function Footer() {
   const { t } = useTranslation();
   return (
     <footer className="bg-gray-900 text-gray-300 mt-16">
-      <div className="max-w-7xl mx-auto px-4 py-10 grid grid-cols-2 md:grid-cols-4 gap-8">
-        <div>
+      <div className="max-w-7xl mx-auto px-4 py-10 grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+        <div className="col-span-2 md:col-span-1">
           <div className="flex items-center gap-2 mb-3">
             <span className="text-2xl">🌍</span>
             <span className="text-white font-bold text-lg">{t('app.name')}</span>
           </div>
           <p className="text-sm text-gray-400">{t('app.tagline')}</p>
+          <p className="text-xs text-gray-500 mt-3 leading-relaxed">
+            <span className="text-gray-300 font-medium italic">"seshaa"</span> means{' '}
+            <span className="text-gray-300 font-medium">"to search"</span> in{' '}
+            <span className="text-gray-300 font-medium">Zulu</span> — one of the 11 official languages of South Africa. 🇿🇦
+          </p>
         </div>
 
         <div>

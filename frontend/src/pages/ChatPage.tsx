@@ -108,9 +108,9 @@ export default function ChatPage() {
   );
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6 h-[calc(100vh-80px)] flex gap-4">
-      {/* Rooms sidebar */}
-      <div className="w-72 shrink-0 bg-white rounded-xl border flex flex-col">
+    <div className="px-0 sm:px-4 py-0 sm:py-6 h-[calc(100dvh-112px)] sm:h-[calc(100vh-80px)] flex gap-4">
+      {/* Rooms sidebar — full screen on mobile when no room selected, hidden when chat open */}
+      <div className={`${activeRoom || showAI ? 'hidden sm:flex' : 'flex'} w-full sm:w-72 sm:shrink-0 bg-white sm:rounded-xl border flex-col`}>
         <div className="p-4 border-b flex items-center justify-between">
           <h2 className="font-bold text-gray-800">Messages</h2>
           <div className="flex gap-2">
@@ -165,9 +165,9 @@ export default function ChatPage() {
         </div>
       </div>
 
-      {/* Chat area */}
+      {/* Chat area — full screen on mobile */}
       {showAI ? (
-        <div className="flex-1 bg-white rounded-xl border flex flex-col">
+        <div className="flex-1 bg-white sm:rounded-xl border flex flex-col">
           <div className="p-4 border-b flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Sparkles size={20} className="text-purple-500" />
@@ -217,13 +217,17 @@ export default function ChatPage() {
           </div>
         </div>
       ) : activeRoom ? (
-        <div className="flex-1 bg-white rounded-xl border flex flex-col">
+        <div className="flex-1 bg-white sm:rounded-xl border flex flex-col">
           <div className="p-4 border-b flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-full bg-green-100 flex items-center justify-center text-green-700 font-semibold">
+              {/* Back button on mobile */}
+              <button className="sm:hidden p-1 -ml-1 text-gray-500" onClick={() => setActiveRoom(null)}>
+                <X size={20} />
+              </button>
+              <div className="w-9 h-9 rounded-full bg-green-100 flex items-center justify-center text-green-700 font-semibold shrink-0">
                 {(rooms.find(r => r.id === activeRoom)?.name || 'U').charAt(0)}
               </div>
-              <span className="font-bold text-gray-800">{rooms.find(r => r.id === activeRoom)?.name || 'Direct Message'}</span>
+              <span className="font-bold text-gray-800 truncate">{rooms.find(r => r.id === activeRoom)?.name || 'Direct Message'}</span>
             </div>
             <div className="flex items-center gap-2">
               <button className="p-2 hover:bg-gray-100 rounded-lg text-gray-500" onClick={() => shareToChat('Check out this listing on Seshaa!')} title="Share">
@@ -281,7 +285,7 @@ export default function ChatPage() {
           </div>
         </div>
       ) : (
-        <div className="flex-1 bg-white rounded-xl border flex items-center justify-center text-gray-400">
+        <div className="hidden sm:flex flex-1 bg-white rounded-xl border items-center justify-center text-gray-400">
           <div className="text-center">
             <Users size={48} className="mx-auto mb-4 opacity-30" />
             <p>Select a conversation or start a new one</p>

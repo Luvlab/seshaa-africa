@@ -28,6 +28,8 @@ import sn from './locales/sn.json';
 import mg from './locales/mg.json';
 import bm from './locales/bm.json';
 import nd from './locales/nd.json';
+import zh from './locales/zh.json';
+import ru from './locales/ru.json';
 
 export const LANGUAGES = [
   // Global / colonial languages
@@ -35,6 +37,8 @@ export const LANGUAGES = [
   { code: 'fr', name: 'French',            nativeName: 'Français',       dir: 'ltr' },
   { code: 'pt', name: 'Portuguese',        nativeName: 'Português',      dir: 'ltr' },
   { code: 'ar', name: 'Arabic',            nativeName: 'العربية',         dir: 'rtl' },
+  { code: 'zh', name: 'Chinese',           nativeName: '中文',             dir: 'ltr' },
+  { code: 'ru', name: 'Russian',           nativeName: 'Русский',        dir: 'ltr' },
   // East Africa
   { code: 'sw', name: 'Swahili',           nativeName: 'Kiswahili',      dir: 'ltr' },
   { code: 'am', name: 'Amharic',           nativeName: 'አማርኛ',           dir: 'ltr' },
@@ -89,6 +93,8 @@ i18n
       xh: { translation: xh },
       sn: { translation: sn },
       nd: { translation: nd },
+      zh: { translation: zh },
+      ru: { translation: ru },
     },
     lng: localStorage.getItem('seshaa-lang') || 'en',
     fallbackLng: 'en',

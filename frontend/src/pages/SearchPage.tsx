@@ -119,7 +119,7 @@ export default function SearchPage() {
 
       {/* Filters */}
       {showFilters && (
-        <div className="bg-white rounded-xl border p-4 mb-4 grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="bg-white rounded-xl border p-4 mb-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
           <div>
             <label className="text-xs text-gray-500 font-medium">{t('search.country')}</label>
             <input className="w-full border rounded-lg px-3 py-2 text-sm mt-1" value={filters.country} onChange={e => update({ country: e.target.value })} placeholder="e.g. Nigeria" />

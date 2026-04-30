@@ -346,7 +346,7 @@ export default function HomePage() {
       {/* ── CATEGORIES ── */}
       <div className="max-w-7xl mx-auto px-4 pb-6">
         <h2 className="text-xl font-black text-gray-800 mb-3">📂 Browse by Category</h2>
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3">
           {CATEGORIES.map(c => (
             <button
               key={c.key}
@@ -383,11 +383,11 @@ export default function HomePage() {
       <section className="w-full py-14 px-4"
         style={{ background: 'linear-gradient(135deg, #f97316, #eab308)' }}>
         <div className="max-w-5xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-10 items-center">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10 items-center">
             {/* Left: pitch */}
             <div className="text-white">
               <p className="text-sm font-bold uppercase tracking-widest text-white/70 mb-2">📢 Sponsored Slot Available</p>
-              <h2 className="text-3xl md:text-4xl font-black leading-tight mb-4">
+              <h2 className="text-2xl md:text-4xl font-black leading-tight mb-4">
                 Reach Thousands of Africans Daily
               </h2>
               <p className="text-white/85 text-lg mb-6 leading-relaxed">
@@ -427,7 +427,7 @@ export default function HomePage() {
           </div>
 
           {/* Ad packages preview */}
-          <div className="mt-10 grid sm:grid-cols-3 gap-4">
+          <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
             {[
               { name: 'Banner',    price: '$20/mo',  desc: 'Sidebar banner, city-targeted',         color: 'bg-white/10' },
               { name: 'Featured',  price: '$60/mo',  desc: 'Top of search results, highlighted',    color: 'bg-white/20', popular: true },
@@ -453,11 +453,11 @@ export default function HomePage() {
       <section className="w-full py-14 px-4"
         style={{ background: 'linear-gradient(135deg, #7c3aed, #3730a3)' }}>
         <div className="max-w-5xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-12 items-start">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-start">
             {/* Left: job pitch */}
             <div className="text-white">
               <p className="text-sm font-bold uppercase tracking-widest text-purple-300 mb-2">💼 Work From Anywhere in Africa</p>
-              <h2 className="text-3xl md:text-4xl font-black leading-tight mb-4">
+              <h2 className="text-2xl md:text-4xl font-black leading-tight mb-4">
                 Become a Seshaa Sales Rep
               </h2>
               <p className="text-purple-100 text-lg mb-5 leading-relaxed">

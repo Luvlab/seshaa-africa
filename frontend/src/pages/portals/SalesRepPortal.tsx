@@ -84,7 +84,7 @@ export default function SalesRepPortal() {
           ))}
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Recent commissions */}
           <div className="bg-white rounded-xl border">
             <div className="p-4 border-b flex items-center justify-between">
@@ -139,7 +139,7 @@ export default function SalesRepPortal() {
         </div>
 
         {/* Pitch materials */}
-        <div className="mt-8 grid sm:grid-cols-3 gap-4">
+        <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
             { icon: '📊', title: 'Pitch Deck', desc: 'Slides to show potential advertisers', action: 'Download', link: '#' },
             { icon: '📱', title: 'Business Cards', desc: 'Printable cards with your rep code', action: 'Download', link: '#' },
@@ -157,7 +157,7 @@ export default function SalesRepPortal() {
         {/* How it works */}
         <div className="mt-8 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-2xl p-6">
           <h2 className="text-xl font-bold mb-4">How to Earn More</h2>
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {[
               { step: '1', title: 'Find businesses in your area', desc: 'Talk to local shops, clinics, hotels, and services' },
               { step: '2', title: 'Sell them an ad package', desc: 'Banner, Featured, Sponsored, or Premium placements' },
@@ -214,7 +214,7 @@ export default function SalesRepPortal() {
       </div>
 
       <div className="max-w-5xl mx-auto px-4 py-12">
-        <div className="grid md:grid-cols-2 gap-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
           {/* Left: perks + how it works */}
           <div>
             <h2 className="text-2xl font-black text-gray-900 mb-6">Why become a Seshaa Rep?</h2>
