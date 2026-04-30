@@ -84,6 +84,11 @@ export const authApi = {
   register: (data: { name: string; email?: string; phone?: string; password: string; language: string; country?: string }) =>
     api.post('/auth/register', data),
   login: (identifier: string, password: string) => api.post('/auth/login', { identifier, password }),
+  changePassword: (currentPassword: string, newPassword: string) =>
+    api.post('/auth/change-password', { currentPassword, newPassword }),
+  googleLogin: (idToken: string) => api.post('/auth/google', { idToken }),
+  adminSetPassword: (userId: string, newPassword: string) =>
+    api.post('/auth/admin/set-password', { userId, newPassword }),
 };
 
 // Sales Reps

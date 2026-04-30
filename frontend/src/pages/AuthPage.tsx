@@ -1,8 +1,22 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Phone, Mail, Lock, Eye, EyeOff, Globe, ArrowRight, User } from 'lucide-react';
 import { authApi } from '../services/api';
 import { useAuthStore } from '../store/auth';
+
+declare global {
+  interface Window {
+    google?: {
+      accounts: {
+        id: {
+          initialize: (cfg: object) => void;
+          renderButton: (el: HTMLElement, cfg: object) => void;
+          prompt: () => void;
+        };
+      };
+    };
+  }
+}
 
 type Mode = 'login' | 'register';
 
@@ -15,6 +29,35 @@ export default function AuthPage() {
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
+
+  // Load Google Identity Services script once
+  useEffect(() => {
+    if (!GOOGLE_CLIENT_ID) return;
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.onload = () => {
+      window.google?.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: async (response: { credential: string }) => {
+          setLoading(true);
+          setError('');
+          try {
+            const res = await authApi.googleLogin(response.credential);
+            setAuth(res.data.user, res.data.token);
+            navigate('/');
+          } catch {
+            setError('Google sign-in failed. Please try email/phone.');
+          } finally {
+            setLoading(false);
+          }
+        },
+      });
+    };
+    document.head.appendChild(script);
+  }, [GOOGLE_CLIENT_ID]);
 
   const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }));
 
@@ -186,10 +229,16 @@ export default function AuthPage() {
           )}
         </button>
 
-        {/* Google OAuth (coming soon) */}
+        {/* Google OAuth */}
         <button
-          className="mt-3 w-full flex items-center justify-center gap-3 py-4 rounded-2xl border-2 border-gray-200 bg-white text-gray-700 text-base font-semibold"
-          onClick={() => setError('Google sign-in coming soon! Use phone or email for now.')}
+          className="mt-3 w-full flex items-center justify-center gap-3 py-4 rounded-2xl border-2 border-gray-200 bg-white text-gray-700 text-base font-semibold hover:bg-gray-50 active:bg-gray-100 transition-colors"
+          onClick={() => {
+            if (GOOGLE_CLIENT_ID && window.google) {
+              window.google.accounts.id.prompt();
+            } else {
+              setError('Google sign-in coming soon! Use email for now.');
+            }
+          }}
         >
           <svg width="22" height="22" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
