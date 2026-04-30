@@ -1,12 +1,11 @@
 import { useState, useMemo } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Search, Plus, Menu, X, MessageCircle, Bell, User, ChevronDown, Sparkles } from 'lucide-react';
+import { Search, Plus, Menu, X, MessageCircle, Bell, User, ChevronDown, Sparkles, Globe } from 'lucide-react';
 import { useAuthStore } from '../../store/auth';
 import { useThemeStore } from '../../store/theme';
 import LogoRotator from '../brand/LogoRotator';
 import CountryPicker from './CountryPicker';
-import AfricaIcon from '../brand/AfricaIcon';
 import { LANGUAGES } from '../../i18n';
 import clsx from 'clsx';
 import type { PortalType } from '../../types';
@@ -141,11 +140,12 @@ export default function Navbar() {
           {/* Language */}
           <div className="relative">
             <button
-              className="flex items-center gap-1 text-white/90 text-sm px-2 py-1 rounded-lg hover:bg-white/20"
+              className="flex items-center gap-1.5 text-white/90 text-sm px-2 py-1 rounded-lg hover:bg-white/20"
               onClick={() => setLangOpen(v => !v)}
             >
-              <AfricaIcon size={16} color="#FCD116" />
-              <span className="hidden sm:inline text-xs">{currentLang.nativeName}</span>
+              <Globe size={15} className="shrink-0" />
+              <span className="text-xs font-semibold uppercase tracking-wide">{currentLang.code.slice(0, 2)}</span>
+              <ChevronDown size={10} className="hidden sm:block" />
             </button>
             {langOpen && (
               <div className="absolute right-0 top-full mt-1 bg-white text-gray-800 rounded-xl shadow-2xl w-52 max-h-64 overflow-y-auto z-50">

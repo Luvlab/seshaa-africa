@@ -214,8 +214,11 @@ export default function HomePage() {
         {/* Content overlay — vertically centred in full-height hero */}
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center px-4 pb-20 text-center text-white">
           <div className="max-w-4xl w-full">
-            <h1 className="text-3xl md:text-5xl font-black mb-2 leading-tight drop-shadow-lg">
-              🌍 {t('app.tagline')}
+            <h1
+              className="font-black mb-2 drop-shadow-lg whitespace-nowrap"
+              style={{ fontSize: 'clamp(1.15rem, 4.5vw, 3.2rem)', lineHeight: 1.15 }}
+            >
+              {t('app.tagline')}
             </h1>
             <p className="text-white/85 text-base md:text-lg mb-6 leading-relaxed drop-shadow">
               {t('app.description')}
