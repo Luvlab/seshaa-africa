@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Search, Plus, Menu, X, MessageCircle, Bell, User, ChevronDown, Sparkles, Globe } from 'lucide-react';
 import { useAuthStore } from '../../store/auth';
 import { useThemeStore } from '../../store/theme';
-import LogoRotator from '../brand/LogoRotator';
+import SeshaaTitle from '../brand/SeshaaTitle';
 import CountryPicker from './CountryPicker';
 import { LANGUAGES } from '../../i18n';
 import clsx from 'clsx';
@@ -94,13 +94,13 @@ export default function Navbar() {
     <nav className="sticky top-0 z-50 shadow-md" style={{ backgroundColor: 'var(--cp)' }}>
       {/* Main header row */}
       <div className="max-w-7xl mx-auto px-3 py-2.5 flex items-center gap-3">
-        {/* Rotating logo — responsive width: small on mobile, full on desktop */}
-        <Link
-          to="/"
-          className="shrink-0 flex items-center w-[72px] sm:w-[110px] md:w-[130px]"
-          style={{ height: 40 }}
-        >
-          <LogoRotator />
+        {/* Seshaa animated title — slot-machines through Africa then lands on active country */}
+        <Link to="/" className="shrink-0 flex items-center" style={{ height: 40 }}>
+          <SeshaaTitle
+            countryCode={countryCode}
+            size="sm"
+            className="px-1"
+          />
         </Link>
 
         {/* Country flag badge — opens proper picker, no more ugly prompt */}
