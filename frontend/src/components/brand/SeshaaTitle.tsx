@@ -60,6 +60,8 @@ interface Props {
   countryCode?: string;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
+  /** Skip animation and show this suffix immediately (e.g. "diaspora") */
+  staticSuffix?: string;
 }
 
 const SIZE: Record<string, { main: string; dot: string }> = {
@@ -69,10 +71,10 @@ const SIZE: Record<string, { main: string; dot: string }> = {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export default function SeshaaTitle({ countryCode: _cc, size = 'sm', className = '' }: Props) {
+export default function SeshaaTitle({ countryCode: _cc, size = 'sm', className = '', staticSuffix }: Props) {
   useTranslation(); // keep for future language-aware extensions
 
-  const [suffix, setSuffix] = useState(SLOT_LIST[0]);
+  const [suffix, setSuffix] = useState(staticSuffix ?? SLOT_LIST[0]);
   const [fading, setFading] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const ivRef    = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -80,8 +82,10 @@ export default function SeshaaTitle({ countryCode: _cc, size = 'sm', className =
 
   const { main, dot } = SIZE[size] ?? SIZE.sm;
 
-  // ── Slot-machine animation on mount ─────────────────────────────────────
+  // ── Slot-machine animation on mount (skipped when staticSuffix is set) ──
   useEffect(() => {
+    if (staticSuffix !== undefined) return; // static mode — no animation
+
     const FAST_TICKS = 30;
     const SLOW_TICKS = 14;
     let ticks = 0;

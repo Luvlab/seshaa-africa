@@ -24,6 +24,7 @@ import AddListingPage from './pages/AddListingPage';
 import TranslatePage from './pages/TranslatePage';
 import BusinessPortal from './pages/portals/BusinessPortal';
 import EventsPage from './pages/EventsPage';
+import DiasporaPage from './pages/DiasporaPage';
 
 // Detail/modal pages — still lazy-loaded (rarely visited)
 const ListingDetail = lazy(() => import('./pages/ListingDetail'));
@@ -37,7 +38,7 @@ const TAB_PATHS = [
   '/', '/search', '/news', '/classifieds', '/prices',
   '/messages', '/bookings', '/advertise',
   '/ambassador', '/salesrep', '/admin',
-  '/add-listing', '/translate', '/business', '/events',
+  '/add-listing', '/translate', '/business', '/events', '/diaspora',
 ];
 
 // ── Error Boundary ──────────────────────────────────────────────────────────
@@ -113,6 +114,7 @@ function TabContainer() {
     { path: '/translate',   el: <ErrorBoundary key="translate"><TranslatePage /></ErrorBoundary> },
     { path: '/business',    el: <ErrorBoundary key="business"><BusinessPortal /></ErrorBoundary> },
     { path: '/events',      el: <ErrorBoundary key="events"><EventsPage /></ErrorBoundary> },
+    { path: '/diaspora',    el: <ErrorBoundary key="diaspora"><DiasporaPage /></ErrorBoundary> },
   ];
 
   return (

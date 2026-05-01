@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import {
   Search, Plus, Menu, X, MessageCircle, Bell, User, ChevronDown, Sparkles, Globe,
   Home, Newspaper, Tag, BarChart2, CalendarDays, Megaphone, PartyPopper,
-  Star, Briefcase, Languages, Settings,
+  Star, Briefcase, Languages, Settings, Globe2,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/auth';
 import { useThemeStore } from '../../store/theme';
@@ -45,6 +45,7 @@ const ALL_TABS: Tab[] = [
   { id: 'salesrep',    path: '/salesrep',   label: 'Sales',       icon: <Briefcase    size={15} />, roles: ['SALES_REP', 'ADMIN'] },
   { id: 'translate',   path: '/translate',  label: 'Translate',   icon: <Languages    size={15} /> },
   { id: 'admin',       path: '/admin',      label: 'Admin',       icon: <Settings     size={15} />, roles: ['ADMIN'] },
+  { id: 'diaspora',    path: '/diaspora',   label: 'Diaspora',    icon: <Globe2       size={15} /> },
 ];
 
 export default function Navbar() {
@@ -242,21 +243,32 @@ export default function Navbar() {
             const isActive = tab.path === '/'
               ? location.pathname === '/'
               : location.pathname.startsWith(tab.path);
+            const isDiaspora = tab.id === 'diaspora';
             return (
               <Link
                 key={tab.id}
                 to={tab.path}
                 className={clsx(
                   'flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-colors relative',
-                  isActive
-                    ? 'text-white bg-white/20 rounded-t-lg'
-                    : 'text-white/70 hover:text-white hover:bg-white/10 rounded-t-lg'
+                  isDiaspora
+                    ? isActive
+                      ? 'text-yellow-300 bg-white/15 rounded-t-lg'
+                      : 'text-yellow-400/80 hover:text-yellow-300 hover:bg-white/10 rounded-t-lg'
+                    : isActive
+                      ? 'text-white bg-white/20 rounded-t-lg'
+                      : 'text-white/70 hover:text-white hover:bg-white/10 rounded-t-lg'
                 )}
               >
+                {isDiaspora && !isActive && (
+                  <span className="absolute inset-0 rounded-t-lg border border-yellow-400/20 pointer-events-none" />
+                )}
                 <span className="leading-none">{tab.icon}</span>
                 {tab.label}
                 {isActive && (
-                  <span className="absolute bottom-0 left-2 right-2 h-0.5 bg-white rounded-t" />
+                  <span className={clsx(
+                    'absolute bottom-0 left-2 right-2 h-0.5 rounded-t',
+                    isDiaspora ? 'bg-yellow-400' : 'bg-white'
+                  )} />
                 )}
               </Link>
             );
