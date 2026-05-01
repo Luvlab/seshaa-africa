@@ -538,3 +538,25 @@ enum PromotionType {
   HIRING       // job opening
   NEW_PRODUCT  // new product or service launch
 }
+
+// ─── News Archive ─────────────────────────────────────────────────────────────
+// Stores scraped news headlines persistently so old articles remain searchable.
+// Written by archiveItems() in news.ts on every cache refresh.
+model NewsArchive {
+  id          String   @id @default(uuid())
+  title       String
+  link        String   @unique
+  summary     String?
+  image       String?
+  source      String
+  country     String
+  category    String
+  publishedAt DateTime
+  archivedAt  DateTime @default(now())
+  lang        String   @default("en")
+
+  @@index([category, publishedAt(sort: Desc)])
+  @@index([country, publishedAt(sort: Desc)])
+  @@index([archivedAt(sort: Desc)])
+  @@index([source])
+}

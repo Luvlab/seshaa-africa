@@ -258,15 +258,15 @@ function extractImage(item: Record<string, unknown>): string {
 
 async function fetchSources(sources: Source[], category: string): Promise<NewsItem[]> {
   const results = await Promise.allSettled(
-    sources.map(async (src) => {
+    sources.map(async (src): Promise<NewsItem[]> => {
       try {
         const feed = await parser.parseURL(src.url);
-        return (feed.items || []).slice(0, 15).map((item, i) => ({
+        return (feed.items || []).slice(0, 15).map((item, i): NewsItem => ({
           id: `${src.name}-${i}-${Date.now()}`,
           title: (item.title || '').replace(/<[^>]+>/g, '').trim(),
           link: item.link || item.guid || '',
           summary: (item.contentSnippet || item.content?.replace(/<[^>]+>/g, '') || '').slice(0, 300),
-          image: extractImage(item as Record<string, unknown>),
+          image: extractImage(item as unknown as Record<string, unknown>),
           source: src.name,
           country: src.country,
           category,
@@ -318,14 +318,28 @@ async function fetchCategory(category: string): Promise<NewsItem[]> {
 }
 
 // ── Archive to DB ─────────────────────────────────────────────────────────────
-async function archiveItems(items: NewsItem[], category: string) {
+// Called fire-and-forget on every cache refresh.
+// Uses createMany + skipDuplicates so re-runs are safe.
+async function archiveItems(items: NewsItem[], _category: string) {
+  if (!items.length) return;
   try {
-    // Only archive if Classified/Archive table exists — for now store as a log
-    // Future: dedicated NewsArchive table
-    // Just silently skip if DB not ready
-    void items; void category;
+    await (prisma as any).newsArchive.createMany({
+      data: items.map(item => ({
+        id: crypto.randomUUID(),
+        title: item.title.slice(0, 500),
+        link: item.link.slice(0, 2000),
+        summary: item.summary ? item.summary.slice(0, 600) : null,
+        image: item.image ? item.image.slice(0, 2000) : null,
+        source: item.source,
+        country: item.country,
+        category: item.category,
+        publishedAt: new Date(item.publishedAt),
+        lang: item.lang || 'en',
+      })),
+      skipDuplicates: true,
+    });
   } catch {
-    // ignore
+    // ignore — archive is best-effort, never block news delivery
   }
 }
 
@@ -402,6 +416,95 @@ router.get('/all', async (_req, res) => {
     .slice(0, 40);
 
   res.json(combined);
+});
+
+// GET /news/archive — full-text search over persisted headlines
+// ?q=query&category=general&country=Nigeria&source=Punch&from=2024-01&to=2025-12&page=1&limit=20
+router.get('/archive', async (req, res) => {
+  const {
+    q,
+    category,
+    country,
+    source,
+    from,
+    to,
+    page = '1',
+    limit = '20',
+  } = req.query as Record<string, string>;
+
+  const take = Math.min(parseInt(limit) || 20, 100);
+  const skip = (Math.max(parseInt(page) || 1, 1) - 1) * take;
+
+  // Build where clause
+  const where: Record<string, unknown> = {};
+  if (q?.trim()) {
+    where.OR = [
+      { title:   { contains: q.trim(), mode: 'insensitive' } },
+      { summary: { contains: q.trim(), mode: 'insensitive' } },
+      { source:  { contains: q.trim(), mode: 'insensitive' } },
+    ];
+  }
+  if (category) where.category = category;
+  if (source)   where.source   = { contains: source, mode: 'insensitive' };
+  if (country) {
+    where.country = { contains: country, mode: 'insensitive' };
+  }
+  const dateFilter: Record<string, Date> = {};
+  if (from) dateFilter.gte = new Date(from);
+  if (to)   dateFilter.lte = new Date(to);
+  if (Object.keys(dateFilter).length) where.publishedAt = dateFilter;
+
+  try {
+    const [items, total] = await Promise.all([
+      (prisma as any).newsArchive.findMany({
+        where,
+        orderBy: { publishedAt: 'desc' },
+        take,
+        skip,
+        select: {
+          id: true, title: true, link: true, summary: true,
+          image: true, source: true, country: true, category: true,
+          publishedAt: true, archivedAt: true, lang: true,
+        },
+      }),
+      (prisma as any).newsArchive.count({ where }),
+    ]);
+
+    res.json({
+      total,
+      page: parseInt(page) || 1,
+      limit: take,
+      pages: Math.ceil(total / take),
+      items,
+    });
+  } catch (err) {
+    console.error('Archive query error:', err);
+    res.status(500).json({ error: 'Archive search failed' });
+  }
+});
+
+// GET /news/archive/stats — counts by category / country
+router.get('/archive/stats', async (_req, res) => {
+  try {
+    const [byCategory, byCountry, total] = await Promise.all([
+      (prisma as any).newsArchive.groupBy({
+        by: ['category'],
+        _count: { _all: true },
+        orderBy: { _count: { id: 'desc' } },
+      }),
+      (prisma as any).newsArchive.groupBy({
+        by: ['country'],
+        _count: { _all: true },
+        orderBy: { _count: { id: 'desc' } },
+        take: 20,
+      }),
+      (prisma as any).newsArchive.count(),
+    ]);
+    res.json({ total, byCategory, byCountry });
+  } catch (err) {
+    console.error('Archive stats error:', err);
+    res.status(500).json({ error: 'Stats failed' });
+  }
 });
 
 // GET /news/sources — full source registry with metadata

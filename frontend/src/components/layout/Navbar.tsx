@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import {
   Search, Plus, Menu, X, MessageCircle, Bell, User, ChevronDown, Sparkles, Globe,
   Home, Newspaper, Tag, BarChart2, CalendarDays, Megaphone, PartyPopper,
-  Star, Briefcase, Languages, Settings, Globe2, Plane,
+  Star, Briefcase, Languages, Settings, Globe2, Plane, Archive,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/auth';
 import { useThemeStore } from '../../store/theme';
@@ -47,6 +47,7 @@ const ALL_TABS: Tab[] = [
   { id: 'admin',       path: '/admin',      label: 'Admin',       icon: <Settings     size={15} />, roles: ['ADMIN'] },
   { id: 'diaspora',    path: '/diaspora',   label: 'Diaspora',    icon: <Globe2       size={15} /> },
   { id: 'travels',     path: '/travels',    label: 'Travels',     icon: <Plane        size={15} /> },
+  { id: 'archive',     path: '/archive',    label: 'Archive',     icon: <Archive      size={15} /> },
 ];
 
 export default function Navbar() {
