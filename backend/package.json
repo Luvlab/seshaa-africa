@@ -14,7 +14,8 @@
     "scrape": "ts-node src/scraper/osm.ts",
     "scrape:city": "ts-node src/scraper/osm.ts --city",
     "scrape:dry": "ts-node src/scraper/osm.ts --dry-run",
-    "scrape:all": "ts-node src/scraper/osm.ts"
+    "scrape:all": "ts-node src/scraper/osm.ts",
+    "seed": "ts-node src/seed.ts"
   },
   "engines": {
     "node": "22.x"

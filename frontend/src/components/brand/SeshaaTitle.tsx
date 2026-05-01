@@ -1,15 +1,22 @@
 /**
  * SeshaaTitle — animated "seshaa.[country]" title.
  *
- * Startup: fast slot-machine through all 54 African countries in English,
- * slows down, ALWAYS lands on "seshaa.africa".
- * After 1.5 s: if a country is active, crossfades to that country's name
- * in the current UI language (English → "nigeria", French → "sénégal", etc.)
+ * Startup: fast slot-machine through all 54 African countries,
+ * slows down, lands on the active country (or "africa" if none).
+ * When country changes later: crossfades to the new country name.
+ *
+ * Colors follow the active country's flag:
+ *   "seshaa" fill  → --cs (flag secondary, e.g. yellow/white)
+ *   "seshaa" stroke → --ca (flag accent, e.g. red)
+ *   ".country" fill → --ca
+ *
+ * Admin panel can override stroke thickness via --logo-stroke.
+ * Admin panel can override font sizes via --logo-main-size / --logo-dot-size.
  */
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
-// ── English slugs — used for slot machine + settled display when lang = en ──
+// ── English slugs — used for slot machine + settled display ─────────────────
 export const ENGLISH_SLUGS: Record<string, string> = {
   DZ: 'algeria',      AO: 'angola',        BJ: 'benin',
   BW: 'botswana',     BF: 'burkina-faso',  BI: 'burundi',
@@ -31,7 +38,7 @@ export const ENGLISH_SLUGS: Record<string, string> = {
   ZM: 'zambia',       ZW: 'zimbabwe',
 };
 
-// ── Local-language slugs — shown when UI is NOT English ─────────────────────
+// ── Local-language slugs — future use ───────────────────────────────────────
 export const LOCAL_SLUGS: Record<string, string> = {
   DZ: 'al-jazāʾir',   AO: 'angola',        BJ: 'bénin',
   BW: 'botswana',     BF: 'burkina-faso',  BI: 'burundi',
@@ -70,24 +77,34 @@ const SIZE: Record<string, { main: string; dot: string }> = {
   lg: { main: '2.4rem',  dot: '2.05rem' },
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export default function SeshaaTitle({ countryCode: _cc, size = 'sm', className = '', staticSuffix }: Props) {
+/** Return the display slug for a country code, or "africa" for '' / unknown */
+function slugFor(code: string | undefined): string {
+  if (!code) return 'africa';
+  return ENGLISH_SLUGS[code] ?? 'africa';
+}
+
+export default function SeshaaTitle({ countryCode, size = 'sm', className = '', staticSuffix }: Props) {
   useTranslation(); // keep for future language-aware extensions
 
-  const [suffix, setSuffix] = useState(staticSuffix ?? SLOT_LIST[0]);
-  const [fading, setFading] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const ivRef    = useRef<ReturnType<typeof setInterval> | null>(null);
-  const idxRef   = useRef(0);
+  const isStatic = staticSuffix !== undefined;
+
+  const [suffix, setSuffix]   = useState(isStatic ? staticSuffix : SLOT_LIST[0]);
+  const [fading, setFading]   = useState(false);
+  const [settled, setSettled] = useState(isStatic);
+
+  const timerRef  = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const ivRef     = useRef<ReturnType<typeof setInterval> | null>(null);
+  const idxRef    = useRef(0);
+  const prevCode  = useRef(countryCode);
 
   // CSS-var overrides let the Admin branding panel adjust sizes live
   const fallback = SIZE[size] ?? SIZE.sm;
   const main = size === 'md' ? `var(--logo-main-size, ${fallback.main})` : fallback.main;
   const dot  = size === 'md' ? `var(--logo-dot-size,  ${fallback.dot})`  : fallback.dot;
 
-  // ── Slot-machine animation on mount (skipped when staticSuffix is set) ──
+  // ── Slot-machine on mount (skipped in static mode) ──────────────────────
   useEffect(() => {
-    if (staticSuffix !== undefined) return; // static mode — no animation
+    if (isStatic) return;
 
     const FAST_TICKS = 30;
     const SLOW_TICKS = 14;
@@ -98,20 +115,20 @@ export default function SeshaaTitle({ countryCode: _cc, size = 'sm', className =
         ticks++;
         idxRef.current = (idxRef.current + 1) % SLOT_LIST.length;
         setSuffix(SLOT_LIST[idxRef.current]);
-
         clearInterval(ivRef.current!);
 
         if (ticks < FAST_TICKS) {
           run(55);
         } else if (ticks < FAST_TICKS + SLOW_TICKS) {
-          const extra = (ticks - FAST_TICKS + 1) * 35;
-          run(55 + extra);            // 90 ms → 545 ms
+          run(55 + (ticks - FAST_TICKS + 1) * 35);  // 90 ms → 545 ms
         } else {
-          // Land on "africa" — stays here permanently
+          // Land on active country (or "africa")
+          const target = slugFor(countryCode);
           setFading(true);
           timerRef.current = setTimeout(() => {
-            setSuffix('africa');
+            setSuffix(target);
             setFading(false);
+            setSettled(true);
           }, 260);
         }
       }, delay);
@@ -125,19 +142,36 @@ export default function SeshaaTitle({ countryCode: _cc, size = 'sm', className =
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ── After settle, always show "africa" — no country transition ──────────
+  // ── React to country changes after settling ──────────────────────────────
+  useEffect(() => {
+    if (!settled || isStatic) return;
+    if (countryCode === prevCode.current) return;
+    prevCode.current = countryCode;
+
+    const target = slugFor(countryCode);
+    if (suffix === target) return;
+
+    setFading(true);
+    timerRef.current = setTimeout(() => {
+      setSuffix(target);
+      setFading(false);
+    }, 220);
+
+    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+  }, [countryCode, settled, isStatic]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className={`flex items-center gap-0 select-none leading-none ${className}`}>
-      {/* "seshaa" — green fill, white stroke */}
+
+      {/* "seshaa" — secondary (flag) fill, accent (flag) outline */}
       <span
         style={{
           fontSize: main,
           fontWeight: 900,
           fontStyle: 'italic',
           fontFamily: '"Arial Black","Arial Bold",Arial,sans-serif',
-          color: '#008751',
-          WebkitTextStroke: 'var(--logo-stroke, 1.5px) white',
+          color: 'var(--cs, white)',
+          WebkitTextStroke: 'var(--logo-stroke, 1.5px) var(--ca, #FCD116)',
           letterSpacing: '-0.02em',
           lineHeight: 1,
         }}
@@ -145,16 +179,16 @@ export default function SeshaaTitle({ countryCode: _cc, size = 'sm', className =
         seshaa
       </span>
 
-      {/* ".[country]" — white, fades on transitions */}
+      {/* ".[country]" — accent (flag) color, fades on transitions */}
       <span
         style={{
           fontSize: dot,
           fontWeight: 700,
           fontStyle: 'italic',
           fontFamily: '"Arial Black","Arial Bold",Arial,sans-serif',
-          color: 'white',
+          color: 'var(--ca, #FCD116)',
           opacity: fading ? 0 : 1,
-          transition: 'opacity 0.26s ease',
+          transition: 'opacity 0.22s ease',
           lineHeight: 1,
           letterSpacing: '-0.01em',
           whiteSpace: 'nowrap',
