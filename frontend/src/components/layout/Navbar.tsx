@@ -100,11 +100,11 @@ export default function Navbar() {
       {/* ── Main header row — full viewport width, 56px fixed height ── */}
       <div className="w-full px-4 sm:px-6 h-14 flex items-center gap-3">
 
-        {/* Seshaa animated title — fixed width so flag/search don't shift during animation */}
+        {/* Seshaa animated title — min-width holds stable settled width; no clipping */}
         <Link
           to="/"
-          className="shrink-0 flex items-center justify-end h-full overflow-hidden"
-          style={{ width: 160 }}
+          className="shrink-0 flex items-center h-full"
+          style={{ minWidth: 160 }}
         >
           <SeshaaTitle countryCode={countryCode} size="md" />
         </Link>

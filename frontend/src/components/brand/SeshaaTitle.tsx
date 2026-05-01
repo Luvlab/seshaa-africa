@@ -66,7 +66,7 @@ interface Props {
 
 const SIZE: Record<string, { main: string; dot: string }> = {
   sm: { main: '1.28rem', dot: '1.1rem'  },
-  md: { main: '1.55rem', dot: '1.3rem'  },
+  md: { main: '1.75rem', dot: '1.5rem'  },
   lg: { main: '2.4rem',  dot: '2.05rem' },
 };
 
