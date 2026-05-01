@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import './i18n';
 import Navbar from './components/layout/Navbar';
 import MobileTabBar from './components/layout/MobileTabBar';
+import ChatFAB from './components/layout/ChatFAB';
 import Footer, { initFontSize } from './components/layout/Footer';
 import { useThemeStore } from './store/theme';
 import InterestSurvey from './components/ads/InterestSurvey';
@@ -198,6 +199,7 @@ export default function App() {
           </main>
           <Footer />
           <MobileTabBar />
+          <ChatFAB />
           {showSurvey && <InterestSurvey onClose={() => setShowSurvey(false)} />}
         </div>
       </BrowserRouter>

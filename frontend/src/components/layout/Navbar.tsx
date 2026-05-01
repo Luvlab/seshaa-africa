@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Search, Plus, Menu, X, MessageCircle, Bell, User, ChevronDown, Sparkles, Globe,
-  Home, Newspaper, Tag, BarChart2, CalendarDays, Megaphone, PartyPopper,
+  Home, Newspaper, Tag, BarChart2, Megaphone, PartyPopper,
   Star, Briefcase, Languages, Settings, Globe2, Plane, Archive,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/auth';
@@ -37,8 +37,6 @@ const ALL_TABS: Tab[] = [
   { id: 'news',        path: '/news',       label: 'News',        icon: <Newspaper    size={15} /> },
   { id: 'classifieds', path: '/classifieds',label: 'Classifieds', icon: <Tag          size={15} /> },
   { id: 'prices',      path: '/prices',     label: 'Prices',      icon: <BarChart2    size={15} /> },
-  { id: 'messages',    path: '/messages',   label: 'Messages',    icon: <MessageCircle size={15} /> },
-  { id: 'bookings',    path: '/bookings',   label: 'Bookings',    icon: <CalendarDays size={15} /> },
   { id: 'advertise',   path: '/advertise',  label: 'Advertise',   icon: <Megaphone    size={15} /> },
   { id: 'events',      path: '/events',     label: 'Events',      icon: <PartyPopper  size={15} /> },
   { id: 'ambassador',  path: '/ambassador', label: 'Ambassador',  icon: <Star         size={15} />, roles: ['AMBASSADOR', 'ADMIN'] },

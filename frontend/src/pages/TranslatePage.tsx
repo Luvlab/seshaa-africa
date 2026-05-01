@@ -119,7 +119,7 @@ export default function TranslatePage() {
   const langInfo = LANGUAGES.find(l => l.code === selectedLang);
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 py-8">
+    <div className="w-full px-4 sm:px-6 lg:px-10 py-8">
 
       {/* ── Hero ── */}
       <div className="rounded-3xl overflow-hidden mb-8" style={{ background: 'linear-gradient(135deg, var(--cp, #008751), #005f3a)' }}>
@@ -201,7 +201,7 @@ export default function TranslatePage() {
       </div>
 
       {/* ── Translation Editor ── */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm lg:flex lg:min-h-[70vh]">
         {/* Editor header */}
         <div className="p-5 border-b border-gray-100">
           <div className="flex items-center justify-between flex-wrap gap-3">
@@ -236,7 +236,7 @@ export default function TranslatePage() {
         {loading ? (
           <div className="p-10 text-center text-gray-400 text-sm">Loading translations…</div>
         ) : (
-          <div className="divide-y divide-gray-50 max-h-[65vh] overflow-y-auto">
+          <div className="divide-y divide-gray-50 max-h-[65vh] lg:max-h-none lg:flex-1 overflow-y-auto">
             {filteredKeys.length === 0 && (
               <div className="p-10 text-center text-gray-400">
                 <CheckCircle size={32} className="mx-auto mb-3 text-green-400" />
@@ -324,6 +324,25 @@ export default function TranslatePage() {
             })}
           </div>
         )}
+      </div>
+
+      {/* ── How translations are used ── */}
+      <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-2xl p-5">
+          <p className="text-2xl mb-1">🏆</p>
+          <p className="font-bold text-green-800 mb-1">Top Translator Reward</p>
+          <p className="text-sm text-green-700">The #1 contributor each month for each language wins a Seshaa branded t-shirt + ambassador status.</p>
+        </div>
+        <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-2xl p-5">
+          <p className="text-2xl mb-1">✅</p>
+          <p className="font-bold text-blue-800 mb-1">Community Voting</p>
+          <p className="text-sm text-blue-700">Each translation key shows all suggested values. The community votes for the best one. Most voted = becomes the official translation.</p>
+        </div>
+        <div className="bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-2xl p-5">
+          <p className="text-2xl mb-1">🌍</p>
+          <p className="font-bold text-purple-800 mb-1">Goes Live Immediately</p>
+          <p className="text-sm text-purple-700">Once a translation wins enough votes it's deployed to seshaa.africa for all users of that language to see.</p>
+        </div>
       </div>
 
       {/* ── Call to Action ── */}

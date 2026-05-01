@@ -241,6 +241,141 @@ router.post('/scrape', requireAuth, adminOnly, async (req: AuthRequest, res) => 
   }
 });
 
+// POST /admin/scrape/all — kick off background scrape of ALL African cities.
+// Returns immediately; progress tracked in DB (osmId count).
+// Skips cities that already have ≥ 200 OSM listings (recently scraped).
+router.post('/scrape/all', requireAuth, adminOnly, async (_req: AuthRequest, res) => {
+  // Respond immediately — scraping runs in the background
+  res.json({ ok: true, message: 'Full Africa scrape started in background', cities: AFRICAN_CITIES.length });
+
+  void (async () => {
+    try {
+      // Find which cities are already well-covered to skip them
+      const covered = await prisma.listing.groupBy({
+        by: ['city', 'country'],
+        where: { osmId: { not: null } },
+        _count: { id: true },
+        having: { id: { _count: { gte: 200 } } },
+      });
+      const coveredSet = new Set(covered.map(r => `${r.city}|${r.country}`));
+
+      let total = 0;
+      for (const cityConfig of AFRICAN_CITIES) {
+        const key = `${cityConfig.city}|${cityConfig.country}`;
+        if (coveredSet.has(key)) {
+          console.log(`⏭  Skip ${cityConfig.city} (already has ≥200 OSM listings)`);
+          continue;
+        }
+        try {
+          const n = await scrapeCity(cityConfig);
+          total += n;
+        } catch (e) {
+          console.error(`  ✗ ${cityConfig.city}: ${e}`);
+        }
+        // Rate-limit: 2 s between cities to respect Overpass fair-use
+        await new Promise(r => setTimeout(r, 2000));
+      }
+      console.log(`\n✅ Full Africa scrape done. Total inserted: ${total}`);
+    } catch (e) {
+      console.error('Background scrape error:', e);
+    }
+  })();
+});
+
+// POST /admin/scrape/enrich — for listings with a website but no description,
+// try to extract a short description + price hints from their website.
+// Background job — returns immediately.
+router.post('/scrape/enrich', requireAuth, adminOnly, async (_req: AuthRequest, res) => {
+  res.json({ ok: true, message: 'Enrichment job started in background' });
+
+  void (async () => {
+    try {
+      // Find up to 200 listings that have a website but missing description
+      const targets = await prisma.listing.findMany({
+        where: {
+          website: { not: null },
+          description: null,
+          active: true,
+        },
+        select: { id: true, website: true, name: true, category: true },
+        take: 200,
+      });
+
+      console.log(`\n🔍 Enriching ${targets.length} listings...`);
+      let enriched = 0;
+
+      for (const listing of targets) {
+        try {
+          const url = listing.website!;
+          const html = await fetch(url, {
+            signal: AbortSignal.timeout(8000),
+            headers: { 'User-Agent': 'Seshaa-Directory-Bot/1.0 (https://seshaa.africa; info@luvlab.io)' },
+          }).then(r => r.ok ? r.text() : null).catch(() => null);
+
+          if (!html) continue;
+
+          // Strip tags, get first meaningful 500 chars of text
+          const text = html
+            .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+            .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+            .replace(/<[^>]+>/g, ' ')
+            .replace(/\s{2,}/g, ' ')
+            .trim()
+            .slice(0, 1000);
+
+          // Find price patterns like $5, KES 500, NGN 2000, etc.
+          const priceMatches = text.match(/(?:USD|KES|NGN|GHS|ZAR|UGX|ETB|TZS|XOF|XAF|\$|£|€|₦|₵)\s*[\d,]+(?:\.\d{1,2})?/gi) || [];
+
+          const description = text.slice(0, 400).replace(/\s+/g, ' ').trim() || null;
+
+          if (description) {
+            await prisma.listing.update({
+              where: { id: listing.id },
+              data: { description },
+            });
+            enriched++;
+          }
+
+          // Store found prices in PriceEntry
+          for (const priceStr of priceMatches.slice(0, 5)) {
+            const numMatch = priceStr.match(/[\d,]+(?:\.\d{1,2})?/);
+            if (!numMatch) continue;
+            const price = parseFloat(numMatch[0].replace(',', ''));
+            if (!price || price > 1_000_000) continue;
+
+            const currMatch = priceStr.match(/USD|KES|NGN|GHS|ZAR|UGX|ETB|TZS|XOF|XAF/i);
+            const currency = currMatch ? currMatch[0].toUpperCase() : 'USD';
+
+            await prisma.priceEntry.upsert({
+              where: {
+                listingId_item: {
+                  listingId: listing.id,
+                  item: 'Website price',
+                },
+              },
+              update: { price, currency },
+              create: {
+                listingId: listing.id,
+                item: 'Website price',
+                price,
+                currency,
+                category: listing.category || 'other',
+              },
+            }).catch(() => {});
+          }
+        } catch { /* skip this listing */ }
+
+        // Small delay to be polite
+        await new Promise(r => setTimeout(r, 500));
+      }
+
+      console.log(`✅ Enriched ${enriched}/${targets.length} listings`);
+    } catch (e) {
+      console.error('Enrichment error:', e);
+    }
+  })();
+});
+
 // ─── Sales Rep Management ─────────────────────────────────────────────────────
 
 // GET /admin/salesreps — list all reps (pending + active)

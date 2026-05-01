@@ -72,9 +72,9 @@ interface Props {
 }
 
 const SIZE: Record<string, { main: string; dot: string }> = {
-  sm: { main: '1.28rem', dot: '1.1rem'  },
-  md: { main: '1.95rem', dot: '1.65rem' },
-  lg: { main: '2.4rem',  dot: '2.05rem' },
+  sm: { main: '1.28rem', dot: '1.28rem' },
+  md: { main: '1.95rem', dot: '1.95rem' },
+  lg: { main: '2.4rem',  dot: '2.4rem'  },
 };
 
 /** Return the display slug for a country code, or "africa" for '' / unknown */

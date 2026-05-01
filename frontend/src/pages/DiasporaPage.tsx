@@ -12,8 +12,301 @@ import {
   Globe2, MapPin, Heart, ArrowRight, Search,
   Building2, UtensilsCrossed, Scissors, ShoppingBag,
   Music2, Send, Plane, Package, Users, Sparkles,
+  Plus, X, ChevronRight, Clock, Phone, Globe, Star,
+  Utensils, HeartPulse, GraduationCap, Banknote, Bus, BedDouble,
+  Laptop, CheckCircle, Camera,
 } from 'lucide-react';
 import SeshaaTitle from '../components/brand/SeshaaTitle';
+import { listingsApi } from '../services/api';
+import { useAuthStore } from '../store/auth';
+
+// ── Category options for Add a Place ────────────────────────────────────────
+const ADD_CATEGORIES = [
+  { id: 'restaurant',   label: 'Restaurant / Food',  icon: Utensils,    color: '#e67e22' },
+  { id: 'health',       label: 'Health / Medical',   icon: HeartPulse,  color: '#e74c3c' },
+  { id: 'beauty',       label: 'Hair & Beauty',      icon: Scissors,    color: '#e91e8c' },
+  { id: 'finance',      label: 'Finance / Money',    icon: Banknote,    color: '#27ae60' },
+  { id: 'transport',    label: 'Transport',           icon: Bus,         color: '#9b59b6' },
+  { id: 'hotel',        label: 'Hotel / Stay',        icon: BedDouble,   color: '#1abc9c' },
+  { id: 'tech',         label: 'Tech / IT',           icon: Laptop,      color: '#2980b9' },
+  { id: 'education',    label: 'Education',           icon: GraduationCap, color: '#3498db' },
+  { id: 'shopping',     label: 'Shopping / Retail',  icon: ShoppingBag, color: '#f59e0b' },
+  { id: 'music',        label: 'Events / Music',     icon: Music2,       color: '#ef4444' },
+  { id: 'travel',       label: 'Travel / Flights',   icon: Plane,        color: '#10b981' },
+  { id: 'other',        label: 'Other',              icon: Building2,    color: '#6b7280' },
+];
+
+// ── Add a Place Drawer ───────────────────────────────────────────────────────
+function AddPlaceDrawer({ onClose, isDiaspora = true }: { onClose: () => void; isDiaspora?: boolean }) {
+  const { user } = useAuthStore();
+  const [step, setStep]           = useState(1); // 1=type+name, 2=location, 3=details, 4=done
+  const [submitting, setSubmitting] = useState(false);
+  const [form, setForm]           = useState({
+    type: 'BUSINESS' as 'BUSINESS' | 'PERSONAL' | 'NGO' | 'GOVERNMENT',
+    name: '',
+    category: '',
+    address: '',
+    city: '',
+    country: isDiaspora ? '' : '',   // diaspora = outside Africa
+    phone: '',
+    website: '',
+    whatsapp: '',
+    openingHours: '',
+    description: '',
+    language: 'en',
+    tags: isDiaspora ? ['diaspora'] : [] as string[],
+  });
+
+  const set = (k: string, v: string | string[]) => setForm(f => ({ ...f, [k]: v }));
+
+  const submit = async () => {
+    if (!form.name.trim() || !form.city.trim() || !form.country.trim()) return;
+    setSubmitting(true);
+    try {
+      await listingsApi.create(form);
+      setStep(4);
+    } catch { /* ignore */ }
+    setSubmitting(false);
+  };
+
+  const progress = Math.round((step / 3) * 100);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+
+      {/* Drawer */}
+      <div className="relative z-10 bg-white w-full sm:rounded-3xl sm:max-w-lg overflow-hidden flex flex-col"
+        style={{ maxHeight: 'calc(100dvh - 40px)', borderRadius: '24px 24px 0 0' }}>
+
+        {/* Header */}
+        <div className="flex items-center gap-3 px-5 py-4 border-b bg-gray-50 shrink-0">
+          <div className="flex-1">
+            <h2 className="font-black text-gray-900 text-lg">
+              {isDiaspora ? '🌍 Add an African Place' : '📍 Add a Place'}
+            </h2>
+            <p className="text-xs text-gray-500 mt-0.5">
+              {isDiaspora
+                ? 'African-owned businesses outside Africa'
+                : 'Add any business to the Seshaa directory'}
+            </p>
+          </div>
+          <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100">
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Progress bar */}
+        {step < 4 && (
+          <div className="h-1 bg-gray-100 shrink-0">
+            <div className="h-full bg-green-500 transition-all duration-300" style={{ width: `${progress}%` }} />
+          </div>
+        )}
+
+        {/* Steps */}
+        <div className="overflow-y-auto flex-1 p-5">
+
+          {/* Step 4: Success */}
+          {step === 4 && (
+            <div className="text-center py-8">
+              <CheckCircle size={56} className="mx-auto mb-4 text-green-500" />
+              <h3 className="text-xl font-black text-gray-900 mb-2">Place added!</h3>
+              <p className="text-sm text-gray-500 mb-6">
+                <strong>{form.name}</strong> has been submitted. It will appear once reviewed — usually within 24 hours.
+              </p>
+              <div className="flex gap-3 justify-center">
+                <button onClick={onClose}
+                  className="px-5 py-2.5 rounded-xl font-semibold text-sm border border-gray-200 text-gray-700 hover:bg-gray-50">
+                  Done
+                </button>
+                <button onClick={() => { setStep(1); setForm(f => ({ ...f, name: '' })); }}
+                  className="px-5 py-2.5 rounded-xl font-semibold text-sm text-white"
+                  style={{ background: 'var(--cp, #008751)' }}>
+                  Add another
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 1: Type + Name + Category */}
+          {step === 1 && (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Place type</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {(['BUSINESS', 'PERSONAL', 'NGO', 'GOVERNMENT'] as const).map(t => (
+                    <button key={t} onClick={() => set('type', t)}
+                      className={`py-2.5 rounded-xl text-sm font-semibold border-2 transition-all ${
+                        form.type === t ? 'border-green-500 bg-green-50 text-green-800' : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                      }`}>
+                      {t === 'BUSINESS' ? '🏪 Business' : t === 'PERSONAL' ? '👤 Personal' : t === 'NGO' ? '❤️ NGO' : '🏛️ Government'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Place name *</label>
+                <input
+                  className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-base outline-none focus:border-green-500 font-medium"
+                  placeholder="e.g. Nairobi Kitchen, Dr. Olu Clinic…"
+                  value={form.name}
+                  onChange={e => set('name', e.target.value)}
+                  autoFocus
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Category</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {ADD_CATEGORIES.map(cat => (
+                    <button key={cat.id} onClick={() => set('category', cat.id)}
+                      className={`flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border-2 transition-all text-center ${
+                        form.category === cat.id ? 'border-current' : 'border-gray-100 hover:border-gray-200'
+                      }`}
+                      style={form.category === cat.id ? { borderColor: cat.color, backgroundColor: cat.color + '15' } : {}}>
+                      <cat.icon size={18} style={{ color: form.category === cat.id ? cat.color : '#9ca3af' }} />
+                      <span className="text-xs font-semibold text-gray-700 leading-tight">{cat.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Step 2: Location */}
+          {step === 2 && (
+            <div className="space-y-4">
+              <div className="flex items-start gap-3 bg-blue-50 border border-blue-200 rounded-xl p-3.5">
+                <MapPin size={18} className="text-blue-600 shrink-0 mt-0.5" />
+                <p className="text-sm text-blue-800">
+                  {isDiaspora
+                    ? 'Enter the city and country where this African business is located (outside Africa).'
+                    : 'Enter the full address of this place.'}
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Address</label>
+                <input className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-green-500"
+                  placeholder="Street address (optional)"
+                  value={form.address} onChange={e => set('address', e.target.value)} />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">City *</label>
+                  <input className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-green-500"
+                    placeholder={isDiaspora ? "e.g. London" : "e.g. Nairobi"}
+                    value={form.city} onChange={e => set('city', e.target.value)} />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Country *</label>
+                  <input className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-green-500"
+                    placeholder={isDiaspora ? "e.g. UK, US, FR" : "Country code"}
+                    value={form.country} onChange={e => set('country', e.target.value.toUpperCase())} />
+                </div>
+              </div>
+
+              {isDiaspora && (
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">African homeland (optional)</label>
+                  <input className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-green-500"
+                    placeholder="e.g. Nigerian-owned, Ghanaian cuisine…"
+                    value={form.description} onChange={e => set('description', e.target.value)} />
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Step 3: Contact + hours */}
+          {step === 3 && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 gap-3">
+                <div className="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
+                  <Phone size={16} className="text-gray-400 shrink-0" />
+                  <input className="flex-1 bg-transparent text-sm outline-none"
+                    placeholder="Phone number"
+                    value={form.phone} onChange={e => set('phone', e.target.value)} />
+                </div>
+                <div className="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
+                  <Globe size={16} className="text-gray-400 shrink-0" />
+                  <input className="flex-1 bg-transparent text-sm outline-none"
+                    placeholder="Website URL"
+                    value={form.website} onChange={e => set('website', e.target.value)} />
+                </div>
+                <div className="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
+                  <span className="text-green-600 text-base shrink-0">📱</span>
+                  <input className="flex-1 bg-transparent text-sm outline-none"
+                    placeholder="WhatsApp number"
+                    value={form.whatsapp} onChange={e => set('whatsapp', e.target.value)} />
+                </div>
+                <div className="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
+                  <Clock size={16} className="text-gray-400 shrink-0" />
+                  <input className="flex-1 bg-transparent text-sm outline-none"
+                    placeholder="Opening hours e.g. Mon–Fri 9am–6pm"
+                    value={form.openingHours} onChange={e => set('openingHours', e.target.value)} />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Description (optional)</label>
+                <textarea className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-green-500 resize-none"
+                  rows={3}
+                  placeholder="Describe this place…"
+                  value={form.description} onChange={e => set('description', e.target.value)} />
+              </div>
+
+              <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-xl p-3.5">
+                <Camera size={16} className="text-amber-600 shrink-0" />
+                <p className="text-xs text-amber-800">Photos can be added after the place is approved. You'll be notified by email.</p>
+              </div>
+
+              {!user && (
+                <div className="flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-xl p-3.5">
+                  <Star size={16} className="text-blue-600 shrink-0" />
+                  <p className="text-xs text-blue-800">
+                    <a href="/auth" className="font-bold underline">Sign in</a> to track your submissions, respond to reviews, and manage your listing.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Footer nav */}
+        {step < 4 && (
+          <div className="flex gap-3 px-5 py-4 border-t bg-gray-50 shrink-0">
+            {step > 1 && (
+              <button onClick={() => setStep(s => s - 1)}
+                className="flex-1 py-3 rounded-xl border-2 border-gray-200 font-semibold text-gray-700 hover:bg-gray-100 text-sm">
+                Back
+              </button>
+            )}
+            {step < 3 ? (
+              <button
+                disabled={step === 1 ? !form.name.trim() : !form.city.trim() || !form.country.trim()}
+                onClick={() => setStep(s => s + 1)}
+                className="flex-1 py-3 rounded-xl font-bold text-white text-sm flex items-center justify-center gap-2 disabled:opacity-50"
+                style={{ background: 'var(--cp, #008751)' }}>
+                Continue <ChevronRight size={16} />
+              </button>
+            ) : (
+              <button
+                disabled={submitting}
+                onClick={submit}
+                className="flex-1 py-3 rounded-xl font-bold text-white text-sm flex items-center justify-center gap-2 disabled:opacity-50"
+                style={{ background: 'var(--cp, #008751)' }}>
+                {submitting ? 'Submitting…' : '✓ Submit Place'}
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 // ── Diaspora host countries / cities ────────────────────────────────────────
 const DIASPORA_HUBS = [
@@ -105,6 +398,7 @@ export default function DiasporaPage() {
   const navigate = useNavigate();
   const [searchQ, setSearchQ] = useState('');
   const [activeHub, setActiveHub] = useState<string | null>(null);
+  const [showAddPlace, setShowAddPlace] = useState(false);
 
   const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && searchQ.trim()) {
@@ -119,6 +413,7 @@ export default function DiasporaPage() {
 
   return (
     <div className="min-h-screen bg-gray-950 text-white">
+      {showAddPlace && <AddPlaceDrawer onClose={() => setShowAddPlace(false)} isDiaspora />}
 
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
       <div
@@ -166,6 +461,22 @@ export default function DiasporaPage() {
               className="text-yellow-400 hover:text-yellow-300"
             >
               <Sparkles size={16} />
+            </button>
+          </div>
+
+          {/* Add a Place CTA */}
+          <div className="flex flex-col sm:flex-row gap-3 justify-center mt-8">
+            <button
+              onClick={() => setShowAddPlace(true)}
+              className="inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-white font-black text-gray-900 rounded-2xl hover:bg-green-50 transition-colors text-sm shadow-lg"
+            >
+              <Plus size={16} /> Add an African Place
+            </button>
+            <button
+              onClick={() => navigate('/search?tags=diaspora')}
+              className="inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-white/15 border border-white/30 text-white font-bold rounded-2xl hover:bg-white/20 transition-colors text-sm"
+            >
+              <Globe2 size={16} /> Browse Diaspora Places
             </button>
           </div>
 
@@ -308,10 +619,11 @@ export default function DiasporaPage() {
             {t('diaspora.subtitle')}
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link to="/add-listing"
+            <button
+              onClick={() => setShowAddPlace(true)}
               className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-green-800 font-bold rounded-xl hover:bg-green-50 transition-colors text-sm">
-              <Building2 size={16} /> {t('listing.addNew')}
-            </Link>
+              <Plus size={16} /> Add an African Place
+            </button>
             <Link to="/search"
               className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white/20 border border-white/40 text-white font-bold rounded-xl hover:bg-white/30 transition-colors text-sm">
               <Search size={16} /> {t('nav.search')}
