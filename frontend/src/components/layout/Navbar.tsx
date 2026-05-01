@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import {
   Search, Plus, Menu, X, MessageCircle, Bell, User, ChevronDown, Sparkles, Globe,
   Home, Newspaper, Tag, BarChart2, CalendarDays, Megaphone, PartyPopper,
-  Star, Briefcase, Languages, Settings, Globe2,
+  Star, Briefcase, Languages, Settings, Globe2, Plane,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/auth';
 import { useThemeStore } from '../../store/theme';
@@ -46,6 +46,7 @@ const ALL_TABS: Tab[] = [
   { id: 'translate',   path: '/translate',  label: 'Translate',   icon: <Languages    size={15} /> },
   { id: 'admin',       path: '/admin',      label: 'Admin',       icon: <Settings     size={15} />, roles: ['ADMIN'] },
   { id: 'diaspora',    path: '/diaspora',   label: 'Diaspora',    icon: <Globe2       size={15} /> },
+  { id: 'travels',     path: '/travels',    label: 'Travels',     icon: <Plane        size={15} /> },
 ];
 
 export default function Navbar() {
@@ -243,7 +244,7 @@ export default function Navbar() {
             const isActive = tab.path === '/'
               ? location.pathname === '/'
               : location.pathname.startsWith(tab.path);
-            const isDiaspora = tab.id === 'diaspora';
+            const isDiaspora = tab.id === 'diaspora' || tab.id === 'travels';
             return (
               <Link
                 key={tab.id}
