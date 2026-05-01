@@ -345,8 +345,33 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* ── COUNTRIES — flag fills button, text below ── */}
+      {/* ── CATEGORIES ── */}
       <div className="w-full px-4 sm:px-6 py-6">
+        <h2 className="text-xl font-black text-gray-800 mb-3">📂 Browse by Category</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-6 xl:grid-cols-12 gap-3">
+          {CATEGORIES.map(c => (
+            <button
+              key={c.key}
+              className="flex flex-col items-center gap-3 py-5 px-2 bg-white rounded-2xl border border-gray-100 hover:shadow-lg active:scale-95 transition-all group"
+              onClick={() => navigate(`/search?category=${c.key}`)}
+            >
+              {/* Monster-style icon: solid colour pill with white icon */}
+              <div
+                className="w-[72px] h-[72px] rounded-2xl flex items-center justify-center shadow-md group-hover:scale-105 transition-transform"
+                style={{ backgroundColor: c.color }}
+              >
+                <span className="text-white">{c.icon}</span>
+              </div>
+              <span className="text-xs font-bold text-gray-700 text-center leading-tight">
+                {t(`categories.${c.key}`)}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── COUNTRIES — flag fills button, text below ── */}
+      <div className="w-full px-4 sm:px-6 pb-6">
         <h2 className="text-xl font-black text-gray-800 mb-3">🌍 Browse by Country</h2>
         <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-9 lg:grid-cols-11 xl:grid-cols-14 gap-2 sm:gap-3">
           {AFRICAN_COUNTRIES.map(c => (
@@ -368,31 +393,6 @@ export default function HomePage() {
                   {c.name}
                 </span>
               </div>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* ── CATEGORIES ── */}
-      <div className="w-full px-4 sm:px-6 pb-6">
-        <h2 className="text-xl font-black text-gray-800 mb-3">📂 Browse by Category</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-6 xl:grid-cols-12 gap-3">
-          {CATEGORIES.map(c => (
-            <button
-              key={c.key}
-              className="flex flex-col items-center gap-3 py-5 px-2 bg-white rounded-2xl border border-gray-100 hover:shadow-lg active:scale-95 transition-all group"
-              onClick={() => navigate(`/search?category=${c.key}`)}
-            >
-              {/* Monster-style icon: solid colour pill with white icon */}
-              <div
-                className="w-[72px] h-[72px] rounded-2xl flex items-center justify-center shadow-md group-hover:scale-105 transition-transform"
-                style={{ backgroundColor: c.color }}
-              >
-                <span className="text-white">{c.icon}</span>
-              </div>
-              <span className="text-xs font-bold text-gray-700 text-center leading-tight">
-                {t(`categories.${c.key}`)}
-              </span>
             </button>
           ))}
         </div>
