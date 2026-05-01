@@ -30,6 +30,7 @@ const ListingDetail = lazy(() => import('./pages/ListingDetail'));
 const VerifyPage = lazy(() => import('./pages/VerifyPage'));
 const AuthPage = lazy(() => import('./pages/AuthPage'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+const CountryPage = lazy(() => import('./pages/CountryPage'));
 
 // Tab paths — all kept mounted simultaneously
 const TAB_PATHS = [
@@ -133,6 +134,7 @@ function TabContainer() {
             <Route path="/verify/:code" element={<VerifyPage />} />
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/country/:code" element={<Suspense fallback={<div className="h-screen flex items-center justify-center"><div className="animate-spin w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full" /></div>}><CountryPage /></Suspense>} />
             <Route path="*" element={
               <div className="text-center py-20 text-gray-400">
                 <p className="text-6xl mb-4">🌍</p>

@@ -1,7 +1,11 @@
 import { useState, useMemo } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Search, Plus, Menu, X, MessageCircle, Bell, User, ChevronDown, Sparkles, Globe } from 'lucide-react';
+import {
+  Search, Plus, Menu, X, MessageCircle, Bell, User, ChevronDown, Sparkles, Globe,
+  Home, Newspaper, Tag, BarChart2, CalendarDays, Megaphone, PartyPopper,
+  Star, Briefcase, Languages, Settings,
+} from 'lucide-react';
 import { useAuthStore } from '../../store/auth';
 import { useThemeStore } from '../../store/theme';
 import SeshaaTitle from '../brand/SeshaaTitle';
@@ -23,24 +27,24 @@ interface Tab {
   id: string;
   path: string;
   label: string;
-  icon: string;
+  icon: React.ReactNode;
   roles?: string[];  // if set, only show for these roles
 }
 
 const ALL_TABS: Tab[] = [
-  { id: 'home',        path: '/',           label: 'Home',        icon: '🏠' },
-  { id: 'search',      path: '/search',     label: 'Directory',   icon: '🔍' },
-  { id: 'news',        path: '/news',       label: 'News',        icon: '📰' },
-  { id: 'classifieds', path: '/classifieds',label: 'Classifieds', icon: '🏷️' },
-  { id: 'prices',      path: '/prices',     label: 'Prices',      icon: '📊' },
-  { id: 'messages',    path: '/messages',   label: 'Messages',    icon: '💬' },
-  { id: 'bookings',    path: '/bookings',   label: 'Bookings',    icon: '📅' },
-  { id: 'advertise',   path: '/advertise',  label: 'Advertise',   icon: '📢' },
-  { id: 'events',      path: '/events',     label: 'Events',      icon: '🎉' },
-  { id: 'ambassador',  path: '/ambassador',  label: 'Ambassador',  icon: '🌟', roles: ['AMBASSADOR', 'ADMIN'] },
-  { id: 'salesrep',    path: '/salesrep',   label: 'Sales',       icon: '💼', roles: ['SALES_REP', 'ADMIN'] },
-  { id: 'translate',   path: '/translate',  label: 'Translate',   icon: '🌐' },
-  { id: 'admin',       path: '/admin',      label: 'Admin',       icon: '⚙️', roles: ['ADMIN'] },
+  { id: 'home',        path: '/',           label: 'Home',        icon: <Home         size={15} /> },
+  { id: 'search',      path: '/search',     label: 'Directory',   icon: <Search       size={15} /> },
+  { id: 'news',        path: '/news',       label: 'News',        icon: <Newspaper    size={15} /> },
+  { id: 'classifieds', path: '/classifieds',label: 'Classifieds', icon: <Tag          size={15} /> },
+  { id: 'prices',      path: '/prices',     label: 'Prices',      icon: <BarChart2    size={15} /> },
+  { id: 'messages',    path: '/messages',   label: 'Messages',    icon: <MessageCircle size={15} /> },
+  { id: 'bookings',    path: '/bookings',   label: 'Bookings',    icon: <CalendarDays size={15} /> },
+  { id: 'advertise',   path: '/advertise',  label: 'Advertise',   icon: <Megaphone    size={15} /> },
+  { id: 'events',      path: '/events',     label: 'Events',      icon: <PartyPopper  size={15} /> },
+  { id: 'ambassador',  path: '/ambassador', label: 'Ambassador',  icon: <Star         size={15} />, roles: ['AMBASSADOR', 'ADMIN'] },
+  { id: 'salesrep',    path: '/salesrep',   label: 'Sales',       icon: <Briefcase    size={15} />, roles: ['SALES_REP', 'ADMIN'] },
+  { id: 'translate',   path: '/translate',  label: 'Translate',   icon: <Languages    size={15} /> },
+  { id: 'admin',       path: '/admin',      label: 'Admin',       icon: <Settings     size={15} />, roles: ['ADMIN'] },
 ];
 
 export default function Navbar() {
@@ -98,22 +102,24 @@ export default function Navbar() {
         {/* Seshaa animated title — fixed width so flag/search don't shift during animation */}
         <Link
           to="/"
-          className="shrink-0 flex items-center h-full overflow-hidden"
-          style={{ width: 176 }}
+          className="shrink-0 flex items-center justify-end h-full overflow-hidden"
+          style={{ width: 160 }}
         >
-          <SeshaaTitle countryCode={countryCode} size="sm" />
+          <SeshaaTitle countryCode={countryCode} size="md" />
         </Link>
 
         {/* Country flag badge */}
         <button
-          className="shrink-0 flex items-center gap-1.5 text-xs bg-white/20 hover:bg-white/30 text-white px-2.5 py-1.5 rounded-full transition-colors"
+          className="shrink-0 flex items-center gap-1.5 text-xs bg-white/20 hover:bg-white/30 text-white px-2.5 py-1.5 rounded-full transition-colors ml-3"
           onClick={() => setCountryPickerOpen(true)}
           title={`${theme.name} — tap to change`}
         >
           <span className="text-base leading-none">
-            {countryCode.toUpperCase().split('').map(c => String.fromCodePoint(0x1F1E6 - 65 + c.charCodeAt(0))).join('')}
+            {countryCode
+              ? countryCode.toUpperCase().split('').map(c => String.fromCodePoint(0x1F1E6 - 65 + c.charCodeAt(0))).join('')
+              : '🌍'}
           </span>
-          <span className="font-semibold hidden sm:inline">{theme.name}</span>
+          <span className="font-semibold hidden sm:inline">{countryCode ? theme.name : 'Africa'}</span>
           <ChevronDown size={10} />
         </button>
 
@@ -247,7 +253,7 @@ export default function Navbar() {
                     : 'text-white/70 hover:text-white hover:bg-white/10 rounded-t-lg'
                 )}
               >
-                <span className="text-base leading-none">{tab.icon}</span>
+                <span className="leading-none">{tab.icon}</span>
                 {tab.label}
                 {isActive && (
                   <span className="absolute bottom-0 left-2 right-2 h-0.5 bg-white rounded-t" />
@@ -276,7 +282,7 @@ export default function Navbar() {
               className="flex items-center gap-3 py-2.5 px-2 text-white/90 hover:text-white rounded-lg hover:bg-white/10 text-sm"
               onClick={() => setMobileOpen(false)}
             >
-              <span>{tab.icon}</span> {tab.label}
+              <span className="leading-none">{tab.icon}</span> {tab.label}
             </Link>
           ))}
           <hr className="border-white/20 my-2" />

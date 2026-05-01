@@ -141,6 +141,25 @@ const COUNTRIES: CountryEntry[] = [
   { code:'LY', name:'Libya',             region:'North Africa',   flag:flagEmoji('LY'), langs: COUNTRY_LANGS['LY'] },
   { code:'SD', name:'Sudan',             region:'North Africa',   flag:flagEmoji('SD'), langs: COUNTRY_LANGS['SD'] },
   { code:'MR', name:'Mauritania',        region:'North Africa',   flag:flagEmoji('MR'), langs: COUNTRY_LANGS['MR'] },
+  // World / Diaspora
+  { code: 'GB', name: 'United Kingdom',   region: 'Diaspora', flag: '🇬🇧', langs: ['English'] },
+  { code: 'US', name: 'United States',    region: 'Diaspora', flag: '🇺🇸', langs: ['English', 'Spanish'] },
+  { code: 'FR', name: 'France',           region: 'Diaspora', flag: '🇫🇷', langs: ['French'] },
+  { code: 'CA', name: 'Canada',           region: 'Diaspora', flag: '🇨🇦', langs: ['English', 'French'] },
+  { code: 'DE', name: 'Germany',          region: 'Diaspora', flag: '🇩🇪', langs: ['German'] },
+  { code: 'IT', name: 'Italy',            region: 'Diaspora', flag: '🇮🇹', langs: ['Italian'] },
+  { code: 'NL', name: 'Netherlands',      region: 'Diaspora', flag: '🇳🇱', langs: ['Dutch', 'English'] },
+  { code: 'BE', name: 'Belgium',          region: 'Diaspora', flag: '🇧🇪', langs: ['French', 'Dutch', 'German'] },
+  { code: 'PT', name: 'Portugal',         region: 'Diaspora', flag: '🇵🇹', langs: ['Portuguese'] },
+  { code: 'ES', name: 'Spain',            region: 'Diaspora', flag: '🇪🇸', langs: ['Spanish'] },
+  { code: 'SE', name: 'Sweden',           region: 'Diaspora', flag: '🇸🇪', langs: ['Swedish'] },
+  { code: 'NO', name: 'Norway',           region: 'Diaspora', flag: '🇳🇴', langs: ['Norwegian'] },
+  { code: 'AE', name: 'UAE',              region: 'Diaspora', flag: '🇦🇪', langs: ['Arabic', 'English'] },
+  { code: 'SA', name: 'Saudi Arabia',     region: 'Diaspora', flag: '🇸🇦', langs: ['Arabic'] },
+  { code: 'CN', name: 'China',            region: 'Diaspora', flag: '🇨🇳', langs: ['Mandarin'] },
+  { code: 'IN', name: 'India',            region: 'Diaspora', flag: '🇮🇳', langs: ['Hindi', 'English'] },
+  { code: 'AU', name: 'Australia',        region: 'Diaspora', flag: '🇦🇺', langs: ['English'] },
+  { code: 'BR', name: 'Brazil',           region: 'Diaspora', flag: '🇧🇷', langs: ['Portuguese'] },
 ];
 
 export { COUNTRIES };
@@ -212,9 +231,33 @@ export default function CountryPicker({ onSelect, onClose, currentCode }: Props)
 
         {/* Country list — scrollable */}
         <div className="flex-1 overflow-y-auto px-4 pb-8">
+
+          {/* All Africa special option */}
+          <button
+            onClick={() => { onSelect(''); onClose(); }}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-left transition-colors mb-3 ${
+              currentCode === '' ? 'bg-green-50 border-2 border-green-200' : 'bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-100 hover:border-green-300'
+            }`}
+          >
+            <span className="text-3xl leading-none shrink-0">🌍</span>
+            <div className="flex-1">
+              <p className={`font-bold text-sm ${currentCode === '' ? 'text-green-700' : 'text-green-800'}`}>
+                All Africa
+                {currentCode === '' && <span className="ml-2 text-xs text-green-500">✓ current</span>}
+              </p>
+              <p className="text-xs text-gray-400 mt-0.5">Search all 54 countries</p>
+            </div>
+            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${currentCode === '' ? 'bg-green-100 text-green-700' : 'bg-green-50 text-green-600'}`}>ALL</span>
+          </button>
+
           {Array.from(regions.entries()).map(([region, countries]) => (
             <div key={region} className="mb-4">
-              <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 px-1">{region}</p>
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 px-1">
+                {region === 'Diaspora' ? '🌐 World & Diaspora' : region}
+              </p>
+              {region === 'Diaspora' && (
+                <p className="text-xs text-gray-400 px-1 mb-2">For African diaspora communities</p>
+              )}
               <div className="space-y-1">
                 {countries.map(c => {
                   const isActive = c.code === currentCode;
