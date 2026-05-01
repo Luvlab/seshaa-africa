@@ -7,6 +7,7 @@
  */
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Globe2, MapPin, Heart, ArrowRight, Search,
   Building2, UtensilsCrossed, Scissors, ShoppingBag,
@@ -100,6 +101,7 @@ const STATS = [
 
 // ── Component ─────────────────────────────────────────────────────────────────
 export default function DiasporaPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchQ, setSearchQ] = useState('');
   const [activeHub, setActiveHub] = useState<string | null>(null);
@@ -133,7 +135,7 @@ export default function DiasporaPage() {
         <div className="absolute top-20 right-10 w-64 h-64 rounded-full opacity-8 blur-3xl"
           style={{ background: 'radial-gradient(circle, #CE1126, transparent)' }} />
 
-        <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 py-20 text-center">
+        <div className="relative w-full px-6 sm:px-8 lg:px-12 py-20 text-center">
           {/* Brand */}
           <div className="flex justify-center mb-6">
             <SeshaaTitle staticSuffix="diaspora" size="lg" />
@@ -144,17 +146,16 @@ export default function DiasporaPage() {
             <span style={{ color: '#FCD116' }}>wherever</span>{' '}
             you are
           </h1>
-          <p className="text-lg sm:text-xl text-gray-300 max-w-2xl mx-auto mb-10 leading-relaxed">
-            Find African businesses in your city. Stay connected to home.
-            Build the global African community — all in one place.
+          <p className="text-lg sm:text-xl text-gray-300 mb-10 leading-relaxed">
+            {t('diaspora.subtitle')}
           </p>
 
           {/* Search bar */}
-          <div className="max-w-xl mx-auto flex items-center bg-white/10 border border-white/20 rounded-2xl px-5 py-3.5 gap-3 hover:bg-white/15 transition-colors focus-within:border-green-400/50">
+          <div className="max-w-2xl mx-auto flex items-center bg-white/10 border border-white/20 rounded-2xl px-5 py-3.5 gap-3 hover:bg-white/15 transition-colors focus-within:border-green-400/50">
             <Search size={18} className="text-green-400 shrink-0" />
             <input
               className="flex-1 bg-transparent text-white placeholder-gray-400 outline-none text-base"
-              placeholder="African restaurant in London, hair salon in Paris..."
+              placeholder={t('diaspora.search')}
               value={searchQ}
               onChange={e => setSearchQ(e.target.value)}
               onKeyDown={handleSearch}
@@ -182,8 +183,8 @@ export default function DiasporaPage() {
 
       {/* ── How it works ─────────────────────────────────────────────────── */}
       <div className="bg-gray-900 py-16">
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6">
-          <h2 className="text-2xl font-bold text-center mb-10 text-white">How it works</h2>
+        <div className="w-full px-6 sm:px-8 lg:px-12">
+          <h2 className="text-2xl font-bold text-center mb-10 text-white">{t('home.rep.how')}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
             {HOW_IT_WORKS.map(item => (
               <div key={item.step} className="text-center">
@@ -202,9 +203,9 @@ export default function DiasporaPage() {
 
       {/* ── Diaspora categories ───────────────────────────────────────────── */}
       <div className="py-14 bg-gray-950">
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="w-full px-6 sm:px-8 lg:px-12">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-xl font-bold text-white">Browse by category</h2>
+            <h2 className="text-xl font-bold text-white">{t('diaspora.findServices')}</h2>
             <Link to="/search" className="text-xs text-green-400 hover:text-green-300 flex items-center gap-1">
               All listings <ArrowRight size={12} />
             </Link>
@@ -234,10 +235,10 @@ export default function DiasporaPage() {
 
       {/* ── Diaspora hubs ─────────────────────────────────────────────────── */}
       <div className="py-14 bg-gray-900">
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6">
-          <h2 className="text-xl font-bold text-white mb-2">Find African near you</h2>
+        <div className="w-full px-6 sm:px-8 lg:px-12">
+          <h2 className="text-xl font-bold text-white mb-2">{t('diaspora.hubs')}</h2>
           <p className="text-sm text-gray-400 mb-8">
-            Browse African-owned businesses in major diaspora cities
+            {t('diaspora.subtitle')}
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
             {DIASPORA_HUBS.map(hub => (
@@ -266,10 +267,10 @@ export default function DiasporaPage() {
 
       {/* ── Connect back home ─────────────────────────────────────────────── */}
       <div className="py-14 bg-gray-950">
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6">
-          <h2 className="text-xl font-bold text-white mb-2">Stay connected to home</h2>
+        <div className="w-full px-6 sm:px-8 lg:px-12">
+          <h2 className="text-xl font-bold text-white mb-2">{t('diaspora.homeland')}</h2>
           <p className="text-sm text-gray-400 mb-8">
-            Explore listings, prices, and news from your homeland
+            {t('diaspora.subtitle')}
           </p>
           <div className="grid grid-cols-3 sm:grid-cols-6 md:grid-cols-9 gap-2">
             {HOMELAND_PICKS.map(c => (
@@ -300,26 +301,20 @@ export default function DiasporaPage() {
       >
         <div className="absolute inset-0 opacity-10"
           style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, #FCD116 0%, transparent 50%), radial-gradient(circle at 80% 50%, #CE1126 0%, transparent 50%)' }} />
-        <div className="relative w-full max-w-4xl mx-auto px-4 sm:px-6">
+        <div className="relative w-full px-6 sm:px-8 lg:px-12">
           <Users size={40} className="mx-auto mb-4 text-white/80" />
-          <h2 className="text-3xl font-black mb-4 text-white">Join the community</h2>
+          <h2 className="text-3xl font-black mb-4 text-white">{t('diaspora.title')}</h2>
           <p className="text-green-100 text-base mb-8 leading-relaxed">
-            Whether you're building a business in London, sending money to Lagos,
-            or planning your next trip home — seshaa.diaspora connects Africa's
-            global family.
+            {t('diaspora.subtitle')}
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link
-              to="/add-listing"
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-green-800 font-bold rounded-xl hover:bg-green-50 transition-colors text-sm"
-            >
-              <Building2 size={16} /> List your business
+            <Link to="/add-listing"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-green-800 font-bold rounded-xl hover:bg-green-50 transition-colors text-sm">
+              <Building2 size={16} /> {t('listing.addNew')}
             </Link>
-            <Link
-              to="/search"
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white/20 border border-white/40 text-white font-bold rounded-xl hover:bg-white/30 transition-colors text-sm"
-            >
-              <Search size={16} /> Browse directory
+            <Link to="/search"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white/20 border border-white/40 text-white font-bold rounded-xl hover:bg-white/30 transition-colors text-sm">
+              <Search size={16} /> {t('nav.search')}
             </Link>
           </div>
         </div>

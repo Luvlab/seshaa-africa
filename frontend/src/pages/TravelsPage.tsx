@@ -1,59 +1,49 @@
 /**
  * seshaa.travels — Africa travel portal
- * Scraped travel articles + destination guides + user-submitted tips
- * Newspaper-style mosaic layout, full-viewport
+ * Full viewport width. All strings via i18n.
  */
 import { useState, useEffect, useCallback } from 'react';
-import { Plane, MapPin, ExternalLink, Clock, Camera, Star, ChevronRight, Compass } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { Plane, MapPin, Clock, Camera, Compass } from 'lucide-react';
 import SeshaaTitle from '../components/brand/SeshaaTitle';
 import { useThemeStore } from '../store/theme';
 import api from '../services/api';
 
 interface TravelArticle {
-  id: string;
-  title: string;
-  link: string;
-  summary?: string;
-  image?: string;
-  source: string;
-  country: string;
-  publishedAt: string;
+  id: string; title: string; link: string; summary?: string;
+  image?: string; source: string; country: string; publishedAt: string;
 }
 
 const DESTINATIONS = [
-  { code: 'MA', name: 'Morocco',       emoji: '🇲🇦', tag: 'Medinas & Sahara',    color: '#C1292E' },
-  { code: 'TZ', name: 'Tanzania',      emoji: '🇹🇿', tag: 'Serengeti & Kilimanjaro', color: '#1EB53A' },
-  { code: 'EG', name: 'Egypt',         emoji: '🇪🇬', tag: 'Pyramids & Nile',     color: '#CE1126' },
-  { code: 'ZA', name: 'South Africa',  emoji: '🇿🇦', tag: 'Safari & Cape',       color: '#007A4D' },
-  { code: 'KE', name: 'Kenya',         emoji: '🇰🇪', tag: 'Masai Mara & Coast',  color: '#006600' },
-  { code: 'GH', name: 'Ghana',         emoji: '🇬🇭', tag: 'Heritage & Beaches',  color: '#FCD116' },
-  { code: 'SN', name: 'Senegal',       emoji: '🇸🇳', tag: 'Pink Lake & Gorée',   color: '#00853F' },
-  { code: 'ET', name: 'Ethiopia',      emoji: '🇪🇹', tag: 'Lalibela & Simien',   color: '#FCDD09' },
-  { code: 'MG', name: 'Madagascar',    emoji: '🇲🇬', tag: 'Lemurs & Baobabs',    color: '#FC3D32' },
-  { code: 'RW', name: 'Rwanda',        emoji: '🇷🇼', tag: 'Gorillas & Lakes',    color: '#20603D' },
-  { code: 'NG', name: 'Nigeria',       emoji: '🇳🇬', tag: 'Culture & Cuisine',   color: '#008751' },
-  { code: 'UG', name: 'Uganda',        emoji: '🇺🇬', tag: 'Source of the Nile',  color: '#FCDC04' },
-  { code: 'TN', name: 'Tunisia',       emoji: '🇹🇳', tag: 'Carthage & Medinas',  color: '#E70013' },
-  { code: 'MZ', name: 'Mozambique',    emoji: '🇲🇿', tag: 'Bazaruto & Dhow',     color: '#009A44' },
-  { code: 'BW', name: 'Botswana',      emoji: '🇧🇼', tag: 'Okavango & Kalahari', color: '#75AADB' },
-  { code: 'NA', name: 'Namibia',       emoji: '🇳🇦', tag: 'Namib Desert & Fish River', color: '#003580' },
+  { code: 'MA', name: 'Morocco',       emoji: '🇲🇦', tag: 'Medinas & Sahara',         color: '#C1292E' },
+  { code: 'TZ', name: 'Tanzania',      emoji: '🇹🇿', tag: 'Serengeti & Kilimanjaro',  color: '#1EB53A' },
+  { code: 'EG', name: 'Egypt',         emoji: '🇪🇬', tag: 'Pyramids & Nile',          color: '#CE1126' },
+  { code: 'ZA', name: 'South Africa',  emoji: '🇿🇦', tag: 'Safari & Cape',            color: '#007A4D' },
+  { code: 'KE', name: 'Kenya',         emoji: '🇰🇪', tag: 'Masai Mara & Coast',       color: '#006600' },
+  { code: 'GH', name: 'Ghana',         emoji: '🇬🇭', tag: 'Heritage & Beaches',       color: '#FCD116' },
+  { code: 'SN', name: 'Senegal',       emoji: '🇸🇳', tag: 'Pink Lake & Gorée',        color: '#00853F' },
+  { code: 'ET', name: 'Ethiopia',      emoji: '🇪🇹', tag: 'Lalibela & Simien',        color: '#FCDD09' },
+  { code: 'MG', name: 'Madagascar',    emoji: '🇲🇬', tag: 'Lemurs & Baobabs',         color: '#FC3D32' },
+  { code: 'RW', name: 'Rwanda',        emoji: '🇷🇼', tag: 'Gorillas & Lakes',         color: '#20603D' },
+  { code: 'NG', name: 'Nigeria',       emoji: '🇳🇬', tag: 'Culture & Cuisine',        color: '#008751' },
+  { code: 'UG', name: 'Uganda',        emoji: '🇺🇬', tag: 'Source of the Nile',       color: '#FCDC04' },
+  { code: 'TN', name: 'Tunisia',       emoji: '🇹🇳', tag: 'Carthage & Medinas',       color: '#E70013' },
+  { code: 'MZ', name: 'Mozambique',    emoji: '🇲🇿', tag: 'Bazaruto & Dhow',          color: '#009A44' },
+  { code: 'BW', name: 'Botswana',      emoji: '🇧🇼', tag: 'Okavango & Kalahari',      color: '#75AADB' },
+  { code: 'NA', name: 'Namibia',       emoji: '🇳🇦', tag: 'Namib Desert',             color: '#003580' },
 ];
 
-const TRAVEL_TYPES = [
-  { id: 'safari',    label: 'Safari',       emoji: '🦁', desc: 'Wildlife & game reserves' },
-  { id: 'beach',     label: 'Beach',        emoji: '🏖️', desc: 'Zanzibar, Seychelles & more' },
-  { id: 'culture',   label: 'Culture',      emoji: '🏛️', desc: 'History, heritage & art' },
-  { id: 'adventure', label: 'Adventure',    emoji: '🧗', desc: 'Hiking, diving, trekking' },
-  { id: 'food',      label: 'Food & Drink', emoji: '🍲', desc: 'African cuisine & flavours' },
-  { id: 'wellness',  label: 'Wellness',     emoji: '🧘', desc: 'Retreats & eco-lodges' },
-];
+const TRAVEL_TYPE_IDS = ['safari','beach','culture','adventure','food','wellness'];
+const TRAVEL_TYPE_EMOJIS: Record<string,string> = {
+  safari:'🦁', beach:'🏖️', culture:'🏛️', adventure:'🧗', food:'🍲', wellness:'🧘',
+};
 
 function timeAgo(d: string) {
   const m = Math.floor((Date.now() - new Date(d).getTime()) / 60000);
-  if (m < 60) return `${m}m ago`;
+  if (m < 60) return `${m}m`;
   const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
+  if (h < 24) return `${h}h`;
+  return `${Math.floor(h / 24)}d`;
 }
 
 function HeroTravel({ article }: { article: TravelArticle }) {
@@ -82,7 +72,7 @@ function HeroTravel({ article }: { article: TravelArticle }) {
           {article.title}
         </h2>
         {article.summary && (
-          <p className="text-white/70 text-sm mt-2 line-clamp-2 max-w-xl">{article.summary}</p>
+          <p className="text-white/70 text-sm mt-2 line-clamp-2">{article.summary}</p>
         )}
       </div>
     </a>
@@ -92,7 +82,7 @@ function HeroTravel({ article }: { article: TravelArticle }) {
 function TravelCard({ article }: { article: TravelArticle }) {
   return (
     <a href={article.link} target="_blank" rel="noopener noreferrer"
-      className="group block bg-white border border-gray-200 hover:border-[var(--cp)] hover:shadow-md transition-all overflow-hidden rounded-sm">
+      className="group block bg-white border-b border-r border-gray-200 hover:bg-gray-50 overflow-hidden transition-colors">
       {article.image && (
         <div className="h-36 overflow-hidden bg-gray-100">
           <img src={article.image} alt={article.title}
@@ -118,9 +108,10 @@ function TravelCard({ article }: { article: TravelArticle }) {
 }
 
 export default function TravelsPage() {
+  const { t } = useTranslation();
   const { countryCode } = useThemeStore();
   const [articles, setArticles] = useState<TravelArticle[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading]   = useState(true);
   const [activeType, setActiveType] = useState<string | null>(null);
 
   const fetchTravel = useCallback(async () => {
@@ -128,11 +119,8 @@ export default function TravelsPage() {
     try {
       const r = await api.get('/news?category=travel&limit=50');
       setArticles(r.data.items || []);
-    } catch {
-      setArticles([]);
-    } finally {
-      setLoading(false);
-    }
+    } catch { setArticles([]); }
+    finally { setLoading(false); }
   }, []);
 
   useEffect(() => { fetchTravel(); }, [fetchTravel]);
@@ -141,52 +129,40 @@ export default function TravelsPage() {
     ? articles.filter(a =>
         a.title.toLowerCase().includes(activeType) ||
         a.summary?.toLowerCase().includes(activeType) ||
-        a.country.toLowerCase().includes(activeType)
-      )
+        a.country.toLowerCase().includes(activeType))
     : articles;
 
-  const hero = filtered.filter(a => a.image)[0];
+  const hero     = filtered.filter(a => a.image)[0];
   const featured = filtered.filter(a => a.image && a !== hero).slice(0, 3);
-  const rest = filtered.filter(a => a !== hero && !featured.includes(a)).slice(0, 20);
+  const rest     = filtered.filter(a => a !== hero && !featured.includes(a)).slice(0, 20);
 
   return (
     <div className="w-full min-h-screen bg-gray-50">
 
-      {/* ── Masthead ─────────────────────────────────────────────────── */}
+      {/* ── Masthead — full width ── */}
       <header className="w-full bg-white border-b-2 border-gray-900">
-        <div className="w-full px-4 sm:px-6 py-5">
-          {/* Title row */}
+        <div className="w-full px-4 sm:px-6 lg:px-10 py-5">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-4">
-            <div className="flex items-center gap-3">
-              <SeshaaTitle countryCode={countryCode} staticSuffix="travels" size="lg" />
-            </div>
-            <p className="text-xs text-gray-500 text-center sm:text-right max-w-xs">
-              Discover Africa's wonders · Travel stories, guides & tips from across the continent
+            <SeshaaTitle countryCode={countryCode} staticSuffix="travels" size="lg" />
+            <p className="text-xs text-gray-500 text-center sm:text-right max-w-sm">
+              {t('travels.subtitle')}
             </p>
           </div>
-
-          {/* Travel type pills */}
           <div className="flex gap-2 overflow-x-auto scrollbar-none py-1">
-            <button
-              onClick={() => setActiveType(null)}
+            <button onClick={() => setActiveType(null)}
               className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase tracking-wide rounded-full border transition-all ${
                 !activeType ? 'text-white border-transparent' : 'border-gray-200 text-gray-600 hover:border-gray-400 bg-white'
               }`}
-              style={!activeType ? { backgroundColor: 'var(--cp)' } : {}}
-            >
-              🌍 All
+              style={!activeType ? { backgroundColor: 'var(--cp)' } : {}}>
+              🌍 {t('travels.all')}
             </button>
-            {TRAVEL_TYPES.map(t => (
-              <button
-                key={t.id}
-                onClick={() => setActiveType(activeType === t.id ? null : t.id)}
+            {TRAVEL_TYPE_IDS.map(id => (
+              <button key={id} onClick={() => setActiveType(activeType === id ? null : id)}
                 className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase tracking-wide rounded-full border transition-all ${
-                  activeType === t.id ? 'text-white border-transparent' : 'border-gray-200 text-gray-600 hover:border-gray-400 bg-white'
+                  activeType === id ? 'text-white border-transparent' : 'border-gray-200 text-gray-600 hover:border-gray-400 bg-white'
                 }`}
-                style={activeType === t.id ? { backgroundColor: 'var(--cp)' } : {}}
-                title={t.desc}
-              >
-                {t.emoji} {t.label}
+                style={activeType === id ? { backgroundColor: 'var(--cp)' } : {}}>
+                {TRAVEL_TYPE_EMOJIS[id]} {t(`travels.types.${id}`)}
               </button>
             ))}
           </div>
@@ -195,23 +171,18 @@ export default function TravelsPage() {
 
       <main className="w-full">
 
-        {/* ── Destination guide strip ──────────────────────────────── */}
+        {/* ── Destination guide strip — full width ── */}
         <section className="w-full bg-white border-b border-gray-200">
-          <div className="w-full px-4 sm:px-6 py-4">
+          <div className="w-full px-4 sm:px-6 lg:px-10 py-4">
             <h2 className="text-xs font-black uppercase tracking-widest text-gray-500 mb-3">
-              <Compass size={12} className="inline mr-1 -mt-0.5" />Destination Guides
+              <Compass size={12} className="inline mr-1 -mt-0.5" />{t('travels.destinations')}
             </h2>
             <div className="flex gap-3 overflow-x-auto scrollbar-none pb-1">
               {DESTINATIONS.map(dest => (
-                <a
-                  key={dest.code}
-                  href={`/country/${dest.code}`}
-                  className="shrink-0 group flex flex-col items-center gap-1.5 w-20"
-                >
-                  <div
-                    className="w-16 h-16 rounded-xl flex items-center justify-center text-2xl shadow-sm group-hover:shadow-md transition-shadow border-2 border-white"
-                    style={{ backgroundColor: dest.color + '20', borderColor: dest.color + '40' }}
-                  >
+                <a key={dest.code} href={`/country/${dest.code}`}
+                  className="shrink-0 group flex flex-col items-center gap-1.5 w-20">
+                  <div className="w-16 h-16 rounded-xl flex items-center justify-center text-2xl shadow-sm group-hover:shadow-md transition-shadow border-2 border-white"
+                    style={{ backgroundColor: dest.color + '20', borderColor: dest.color + '40' }}>
                     {dest.emoji}
                   </div>
                   <span className="text-[10px] font-bold text-gray-700 text-center leading-tight">{dest.name}</span>
@@ -224,35 +195,32 @@ export default function TravelsPage() {
 
         {loading ? (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 p-6 animate-pulse">
-            <div className="lg:col-span-2 bg-gray-200 rounded-sm min-h-[380px]" />
+            <div className="lg:col-span-2 bg-gray-200 min-h-[380px]" />
             <div className="space-y-4">
-              {[1,2,3].map(i => <div key={i} className="h-28 bg-gray-200 rounded-sm" />)}
+              {[1,2,3].map(i => <div key={i} className="h-28 bg-gray-200" />)}
             </div>
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-20 text-gray-400">
             <Plane size={40} className="mx-auto mb-3 opacity-20" />
-            <p className="font-medium">No travel stories right now</p>
-            <button onClick={fetchTravel} className="mt-3 px-4 py-2 text-sm font-bold rounded-full text-white" style={{ backgroundColor: 'var(--cp)' }}>Refresh</button>
+            <p className="font-medium">{t('travels.noStories')}</p>
+            <button onClick={fetchTravel}
+              className="mt-3 px-4 py-2 text-sm font-bold rounded-full text-white" style={{ backgroundColor: 'var(--cp)' }}>
+              {t('travels.refresh')}
+            </button>
           </div>
         ) : (
           <>
-            {/* ── Front page hero grid ─────────────────────────── */}
+            {/* Hero grid — full width */}
             <section className="w-full border-b-2 border-gray-900">
               <div className="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-gray-300">
-                {/* Hero */}
-                {hero && (
-                  <div className="lg:col-span-7">
-                    <HeroTravel article={hero} />
-                  </div>
-                )}
-                {/* Featured column */}
+                {hero && <div className="lg:col-span-7"><HeroTravel article={hero} /></div>}
                 <div className="lg:col-span-5 bg-white divide-y divide-gray-200">
                   {featured.map(article => (
                     <a key={article.id} href={article.link} target="_blank" rel="noopener noreferrer"
                       className="group flex gap-3 p-4 hover:bg-gray-50 transition-colors">
                       {article.image && (
-                        <div className="shrink-0 w-28 h-24 rounded overflow-hidden bg-gray-100">
+                        <div className="shrink-0 w-28 h-24 overflow-hidden bg-gray-100">
                           <img src={article.image} alt={article.title}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                             onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
@@ -274,41 +242,40 @@ export default function TravelsPage() {
               </div>
             </section>
 
-            {/* ── More stories mosaic ───────────────────────────── */}
+            {/* More stories — full width */}
             <section className="w-full bg-white border-b border-gray-200">
-              <div className="w-full px-4 sm:px-6 pt-4 pb-2 flex items-center justify-between">
+              <div className="w-full px-4 sm:px-6 lg:px-10 pt-4 pb-2 flex items-center justify-between">
                 <h2 className="text-xs font-black uppercase tracking-widest text-gray-500">
-                  <Camera size={12} className="inline mr-1 -mt-0.5" />More Travel Stories
+                  <Camera size={12} className="inline mr-1 -mt-0.5" />{t('travels.moreStories')}
                 </h2>
-                <span className="text-xs text-gray-400">{rest.length} stories</span>
+                <span className="text-xs text-gray-400">{t('travels.stories', { count: rest.length })}</span>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 divide-x divide-y divide-gray-200">
-                {rest.map(article => (
-                  <TravelCard key={article.id} article={article} />
-                ))}
+                {rest.map(article => <TravelCard key={article.id} article={article} />)}
               </div>
             </section>
 
-            {/* ── Book Africa CTA ──────────────────────────────── */}
-            <section className="w-full px-4 sm:px-6 py-8 bg-gray-900 text-white text-center">
-              <div className="max-w-xl mx-auto">
-                <div className="text-4xl mb-3">✈️🌍</div>
-                <h2 className="text-2xl font-black mb-2">Ready to explore Africa?</h2>
-                <p className="text-white/70 text-sm mb-5">
-                  Find hotels, restaurants, tour guides and services across 54 African countries on Seshaa.
-                </p>
-                <div className="flex flex-wrap justify-center gap-3">
-                  <a href="/search?category=hotel" className="px-5 py-2.5 rounded-full font-bold text-sm"
-                    style={{ backgroundColor: 'var(--ca,#FCD116)', color: 'var(--cp,#008751)' }}>
-                    🏨 Find Hotels
-                  </a>
-                  <a href="/search?category=transport" className="px-5 py-2.5 rounded-full font-bold text-sm bg-white/10 hover:bg-white/20 transition-colors">
-                    🚗 Book Transport
-                  </a>
-                  <a href="/search?category=restaurant" className="px-5 py-2.5 rounded-full font-bold text-sm bg-white/10 hover:bg-white/20 transition-colors">
-                    🍽️ Local Food
-                  </a>
-                </div>
+            {/* Book Africa CTA — full width, edge-to-edge */}
+            <section className="w-full px-6 sm:px-8 lg:px-12 py-12 bg-gray-900 text-white text-center">
+              <div className="text-4xl mb-3">✈️🌍</div>
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black mb-3">{t('travels.cta.title')}</h2>
+              <p className="text-white/70 text-sm sm:text-base mb-6 max-w-2xl mx-auto">
+                {t('travels.cta.body')}
+              </p>
+              <div className="flex flex-wrap justify-center gap-3">
+                <a href="/search?category=hotel"
+                  className="px-6 py-3 rounded-full font-bold text-sm"
+                  style={{ backgroundColor: 'var(--ca,#FCD116)', color: 'var(--cp,#008751)' }}>
+                  🏨 {t('travels.cta.hotels')}
+                </a>
+                <a href="/search?category=transport"
+                  className="px-6 py-3 rounded-full font-bold text-sm bg-white/10 hover:bg-white/20 transition-colors">
+                  🚗 {t('travels.cta.transport')}
+                </a>
+                <a href="/search?category=restaurant"
+                  className="px-6 py-3 rounded-full font-bold text-sm bg-white/10 hover:bg-white/20 transition-colors">
+                  🍽️ {t('travels.cta.food')}
+                </a>
               </div>
             </section>
           </>
