@@ -82,6 +82,29 @@ export default function AdminPortal() {
     catch { return ALL_LOGOS.map(l => l.id) as LogoId[]; }
   });
 
+  // CSS settings — read from localStorage, applied as CSS custom properties
+  const readCss = (key: string, def: number) => {
+    const v = parseFloat(localStorage.getItem(key) ?? '');
+    return isNaN(v) ? def : v;
+  };
+  const [logoMainSize,  setLogoMainSize]  = useState(() => readCss('seshaa-logo-main', 1.95));
+  const [logoDotSize,   setLogoDotSize]   = useState(() => readCss('seshaa-logo-dot',  1.65));
+  const [logoStroke,    setLogoStroke]    = useState(() => readCss('seshaa-logo-stroke', 1.5));
+  const [customCss,     setCustomCss]     = useState(() => localStorage.getItem('seshaa-custom-css') ?? '');
+  const [cssSaved,      setCssSaved]      = useState(false);
+
+  // Apply a CSS custom property on the root element + persist
+  const applyCssVar = (varName: string, value: string, lsKey: string, raw: number) => {
+    document.documentElement.style.setProperty(varName, value);
+    localStorage.setItem(lsKey, String(raw));
+  };
+  const applyCustomCss = (css: string) => {
+    localStorage.setItem('seshaa-custom-css', css);
+    let el = document.getElementById('seshaa-custom-css');
+    if (!el) { el = document.createElement('style'); el.id = 'seshaa-custom-css'; document.head.appendChild(el); }
+    el.textContent = css;
+  };
+
   useEffect(() => {
     adminApi.stats().then(r => r.data?.stats && setStats(r.data.stats)).catch(() => {});
     adminApi.financials().then(r => setFinancials(r.data)).catch(() => {});
@@ -760,43 +783,188 @@ export default function AdminPortal() {
 
         {/* ── BRANDING ── */}
         {tab === 'branding' && (
-          <div className="bg-gray-900 rounded-2xl border border-gray-800 p-5">
-            <h3 className="font-bold text-white mb-1 flex items-center gap-2">
-              <Paintbrush size={16} className="text-pink-400" strokeWidth={1.5} /> Logo Rotation
-            </h3>
-            <p className="text-xs text-gray-500 mb-5">
-              Toggle which logo variants cycle in the navbar every 9 seconds.
-              At least one must stay enabled.
-            </p>
-            <div className="grid sm:grid-cols-2 gap-3">
-              {ALL_LOGOS.map(logo => {
-                const isOn = enabledLogos.includes(logo.id);
-                return (
-                  <button
-                    key={logo.id}
-                    onClick={() => toggleLogo(logo.id)}
-                    className={`flex items-center gap-4 p-4 rounded-2xl border-2 text-left transition-colors ${
-                      isOn
-                        ? 'border-green-500/40 bg-green-500/5'
-                        : 'border-gray-700 bg-gray-950 opacity-50'
-                    }`}
-                  >
-                    {/* Mini preview on dark background */}
-                    <div className="w-28 h-10 flex items-center justify-center bg-gray-900 rounded-xl overflow-hidden shrink-0 border border-gray-800">
-                      <div style={{ width: 108, height: 36, overflow: 'hidden' }}>
-                        {logo.node}
-                      </div>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-white">{logo.label}</p>
-                      <p className={`text-xs mt-0.5 font-semibold ${isOn ? 'text-green-400' : 'text-gray-600'}`}>
-                        {isOn ? '● Active' : '○ Off'}
-                      </p>
-                    </div>
-                  </button>
-                );
-              })}
+          <div className="space-y-5">
+
+            {/* ── Live logo preview ── */}
+            <div className="bg-gray-900 rounded-2xl border border-gray-800 p-5">
+              <h3 className="font-bold text-white mb-1 flex items-center gap-2">
+                <Paintbrush size={16} className="text-pink-400" strokeWidth={1.5} /> CSS Settings
+              </h3>
+              <p className="text-xs text-gray-500 mb-5">
+                Adjust logo size, outline weight, and inject custom CSS. Changes apply instantly and persist across reloads.
+              </p>
+
+              {/* Live preview */}
+              <div className="flex items-center justify-center bg-gray-950 rounded-xl border border-gray-800 py-4 mb-6"
+                style={{ backgroundColor: 'var(--cp, #008751)' }}>
+                <div className="flex items-center gap-0 select-none leading-none">
+                  <span style={{
+                    fontSize: `var(--logo-main-size, ${logoMainSize}rem)`,
+                    fontWeight: 900, fontStyle: 'italic',
+                    fontFamily: '"Arial Black","Arial Bold",Arial,sans-serif',
+                    color: '#008751',
+                    WebkitTextStroke: `var(--logo-stroke, ${logoStroke}px) white`,
+                    letterSpacing: '-0.02em', lineHeight: 1,
+                  }}>seshaa</span>
+                  <span style={{
+                    fontSize: `var(--logo-dot-size, ${logoDotSize}rem)`,
+                    fontWeight: 700, fontStyle: 'italic',
+                    fontFamily: '"Arial Black","Arial Bold",Arial,sans-serif',
+                    color: 'white', letterSpacing: '-0.01em', lineHeight: 1,
+                  }}>.africa</span>
+                </div>
+              </div>
+
+              {/* Sliders */}
+              <div className="space-y-5">
+
+                {/* Logo main size */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                      Logo size — "seshaa"
+                    </label>
+                    <span className="text-xs text-gray-500 tabular-nums">{logoMainSize.toFixed(2)}rem</span>
+                  </div>
+                  <input type="range" min={1.0} max={3.5} step={0.05}
+                    value={logoMainSize}
+                    onChange={e => {
+                      const v = parseFloat(e.target.value);
+                      setLogoMainSize(v);
+                      applyCssVar('--logo-main-size', v + 'rem', 'seshaa-logo-main', v);
+                    }}
+                    className="w-full accent-pink-400 h-1.5 cursor-pointer"
+                  />
+                  <div className="flex justify-between text-[10px] text-gray-600 mt-0.5">
+                    <span>1rem</span><span>3.5rem</span>
+                  </div>
+                </div>
+
+                {/* Logo dot/suffix size */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                      Logo size — ".africa"
+                    </label>
+                    <span className="text-xs text-gray-500 tabular-nums">{logoDotSize.toFixed(2)}rem</span>
+                  </div>
+                  <input type="range" min={0.8} max={3.0} step={0.05}
+                    value={logoDotSize}
+                    onChange={e => {
+                      const v = parseFloat(e.target.value);
+                      setLogoDotSize(v);
+                      applyCssVar('--logo-dot-size', v + 'rem', 'seshaa-logo-dot', v);
+                    }}
+                    className="w-full accent-pink-400 h-1.5 cursor-pointer"
+                  />
+                  <div className="flex justify-between text-[10px] text-gray-600 mt-0.5">
+                    <span>0.8rem</span><span>3rem</span>
+                  </div>
+                </div>
+
+                {/* Outline stroke */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                      Outline (stroke) thickness
+                    </label>
+                    <span className="text-xs text-gray-500 tabular-nums">{logoStroke.toFixed(1)}px</span>
+                  </div>
+                  <input type="range" min={0} max={5} step={0.5}
+                    value={logoStroke}
+                    onChange={e => {
+                      const v = parseFloat(e.target.value);
+                      setLogoStroke(v);
+                      applyCssVar('--logo-stroke', v + 'px', 'seshaa-logo-stroke', v);
+                    }}
+                    className="w-full accent-pink-400 h-1.5 cursor-pointer"
+                  />
+                  <div className="flex justify-between text-[10px] text-gray-600 mt-0.5">
+                    <span>0 (none)</span><span>5px</span>
+                  </div>
+                </div>
+
+                {/* Reset */}
+                <button
+                  onClick={() => {
+                    setLogoMainSize(1.95); setLogoDotSize(1.65); setLogoStroke(1.5);
+                    applyCssVar('--logo-main-size', '1.95rem', 'seshaa-logo-main', 1.95);
+                    applyCssVar('--logo-dot-size',  '1.65rem', 'seshaa-logo-dot',  1.65);
+                    applyCssVar('--logo-stroke',    '1.5px',   'seshaa-logo-stroke', 1.5);
+                  }}
+                  className="text-xs text-gray-500 hover:text-gray-300 underline"
+                >
+                  Reset logo to defaults
+                </button>
+              </div>
             </div>
+
+            {/* ── Custom CSS injection ── */}
+            <div className="bg-gray-900 rounded-2xl border border-gray-800 p-5">
+              <h3 className="font-bold text-white mb-1 flex items-center gap-2">
+                <Globe size={16} className="text-blue-400" strokeWidth={1.5} /> Custom CSS
+              </h3>
+              <p className="text-xs text-gray-500 mb-3">
+                Injected into the app via a &lt;style&gt; tag. Applies to every page instantly.
+                Use CSS variables like <code className="text-blue-400">--cp</code> for the primary colour.
+              </p>
+              <textarea
+                className="w-full bg-gray-950 border border-gray-700 rounded-xl px-4 py-3 text-xs font-mono text-green-300 focus:outline-none focus:border-gray-500 resize-y"
+                rows={8}
+                placeholder={`/* Example */\n.navbar-title { opacity: 0.9; }\nbody { letter-spacing: 0.01em; }`}
+                value={customCss}
+                onChange={e => setCustomCss(e.target.value)}
+              />
+              <div className="flex items-center gap-3 mt-3">
+                <button
+                  onClick={() => { applyCustomCss(customCss); setCssSaved(true); setTimeout(() => setCssSaved(false), 2000); }}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition-colors"
+                >
+                  {cssSaved ? '✓ Applied' : 'Apply & Save'}
+                </button>
+                <button
+                  onClick={() => { setCustomCss(''); applyCustomCss(''); }}
+                  className="text-xs text-gray-500 hover:text-gray-300 underline"
+                >
+                  Clear
+                </button>
+              </div>
+            </div>
+
+            {/* ── Logo rotation ── */}
+            <div className="bg-gray-900 rounded-2xl border border-gray-800 p-5">
+              <h3 className="font-bold text-white mb-1 flex items-center gap-2">
+                <RefreshCw size={16} className="text-yellow-400" strokeWidth={1.5} /> Logo Rotation
+              </h3>
+              <p className="text-xs text-gray-500 mb-5">
+                Toggle which logo variants cycle in the navbar. At least one must stay enabled.
+              </p>
+              <div className="grid sm:grid-cols-2 gap-3">
+                {ALL_LOGOS.map(logo => {
+                  const isOn = enabledLogos.includes(logo.id);
+                  return (
+                    <button
+                      key={logo.id}
+                      onClick={() => toggleLogo(logo.id)}
+                      className={`flex items-center gap-4 p-4 rounded-2xl border-2 text-left transition-colors ${
+                        isOn ? 'border-green-500/40 bg-green-500/5' : 'border-gray-700 bg-gray-950 opacity-50'
+                      }`}
+                    >
+                      <div className="w-28 h-10 flex items-center justify-center bg-gray-900 rounded-xl overflow-hidden shrink-0 border border-gray-800">
+                        <div style={{ width: 108, height: 36, overflow: 'hidden' }}>{logo.node}</div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-white">{logo.label}</p>
+                        <p className={`text-xs mt-0.5 font-semibold ${isOn ? 'text-green-400' : 'text-gray-600'}`}>
+                          {isOn ? '● Active' : '○ Off'}
+                        </p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
           </div>
         )}
 

@@ -80,7 +80,10 @@ export default function SeshaaTitle({ countryCode: _cc, size = 'sm', className =
   const ivRef    = useRef<ReturnType<typeof setInterval> | null>(null);
   const idxRef   = useRef(0);
 
-  const { main, dot } = SIZE[size] ?? SIZE.sm;
+  // CSS-var overrides let the Admin branding panel adjust sizes live
+  const fallback = SIZE[size] ?? SIZE.sm;
+  const main = size === 'md' ? `var(--logo-main-size, ${fallback.main})` : fallback.main;
+  const dot  = size === 'md' ? `var(--logo-dot-size,  ${fallback.dot})`  : fallback.dot;
 
   // ── Slot-machine animation on mount (skipped when staticSuffix is set) ──
   useEffect(() => {
@@ -134,7 +137,7 @@ export default function SeshaaTitle({ countryCode: _cc, size = 'sm', className =
           fontStyle: 'italic',
           fontFamily: '"Arial Black","Arial Bold",Arial,sans-serif',
           color: '#008751',
-          WebkitTextStroke: '2.5px white',
+          WebkitTextStroke: 'var(--logo-stroke, 1.5px) white',
           letterSpacing: '-0.02em',
           lineHeight: 1,
         }}

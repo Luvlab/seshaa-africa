@@ -160,6 +160,21 @@ export default function App() {
 
   useEffect(() => {
     initFontSize(); // restore user's saved text-size preference
+    // Restore admin CSS settings
+    const root = document.documentElement;
+    const logoMain   = localStorage.getItem('seshaa-logo-main');
+    const logoDot    = localStorage.getItem('seshaa-logo-dot');
+    const logoStroke = localStorage.getItem('seshaa-logo-stroke');
+    const customCss  = localStorage.getItem('seshaa-custom-css');
+    if (logoMain)   root.style.setProperty('--logo-main-size', logoMain + 'rem');
+    if (logoDot)    root.style.setProperty('--logo-dot-size',  logoDot  + 'rem');
+    if (logoStroke) root.style.setProperty('--logo-stroke',    logoStroke + 'px');
+    if (customCss) {
+      const el = document.createElement('style');
+      el.id = 'seshaa-custom-css';
+      el.textContent = customCss;
+      document.head.appendChild(el);
+    }
     applyTheme(countryCode);
     detectFromIP();
     // Show personalisation survey only for brand-new signups (flag set by AuthPage after register)

@@ -103,7 +103,7 @@ export default function Navbar() {
         {/* Seshaa animated title — min-width holds stable settled width; no clipping */}
         <Link
           to="/"
-          className="shrink-0 flex items-center h-full"
+          className="shrink-0 flex items-center self-center"
           style={{ minWidth: 160 }}
         >
           <SeshaaTitle countryCode={countryCode} size="md" />
