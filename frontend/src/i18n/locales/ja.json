@@ -1,0 +1,12 @@
+{
+  "app": { "name": "Seshaa", "tagline": "Seshaaで見つけよう。", "description": "アフリカ全土で、人・ビジネス・あらゆるものを探せる" },
+  "nav": { "home": "ホーム", "search": "検索", "addListing": "掲載を追加", "advertise": "広告掲載", "salesRep": "営業担当", "login": "ログイン", "register": "登録", "profile": "マイプロフィール" },
+  "search": { "placeholder": "名前・電話番号・ビジネスを検索...", "city": "都市", "country": "国", "category": "カテゴリー", "type": "種別", "searchBtn": "検索", "results": "{{count}} 件見つかりました", "noResults": "掲載情報がありません。最初の一件を追加しましょう！", "filters": "フィルター", "all": "すべて" },
+  "listing": { "personal": "個人", "business": "ビジネス", "government": "政府機関", "ngo": "NGO", "phone": "電話番号", "phone2": "サブ電話番号", "email": "メールアドレス", "address": "住所", "city": "都市", "country": "国", "region": "地域", "website": "ウェブサイト", "whatsapp": "WhatsApp", "category": "カテゴリー", "description": "説明", "verified": "認証済み", "views": "{{count}} 回閲覧", "addNew": "新規掲載を追加", "editListing": "掲載を編集", "submit": "掲載を送信", "submitSuccess": "掲載が正常に送信されました！", "callNow": "今すぐ電話", "directions": "道順を見る", "share": "共有", "report": "報告する" },
+  "categories": { "restaurant": "レストラン・飲食", "health": "健康・医療", "education": "教育", "retail": "小売・ショッピング", "finance": "金融・銀行", "transport": "交通", "hotel": "ホテル・宿泊", "tech": "テクノロジー", "construction": "建設", "agriculture": "農業", "legal": "法律サービス", "beauty": "美容・サロン", "auto": "自動車・修理", "church": "教会・宗教", "ngo": "NGO・チャリティー", "government": "政府機関", "other": "その他" },
+  "ads": { "sponsored": "スポンサー", "advertiseHere": "ここに広告を出す", "getStarted": "何百万ものアフリカ人にリーチ。今日から始めよう。", "contactSalesRep": "地元の営業担当に連絡する" },
+  "salesrep": { "title": "営業担当になる", "earn": "販売した広告ごとに{{rate}}%の手数料を獲得", "territory": "担当エリア", "dashboard": "マイダッシュボード", "totalEarned": "累計獲得額", "unpaidBalance": "未払い残高", "adsPlaced": "掲載広告数", "apply": "今すぐ申し込む", "leaderboard": "トップ営業担当" },
+  "auth": { "login": "ログイン", "register": "登録", "name": "氏名", "email": "メールアドレス", "phone": "電話番号", "password": "パスワード", "country": "国", "language": "使用言語", "loginBtn": "ログイン", "registerBtn": "アカウントを作成", "noAccount": "アカウントをお持ちでないですか？", "hasAccount": "すでにアカウントをお持ちですか？", "logout": "ログアウト" },
+  "countries": { "NG": "ナイジェリア", "KE": "ケニア", "ZA": "南アフリカ", "GH": "ガーナ", "EG": "エジプト", "ET": "エチオピア", "TZ": "タンザニア", "SN": "セネガル", "CI": "コートジボワール", "CM": "カメルーン", "ML": "マリ", "BF": "ブルキナファソ", "GN": "ギニア", "NE": "ニジェール", "RW": "ルワンダ", "UG": "ウガンダ" },
+  "footer": { "about": "概要", "privacy": "プライバシー", "terms": "利用規約", "contact": "お問い合わせ", "copyright": "© {{year}} Seshaa. アフリカへの愛を込めて ❤️" }
+}

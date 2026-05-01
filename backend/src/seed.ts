@@ -1,6 +1,14 @@
+import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+import pg from 'pg';
 
-const prisma = new PrismaClient();
+const pool = new pg.Pool({
+  connectionString: process.env.DATABASE_URL!,
+  ssl: { rejectUnauthorized: false },
+  max: 3,
+});
+const prisma = new PrismaClient({ adapter: new PrismaPg(pool) });
 
 const SEED_LISTINGS = [
   { type: 'BUSINESS' as const, name: 'Eko Hospital & Specialists Centre', phone: '+234-1-2709991', city: 'Lagos', country: 'Nigeria', category: 'health', description: 'Leading private hospital in Lagos, Nigeria.', verified: true, viewCount: 1200 },
@@ -29,6 +37,7 @@ async function main() {
         ...l,
         active: true,
         language: 'en',
+        photos: [],
       },
     });
   }

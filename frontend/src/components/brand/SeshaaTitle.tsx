@@ -106,8 +106,8 @@ export default function SeshaaTitle({ countryCode, size = 'sm', className = '', 
   useEffect(() => {
     if (isStatic) return;
 
-    const FAST_TICKS = 30;
-    const SLOW_TICKS = 14;
+    const FAST_TICKS = 36;  // more ticks, faster feel
+    const SLOW_TICKS = 10;  // quick deceleration at the end
     let ticks = 0;
 
     const run = (delay: number) => {
@@ -118,23 +118,37 @@ export default function SeshaaTitle({ countryCode, size = 'sm', className = '', 
         clearInterval(ivRef.current!);
 
         if (ticks < FAST_TICKS) {
-          run(55);
+          run(30);  // faster: 30ms per tick (was 55ms)
         } else if (ticks < FAST_TICKS + SLOW_TICKS) {
-          run(55 + (ticks - FAST_TICKS + 1) * 35);  // 90 ms → 545 ms
+          // Decelerate: 60ms → 360ms over 10 ticks
+          run(60 + (ticks - FAST_TICKS) * 30);
         } else {
-          // Land on active country (or "africa")
-          const target = slugFor(countryCode);
+          // ① Land on "africa" immediately
           setFading(true);
           timerRef.current = setTimeout(() => {
-            setSuffix(target);
+            setSuffix('africa');
             setFading(false);
-            setSettled(true);
+
+            // ② Hold "africa" for 3 seconds, then go to actual country
+            timerRef.current = setTimeout(() => {
+              const target = slugFor(countryCode);
+              if (target !== 'africa') {
+                setFading(true);
+                timerRef.current = setTimeout(() => {
+                  setSuffix(target);
+                  setFading(false);
+                  setSettled(true);
+                }, 260);
+              } else {
+                setSettled(true);
+              }
+            }, 3000);
           }, 260);
         }
       }, delay);
     };
 
-    run(55);
+    run(30);
     return () => {
       clearInterval(ivRef.current!);
       if (timerRef.current) clearTimeout(timerRef.current);
