@@ -63,14 +63,13 @@ interface Props {
 }
 
 const SIZE: Record<string, { main: string; dot: string }> = {
-  sm: { main: '1.1rem',  dot: '0.95rem' },
+  sm: { main: '1.28rem', dot: '1.1rem'  },
   md: { main: '1.55rem', dot: '1.3rem'  },
   lg: { main: '2.4rem',  dot: '2.05rem' },
 };
 
 export default function SeshaaTitle({ countryCode, size = 'sm', className = '' }: Props) {
-  const { i18n } = useTranslation();
-  const isEnglish = i18n.language.startsWith('en');
+  useTranslation(); // keep for future language-aware extensions
 
   const [suffix, setSuffix] = useState(SLOT_LIST[0]);
   const [fading, setFading] = useState(false);
@@ -80,11 +79,6 @@ export default function SeshaaTitle({ countryCode, size = 'sm', className = '' }
   const idxRef   = useRef(0);
 
   const { main, dot } = SIZE[size] ?? SIZE.sm;
-
-  // Country suffix to show once settled — always "africa" first, then country
-  const countrySuffix = countryCode
-    ? ((isEnglish ? ENGLISH_SLUGS : LOCAL_SLUGS)[countryCode.toUpperCase()] ?? countryCode.toLowerCase())
-    : null;
 
   // ── Slot-machine animation on mount ─────────────────────────────────────
   useEffect(() => {
@@ -106,26 +100,12 @@ export default function SeshaaTitle({ countryCode, size = 'sm', className = '' }
           const extra = (ticks - FAST_TICKS + 1) * 35;
           run(55 + extra);            // 90 ms → 545 ms
         } else {
-          // Land on "africa"
+          // Land on "africa" — stays here permanently
           setFading(true);
           timerRef.current = setTimeout(() => {
             setSuffix('africa');
             setFading(false);
             setSettled(true);
-
-            // After 1.5 s, switch to user's country (if set)
-            if (countryCode) {
-              timerRef.current = setTimeout(() => {
-                setFading(true);
-                timerRef.current = setTimeout(() => {
-                  setSuffix(
-                    (isEnglish ? ENGLISH_SLUGS : LOCAL_SLUGS)[countryCode.toUpperCase()]
-                    ?? countryCode.toLowerCase()
-                  );
-                  setFading(false);
-                }, 260);
-              }, 1500);
-            }
           }, 260);
         }
       }, delay);
@@ -139,19 +119,7 @@ export default function SeshaaTitle({ countryCode, size = 'sm', className = '' }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ── Country or language changes after settle ─────────────────────────────
-  useEffect(() => {
-    if (!settled) return;
-    const target = countrySuffix ?? 'africa';
-    if (suffix === target) return;
-    setFading(true);
-    timerRef.current = setTimeout(() => {
-      setSuffix(target);
-      setFading(false);
-    }, 260);
-    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [countrySuffix, settled]);
+  // ── After settle, always show "africa" — no country transition ──────────
 
   return (
     <div className={`flex items-center gap-0 select-none leading-none ${className}`}>
