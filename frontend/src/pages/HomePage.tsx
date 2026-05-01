@@ -171,8 +171,8 @@ export default function HomePage() {
 
       {/* ── HERO — full viewport height minus navbar, paid ad slideshow ── */}
       <div
-        className="relative w-screen overflow-hidden"
-        style={{ height: 'calc(100svh - 86px)', minHeight: 420 }}
+        className="relative w-full overflow-hidden"
+        style={{ height: 'calc(100svh - 86px)', minHeight: 360 }}
       >
         {/* Ad slideshow media layers — render all, show active via opacity */}
         {adSlides.map((slide, i) => (
@@ -346,9 +346,9 @@ export default function HomePage() {
       </div>
 
       {/* ── COUNTRIES — flag fills button, text below ── */}
-      <div className="max-w-7xl mx-auto px-4 py-6">
+      <div className="w-full px-4 sm:px-6 py-6">
         <h2 className="text-xl font-black text-gray-800 mb-3">🌍 Browse by Country</h2>
-        <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-9 lg:grid-cols-11 gap-2 sm:gap-3">
+        <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-9 lg:grid-cols-11 xl:grid-cols-14 gap-2 sm:gap-3">
           {AFRICAN_COUNTRIES.map(c => (
             <button
               key={c.code}
@@ -374,9 +374,9 @@ export default function HomePage() {
       </div>
 
       {/* ── CATEGORIES ── */}
-      <div className="max-w-7xl mx-auto px-4 pb-6">
+      <div className="w-full px-4 sm:px-6 pb-6">
         <h2 className="text-xl font-black text-gray-800 mb-3">📂 Browse by Category</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-6 xl:grid-cols-12 gap-3">
           {CATEGORIES.map(c => (
             <button
               key={c.key}
@@ -399,12 +399,12 @@ export default function HomePage() {
       </div>
 
       {/* ── FEATURED LISTINGS ── */}
-      <div className="max-w-7xl mx-auto px-4 pb-8">
+      <div className="w-full px-4 sm:px-6 pb-8">
         <div className="flex items-center gap-2 mb-4">
           <TrendingUp size={20} className="text-green-600" />
           <h2 className="text-xl font-bold text-gray-800">Featured Listings</h2>
         </div>
-        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {featured.map(l => <ListingCard key={l.id} listing={l} />)}
         </div>
       </div>

@@ -119,7 +119,7 @@ export default function TranslatePage() {
   const langInfo = LANGUAGES.find(l => l.code === selectedLang);
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
+    <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 py-8">
 
       {/* ── Hero ── */}
       <div className="rounded-3xl overflow-hidden mb-8" style={{ background: 'linear-gradient(135deg, var(--cp, #008751), #005f3a)' }}>

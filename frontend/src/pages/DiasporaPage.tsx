@@ -133,7 +133,7 @@ export default function DiasporaPage() {
         <div className="absolute top-20 right-10 w-64 h-64 rounded-full opacity-8 blur-3xl"
           style={{ background: 'radial-gradient(circle, #CE1126, transparent)' }} />
 
-        <div className="relative max-w-5xl mx-auto px-6 py-20 text-center">
+        <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 py-20 text-center">
           {/* Brand */}
           <div className="flex justify-center mb-6">
             <SeshaaTitle staticSuffix="diaspora" size="lg" />
@@ -182,7 +182,7 @@ export default function DiasporaPage() {
 
       {/* ── How it works ─────────────────────────────────────────────────── */}
       <div className="bg-gray-900 py-16">
-        <div className="max-w-5xl mx-auto px-6">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6">
           <h2 className="text-2xl font-bold text-center mb-10 text-white">How it works</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
             {HOW_IT_WORKS.map(item => (
@@ -202,7 +202,7 @@ export default function DiasporaPage() {
 
       {/* ── Diaspora categories ───────────────────────────────────────────── */}
       <div className="py-14 bg-gray-950">
-        <div className="max-w-5xl mx-auto px-6">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-xl font-bold text-white">Browse by category</h2>
             <Link to="/search" className="text-xs text-green-400 hover:text-green-300 flex items-center gap-1">
@@ -234,7 +234,7 @@ export default function DiasporaPage() {
 
       {/* ── Diaspora hubs ─────────────────────────────────────────────────── */}
       <div className="py-14 bg-gray-900">
-        <div className="max-w-5xl mx-auto px-6">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6">
           <h2 className="text-xl font-bold text-white mb-2">Find African near you</h2>
           <p className="text-sm text-gray-400 mb-8">
             Browse African-owned businesses in major diaspora cities
@@ -266,7 +266,7 @@ export default function DiasporaPage() {
 
       {/* ── Connect back home ─────────────────────────────────────────────── */}
       <div className="py-14 bg-gray-950">
-        <div className="max-w-5xl mx-auto px-6">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6">
           <h2 className="text-xl font-bold text-white mb-2">Stay connected to home</h2>
           <p className="text-sm text-gray-400 mb-8">
             Explore listings, prices, and news from your homeland
@@ -300,7 +300,7 @@ export default function DiasporaPage() {
       >
         <div className="absolute inset-0 opacity-10"
           style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, #FCD116 0%, transparent 50%), radial-gradient(circle at 80% 50%, #CE1126 0%, transparent 50%)' }} />
-        <div className="relative max-w-2xl mx-auto px-6">
+        <div className="relative w-full max-w-4xl mx-auto px-4 sm:px-6">
           <Users size={40} className="mx-auto mb-4 text-white/80" />
           <h2 className="text-3xl font-black mb-4 text-white">Join the community</h2>
           <p className="text-green-100 text-base mb-8 leading-relaxed">

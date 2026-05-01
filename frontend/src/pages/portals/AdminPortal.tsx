@@ -234,7 +234,7 @@ export default function AdminPortal() {
         </a>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 py-6">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-6">
 
         {/* Tab bar */}
         <div className="flex gap-1 overflow-x-auto bg-gray-900 rounded-xl p-1 mb-6 border border-gray-800">

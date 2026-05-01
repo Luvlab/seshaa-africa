@@ -58,7 +58,7 @@ export default function ListingDetail() {
   const certLevel = listing.certification?.level;
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-6">
+    <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 py-6">
       {/* Back */}
       <Link to="/search" className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-800 mb-4">
         <ArrowLeft size={14} /> Back to results

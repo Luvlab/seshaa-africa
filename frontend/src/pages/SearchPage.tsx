@@ -70,7 +70,7 @@ export default function SearchPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-6">
       {/* Search bar */}
       <div className="flex gap-2 mb-4">
         <div className="flex-1 flex items-center gap-2 bg-white rounded-xl border px-4 py-3 shadow-sm">

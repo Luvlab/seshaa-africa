@@ -4,7 +4,7 @@ import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import './i18n';
 import Navbar from './components/layout/Navbar';
 import MobileTabBar from './components/layout/MobileTabBar';
-import Footer from './components/layout/Footer';
+import Footer, { initFontSize } from './components/layout/Footer';
 import { useThemeStore } from './store/theme';
 import InterestSurvey from './components/ads/InterestSurvey';
 
@@ -159,6 +159,7 @@ export default function App() {
   const [showSurvey, setShowSurvey] = useState(false);
 
   useEffect(() => {
+    initFontSize(); // restore user's saved text-size preference
     applyTheme(countryCode);
     detectFromIP();
     // Show personalisation survey only for brand-new signups (flag set by AuthPage after register)

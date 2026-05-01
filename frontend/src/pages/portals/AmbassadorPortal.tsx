@@ -85,7 +85,7 @@ export default function AmbassadorPortal() {
 
   // Not yet an ambassador
   if (!data) return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
+    <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 py-8">
       <div className="bg-gradient-to-br from-yellow-400 to-orange-500 text-white rounded-2xl p-8 text-center mb-6">
         <div className="text-5xl mb-3">🌟</div>
         <h1 className="text-3xl font-bold mb-2">Become a Seshaa Ambassador</h1>
@@ -150,7 +150,7 @@ export default function AmbassadorPortal() {
   ] as const;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6">
+    <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 py-6">
       {/* Header */}
       <div className="rounded-2xl text-white p-6 mb-6" style={{ background: `linear-gradient(135deg, var(--cp), var(--cp-dark))` }}>
         <div className="flex items-center justify-between flex-wrap gap-4">

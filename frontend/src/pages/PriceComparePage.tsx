@@ -61,7 +61,7 @@ export default function PriceComparePage() {
   const lowestPrice = sorted.length ? sorted[0] : null;
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-6">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-6">
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-black text-gray-900">Price Comparison</h1>
@@ -75,7 +75,7 @@ export default function PriceComparePage() {
             <div className="px-4 py-3 bg-gray-50 border-b">
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Categories</p>
             </div>
-            <div className="divide-y max-h-96 overflow-y-auto">
+            <div className="divide-y max-h-[40vh] md:max-h-none overflow-y-auto">
               {CATEGORIES.map(cat => (
                 <button
                   key={cat.id}

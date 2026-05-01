@@ -27,7 +27,7 @@ export default function CountryPage() {
 
   if (!country) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-16 text-center text-gray-400">
+      <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 py-16 text-center text-gray-400">
         <p className="text-5xl mb-4">🌍</p>
         <p className="text-xl font-bold">Country not found</p>
         <Link to="/" className="mt-4 inline-block text-green-600 hover:underline">← Back to Home</Link>
@@ -77,7 +77,7 @@ export default function CountryPage() {
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 py-8">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-8">
         {/* Quick search for this country */}
         <div className="bg-white rounded-2xl shadow-sm border p-5 mb-8">
           <h2 className="text-lg font-black text-gray-900 mb-3">
