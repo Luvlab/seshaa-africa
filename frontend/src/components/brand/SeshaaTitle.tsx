@@ -68,12 +68,12 @@ const SIZE: Record<string, { main: string; dot: string }> = {
   lg: { main: '2.4rem',  dot: '2.05rem' },
 };
 
-export default function SeshaaTitle({ countryCode, size = 'sm', className = '' }: Props) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export default function SeshaaTitle({ countryCode: _cc, size = 'sm', className = '' }: Props) {
   useTranslation(); // keep for future language-aware extensions
 
   const [suffix, setSuffix] = useState(SLOT_LIST[0]);
   const [fading, setFading] = useState(false);
-  const [settled, setSettled] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const ivRef    = useRef<ReturnType<typeof setInterval> | null>(null);
   const idxRef   = useRef(0);
@@ -105,7 +105,6 @@ export default function SeshaaTitle({ countryCode, size = 'sm', className = '' }
           timerRef.current = setTimeout(() => {
             setSuffix('africa');
             setFading(false);
-            setSettled(true);
           }, 260);
         }
       }, delay);
