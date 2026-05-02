@@ -156,13 +156,35 @@ export async function queryOverpass(bbox: number[], cityName: string): Promise<O
 );
 out center body;`;
 
-  const url = 'https://overpass-api.de/api/interpreter';
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: `data=${encodeURIComponent(query)}`,
-  });
+  // Try primary, fall back to mirror if 406/503
+  const OVERPASS_ENDPOINTS = [
+    'https://overpass-api.de/api/interpreter',
+    'https://overpass.kumi.systems/api/interpreter',
+    'https://maps.mail.ru/osm/tools/overpass/api/interpreter',
+  ];
 
+  let response: Response | null = null;
+  let lastError = '';
+  for (const url of OVERPASS_ENDPOINTS) {
+    try {
+      response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Accept': 'application/json',
+          'User-Agent': 'SeshaaAfrica/1.0 (https://seshaa.africa; info@luvlab.io) OSM-Importer',
+        },
+        body: `data=${encodeURIComponent(query)}`,
+      });
+      if (response.ok) break;
+      lastError = `${response.status} from ${url}`;
+      response = null;
+    } catch (e) {
+      lastError = String(e);
+      response = null;
+    }
+  }
+  if (!response) throw new Error(`All Overpass endpoints failed. Last error: ${lastError}`);
   if (!response.ok) throw new Error(`Overpass error ${response.status}: ${await response.text()}`);
   const data = await response.json() as OverpassResponse;
   console.log(`  ↳ Got ${data.elements.length} raw elements for ${cityName}`);
