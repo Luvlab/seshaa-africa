@@ -232,7 +232,7 @@ export default function Navbar() {
           ) : (
             <Link
               to="/auth"
-              className="text-sm font-semibold px-3 py-1.5 rounded-full bg-white hover:bg-white/90"
+              className="hidden sm:inline-flex text-sm font-semibold px-3 py-1.5 rounded-full bg-white hover:bg-white/90"
               style={{ color: 'var(--cp)' }}
             >
               {t('auth.login')}
