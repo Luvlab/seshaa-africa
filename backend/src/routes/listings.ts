@@ -38,7 +38,7 @@ router.get('/', optionalAuth, async (req: AuthRequest, res: Response) => {
   const skip = (parseInt(page) - 1) * parseInt(limit);
 
   const where: Record<string, unknown> = { active: true };
-  if (country) where.country = country;
+  if (country) where.country = { equals: country, mode: 'insensitive' };
   if (city) where.city = { contains: city, mode: 'insensitive' };
   if (category) where.category = category;
   if (type) where.type = type;
@@ -72,11 +72,22 @@ router.get('/:id', optionalAuth, async (req: AuthRequest, res: Response) => {
   const id = req.params.id as string;
   const listing = await prisma.listing.findUnique({
     where: { id },
-    include: { tags: true, ads: { where: { active: true } } },
+    include: {
+      tags: true,
+      ads: { where: { active: true }, take: 3 },
+      certification: true,
+      awards: { orderBy: { year: 'desc' }, take: 5 },
+      reviews: {
+        orderBy: { createdAt: 'desc' },
+        take: 20,
+        include: { user: { select: { id: true, name: true } } },
+      },
+    },
   });
   if (!listing) return res.status(404).json({ error: 'Listing not found' });
 
-  await prisma.listing.update({ where: { id }, data: { viewCount: { increment: 1 } } });
+  // increment view count in background (non-blocking)
+  prisma.listing.update({ where: { id }, data: { viewCount: { increment: 1 } } }).catch(() => null);
   res.json(listing);
 });
 

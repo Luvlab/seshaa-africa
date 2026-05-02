@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Search, SlidersHorizontal, Sparkles, X, Plus } from 'lucide-react';
@@ -163,20 +163,52 @@ export default function SearchPage() {
               </div>
               <div className="grid sm:grid-cols-2 gap-4">
                 {listings.map((l, i) => (
-                  <>
-                    <ListingCard key={l.id} listing={l} />
+                  <React.Fragment key={l.id}>
+                    <ListingCard listing={l} />
                     {(i + 1) % 8 === 0 && <div className="sm:col-span-2"><AdBanner tier="BANNER" country={filters.country} city={filters.city} /></div>}
-                  </>
+                  </React.Fragment>
                 ))}
               </div>
               {pages > 1 && (
-                <div className="flex justify-center gap-2 mt-6">
-                  {Array.from({ length: pages }, (_, i) => i + 1).map(p => (
-                    <button key={p} className={`w-9 h-9 rounded-full text-sm font-medium ${p === filters.page ? 'bg-green-600 text-white' : 'bg-white border hover:bg-gray-50'}`}
-                      onClick={() => setFilters(f => ({ ...f, page: p }))}>
-                      {p}
-                    </button>
-                  ))}
+                <div className="flex justify-center items-center gap-1.5 mt-6 flex-wrap">
+                  {/* Prev */}
+                  <button
+                    disabled={filters.page === 1}
+                    onClick={() => setFilters(f => ({ ...f, page: f.page! - 1 }))}
+                    className="w-9 h-9 rounded-full text-sm font-medium bg-white border hover:bg-gray-50 disabled:opacity-30"
+                  >‹</button>
+
+                  {/* Smart page window: first, …, current±2, …, last */}
+                  {(() => {
+                    const cur = filters.page ?? 1;
+                    const pageNums: (number | '…')[] = [];
+                    const add = (n: number) => { if (!pageNums.includes(n)) pageNums.push(n); };
+                    add(1);
+                    if (cur - 2 > 2) pageNums.push('…');
+                    for (let p = Math.max(2, cur - 2); p <= Math.min(pages - 1, cur + 2); p++) add(p);
+                    if (cur + 2 < pages - 1) pageNums.push('…');
+                    if (pages > 1) add(pages);
+                    return pageNums.map((p, i) =>
+                      p === '…' ? (
+                        <span key={`ellipsis-${i}`} className="px-1 text-gray-400 text-sm">…</span>
+                      ) : (
+                        <button key={p}
+                          className={`w-9 h-9 rounded-full text-sm font-medium ${p === cur ? 'bg-green-600 text-white' : 'bg-white border hover:bg-gray-50'}`}
+                          onClick={() => setFilters(f => ({ ...f, page: p as number }))}>
+                          {p}
+                        </button>
+                      )
+                    );
+                  })()}
+
+                  {/* Next */}
+                  <button
+                    disabled={filters.page === pages}
+                    onClick={() => setFilters(f => ({ ...f, page: f.page! + 1 }))}
+                    className="w-9 h-9 rounded-full text-sm font-medium bg-white border hover:bg-gray-50 disabled:opacity-30"
+                  >›</button>
+
+                  <span className="text-xs text-gray-400 ml-1">of {pages.toLocaleString()} pages</span>
                 </div>
               )}
             </>
