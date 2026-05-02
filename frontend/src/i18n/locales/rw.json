@@ -136,5 +136,30 @@
     "terms": "Amabwiriza",
     "contact": "Twandikire",
     "copyright": "© {{year}} Seshaa. ❤️ Yakozwe ku bw'Afrika."
+  },
+  "news": {
+    "live": "NZIMA",
+    "sources": "Inkomoko n'Impano",
+    "inBrief": "Mu Makuramukono",
+    "more": "Ibindi {{cat}}",
+    "stories": "Inkuru {{count}}",
+    "noStories": "Nta nkuru zabonetse",
+    "reload": "Ongera Injiza",
+    "refresh": "Vugurura",
+    "searchPlaceholder": "Shakisha inzibacyuho...",
+    "subtitle": "Ijwi rya Afrika · Ibitangazamakuru 100+",
+    "disclaimer": "Seshaa News ihuza inzibacyuho z'ibitangazamakuru bya Afrika.",
+    "categories": {
+      "general": "Inkuru Nkuru",
+      "politics": "Politiki",
+      "business": "Ubucuruzi",
+      "technology": "Ikoranabuhanga",
+      "health": "Ubuzima",
+      "sports": "Siporo",
+      "entertainment": "Imyidagaduro",
+      "agriculture": "Ubuhinzi",
+      "finance": "Imari",
+      "travel": "Ingendo"
+    }
   }
 }

@@ -37,7 +37,7 @@ const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173')
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.some(o => origin === o || origin.endsWith('.vercel.app'))) {
+    if (!origin || allowedOrigins.some(o => origin === o || origin.endsWith('.vercel.app') || origin.endsWith('.seshaa.africa') || origin === 'https://www.seshaa.africa' || origin === 'https://seshaa.africa')) {
       callback(null, true);
     } else {
       callback(new Error(`CORS blocked: ${origin}`));

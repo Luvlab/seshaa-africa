@@ -136,5 +136,30 @@
     "terms": "Mirayiridzo",
     "contact": "Taura Nesu",
     "copyright": "© {{year}} Seshaa. ❤️ Yakagadzirirwa Africa."
+  },
+  "news": {
+    "live": "ZVINO",
+    "sources": "Zvimburayiriro",
+    "inBrief": "Pfupi",
+    "more": "Zvimwe {{cat}}",
+    "stories": "Nyaya {{count}}",
+    "noStories": "Hapana nyaya dzakawanikwa",
+    "reload": "Tora zvakare",
+    "refresh": "Vandudza",
+    "searchPlaceholder": "Tsvaga misoro yenhau...",
+    "subtitle": "Inzwi reAfrica · Mapepanhau 100+",
+    "disclaimer": "Seshaa News inounganidza misoro yenhau yemapepanhau eAfrica.",
+    "categories": {
+      "general": "Nyaya Dzikuru",
+      "politics": "Zvematongerwo enyika",
+      "business": "Bhizinesi",
+      "technology": "Tekinoroji",
+      "health": "Utano",
+      "sports": "Mitambo",
+      "entertainment": "Mafaro",
+      "agriculture": "Kurima",
+      "finance": "Mari",
+      "travel": "Rwendo"
+    }
   }
 }

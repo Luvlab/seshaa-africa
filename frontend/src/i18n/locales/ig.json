@@ -91,5 +91,30 @@
     "terms": "Ụkpụrụ",
     "contact": "Kpọtụrụ",
     "copyright": "© {{year}} Seshaa. E mebere ya n'ịhụnanya ❤️ Africa."
+  },
+  "news": {
+    "live": "UGBU A",
+    "sources": "Isi Mmalite",
+    "inBrief": "N'Obere",
+    "more": "Ọzọ {{cat}}",
+    "stories": "Akụkọ {{count}}",
+    "noStories": "Enweghị akụkọ",
+    "reload": "Bulite Ọzọ",
+    "refresh": "Melite",
+    "searchPlaceholder": "Chọọ isi isiokwu...",
+    "subtitle": "Olu Afrịka · Akwụkwọ Ozi 100+ · Ekele Zuru Ezu",
+    "disclaimer": "Seshaa News na-anakọta isi isiokwu sitere n'akwụkwọ ozi Afrịka.",
+    "categories": {
+      "general": "Akụkọ Isi",
+      "politics": "Ndọrọ ndọrọ ọchịchị",
+      "business": "Azụmaahịa",
+      "technology": "Teknọlọjị",
+      "health": "Ahụ Ike",
+      "sports": "Egwuregwu",
+      "entertainment": "Ntụrụdụ",
+      "agriculture": "Ọrụ Ugbo",
+      "finance": "Ego",
+      "travel": "Njem"
+    }
   }
 }

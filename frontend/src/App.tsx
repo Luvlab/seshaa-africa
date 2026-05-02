@@ -2,6 +2,7 @@ import { Component, useEffect, Suspense, lazy, useState } from 'react';
 import type { ReactNode, ErrorInfo } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import './i18n';
+import { LANGUAGES } from './i18n';
 import Navbar from './components/layout/Navbar';
 import MobileTabBar from './components/layout/MobileTabBar';
 import ChatFAB from './components/layout/ChatFAB';
@@ -180,6 +181,10 @@ export default function App() {
       el.textContent = customCss;
       document.head.appendChild(el);
     }
+    // Restore language direction (RTL for Arabic, etc.)
+    const storedLang = localStorage.getItem('seshaa-lang') || 'en';
+    const langDir = LANGUAGES.find(l => l.code === storedLang)?.dir || 'ltr';
+    document.documentElement.dir = langDir;
     applyTheme(countryCode);
     detectFromIP();
     // Show personalisation survey only for brand-new signups (flag set by AuthPage after register)

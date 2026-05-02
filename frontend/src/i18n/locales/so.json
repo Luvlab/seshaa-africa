@@ -136,5 +136,31 @@
     "terms": "Shuruudaha",
     "contact": "La Xiriir",
     "copyright": "© {{year}} Seshaa. ❤️ Loogu sameeyay Afrika."
+  },
+  "news": {
+    "live": "TOOS",
+    "sources": "Xogihii iyo Mahadnaqaha",
+    "inBrief": "Kooban",
+    "more": "Wax dheeraad ah {{cat}}",
+    "stories": "Sheekooyin {{count}}",
+    "noStories": "Wax sheeko ah lama helin",
+    "noStoriesBody": "Isha waxaa laga yaabaa in ay cusbooneysiinaayaan. Isku day mar kale.",
+    "reload": "Dib u Soo Dhaji",
+    "refresh": "Cusbooneysi",
+    "searchPlaceholder": "Raadi cinwaannada wararka...",
+    "subtitle": "Codka Afrika · 100+ Warbaahino · Amaanid buuxa Xogihii",
+    "disclaimer": "Seshaa News waxa ay u ururiyaa cinwaannada warbaahinta Afrika.",
+    "categories": {
+      "general": "Wararka Muhiimka ah",
+      "politics": "Siyaasad",
+      "business": "Ganacsiga",
+      "technology": "Tknoolojiyada",
+      "health": "Caafimaad",
+      "sports": "Cayaaraha",
+      "entertainment": "Madadaalo",
+      "agriculture": "Beeraha",
+      "finance": "Maaliyadda",
+      "travel": "Safar"
+    }
   }
 }

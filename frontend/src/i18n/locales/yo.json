@@ -221,5 +221,23 @@
     "sendMoney": "Rán Owó Lọ Sí Ilé",
     "africansIn": "Àwọn Ará Áfríkà ní",
     "explore": "Ṣàwárí"
+  },
+  "countries": {
+    "NG": "Nàìjíríà",
+    "KE": "Kenya",
+    "ZA": "Gúúsù Áfríkà",
+    "GH": "Gánà",
+    "EG": "Ìjíbítì",
+    "ET": "Ẹ̀tíópíà",
+    "TZ": "Tánzáníà",
+    "SN": "Sẹ̀nẹ̀gálì",
+    "CI": "Còt d'Ívórì",
+    "CM": "Kámẹ̀rúùn",
+    "ML": "Màlì",
+    "BF": "Bùrkínà Fásò",
+    "GN": "Gínì",
+    "NE": "Nàìjà",
+    "RW": "Rúwándà",
+    "UG": "Ùgándà"
   }
 }

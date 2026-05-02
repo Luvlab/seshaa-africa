@@ -91,5 +91,30 @@
     "terms": "Imigomo",
     "contact": "Xhumana",
     "copyright": "© {{year}} Seshaa. Yenziwe ngeze ❤️ i-Afrika."
+  },
+  "news": {
+    "live": "MANJE",
+    "sources": "Imithombo noFakaza",
+    "inBrief": "Ngamafuphi",
+    "more": "Okunye {{cat}}",
+    "stories": "Izindaba {{count}}",
+    "noStories": "Azikho izindaba",
+    "reload": "Layisha Futhi",
+    "refresh": "Vuselela",
+    "searchPlaceholder": "Sesha izihloko zezindaba...",
+    "subtitle": "Izwi le-Afrika · Amaphephandaba 100+",
+    "disclaimer": "I-Seshaa News iqoqa izihloko evela kumaphephandaba ase-Afrika.",
+    "categories": {
+      "general": "Izindaba Ezibalulekile",
+      "politics": "Izombusazwe",
+      "business": "Ibhizinisi",
+      "technology": "Ubuchwepheshe",
+      "health": "Impilo",
+      "sports": "Ezemidlalo",
+      "entertainment": "Izinhlelo Zokuzijabulisa",
+      "agriculture": "Ezolimo",
+      "finance": "Imali",
+      "travel": "Uhambo"
+    }
   }
 }

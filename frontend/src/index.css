@@ -2,38 +2,132 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Country-based theme colors — updated at runtime by theme store */
+/* ── Country-based theme colors — updated at runtime by theme store ─────── */
 :root {
-  --cp: #008751;        /* primary (from flag) */
+  --cp: #008751;
   --cp-dark: #006633;
   --cp-light: #e6f4ec;
-  --cs: #ffffff;        /* secondary */
-  --ca: #FCD116;        /* accent */
-  --ct: #ffffff;        /* text on primary */
+  --cs: #ffffff;
+  --ca: #FCD116;
+  --ct: #ffffff;          /* text on primary — always contrast-safe */
+  --ct-dark: #1a1a1a;     /* text on light backgrounds */
+  --focus-ring: var(--cp);
 }
 
+/* ── Reset: kill ALL outlines, browser-default rings, and box-shadows ─────── */
 @layer base {
+  *,
+  *::before,
+  *::after {
+    outline: none !important;
+    /* Browsers add blue outlines on focus; we replace them below */
+  }
+
+  /* Replace with a theme-coloured ring only for keyboard navigation */
+  *:focus-visible {
+    outline: 2px solid var(--focus-ring) !important;
+    outline-offset: 2px !important;
+  }
+
+  /* Remove browser default button/input borders that cause double-border look */
+  button, input, select, textarea {
+    appearance: none;
+    -webkit-appearance: none;
+  }
+
+  /* ── Global text alignment: LTR = left, RTL = right ─────────────────── */
   body {
     margin: 0;
     font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     background: #f8f9fa;
+    text-align: left;
+    color: #1a1a1a;
   }
 
+  [dir="rtl"] body,
+  [dir="rtl"] {
+    text-align: right;
+  }
+
+  /* Every container inherits LTR left-align unless explicitly RTL */
+  div, section, article, aside, header, footer, main, nav, p, li, td, th,
+  span, label, h1, h2, h3, h4, h5, h6 {
+    text-align: inherit;
+  }
+
+  /* ── Root stretches to full viewport ────────────────────────────────── */
   #root {
     width: 100%;
     min-height: 100svh;
     display: flex;
     flex-direction: column;
+    text-align: left;
   }
 
-  /* RTL support */
+  [dir="rtl"] #root {
+    text-align: right;
+  }
+
+  /* ── Links: always readable, inherit colour unless explicit ─────────── */
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  a:hover {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  /* RTL support utilities */
   [dir="rtl"] .ms-auto { margin-inline-start: auto; }
   [dir="rtl"] .me-auto { margin-inline-end: auto; }
+
+  /* ── Ensure text on coloured backgrounds is always legible ──────────── */
+  .bg-theme, [style*="background-color: var(--cp)"], [style*="backgroundColor:'var(--cp)'"] {
+    color: var(--ct, #fff);
+  }
+  .bg-theme-dark {
+    color: var(--ct, #fff);
+  }
 }
 
+/* ── Layout: full viewport, readable column width ────────────────────────── */
 @layer utilities {
+  /* Pages fill full height */
+  .page-root {
+    width: 100%;
+    min-height: calc(100svh - 56px);   /* subtract mobile tab bar height */
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Content column: readable max-width on wide screens */
+  .content-col {
+    width: 100%;
+    max-width: 1280px;
+    margin-inline: auto;
+    padding-inline: clamp(1rem, 4vw, 2.5rem);
+  }
+
+  /* Wide content: for news / maps / full-bleed sections */
+  .content-wide {
+    width: 100%;
+    max-width: 1600px;
+    margin-inline: auto;
+    padding-inline: clamp(1rem, 3vw, 2rem);
+  }
+
+  /* ── Text always LTR left / RTL right ── */
+  .text-start { text-align: start; }
+  .text-end   { text-align: end; }
+
+  /* Force left even in RTL containers (for phone numbers, IDs, etc.) */
+  .text-ltr { direction: ltr; text-align: left; }
+
+  /* ── Line-clamp utilities ── */
   .line-clamp-2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -48,40 +142,72 @@
     overflow: hidden;
   }
 
-  /* Country-color utility classes */
-  .bg-theme { background-color: var(--cp); }
-  .bg-theme-dark { background-color: var(--cp-dark); }
-  .bg-theme-light { background-color: var(--cp-light); }
-  .text-theme { color: var(--cp); }
-  .border-theme { border-color: var(--cp); }
-  .ring-theme { --tw-ring-color: var(--cp); }
+  .line-clamp-4 {
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
 
-  /* Smooth tab indicator */
+  /* ── Country-color utility classes ── */
+  .bg-theme       { background-color: var(--cp); }
+  .bg-theme-dark  { background-color: var(--cp-dark); }
+  .bg-theme-light { background-color: var(--cp-light); }
+  .text-theme     { color: var(--cp); }
+  .border-theme   { border-color: var(--cp); }
+  .ring-theme     { --tw-ring-color: var(--cp); }
+
+  /* ── Smooth tab underline ── */
   .tab-active::after {
     content: '';
     position: absolute;
     bottom: 0;
-    left: 0;
-    right: 0;
+    inset-inline: 0;
     height: 3px;
     background-color: var(--cp);
     border-radius: 3px 3px 0 0;
   }
 }
 
-/* ── Global icon style: outlined + minimalist ────────────────────────────── */
-/* All Lucide icons rendered with stroke-width 1.5 — thin, outlined, clear   */
+/* ── Global icon style: stroke-only Lucide icons ─────────────────────────── */
 svg.lucide {
   stroke-width: 1.5 !important;
+  flex-shrink: 0;
 }
 
-/* Star rating animation */
-.star-fill { transition: color 0.15s ease; }
+/* ── Contrast helpers for themed buttons/badges ─────────────────────────── */
+/* When a background is the theme primary, force white or dark text */
+[class*="bg-theme"]:not(.bg-theme-light) {
+  color: var(--ct, #ffffff);
+}
 
-/* Booking card hover */
+/* ── Misc component polish ───────────────────────────────────────────────── */
+.star-fill        { transition: color 0.15s ease; }
 .booking-card:hover { transform: translateY(-1px); }
 
 /* Mobile bottom tab bar safe area */
 .mobile-tab-bar {
   padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* ── Scrollbar (subtle) ─────────────────────────────────────────────────── */
+::-webkit-scrollbar       { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #999; }
+
+/* ── Input / select polish — no double border, no blue glow ─────────────── */
+input, select, textarea {
+  background-clip: padding-box;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #9ca3af;
+  opacity: 1;
+}
+
+/* ── Remove iOS tap highlight ────────────────────────────────────────────── */
+* {
+  -webkit-tap-highlight-color: transparent;
 }
