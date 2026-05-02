@@ -3,6 +3,7 @@
  * Uses the free, legal Overpass API — no API key needed.
  * Run: npx ts-node src/scraper/osm.ts [--city Lagos] [--country Nigeria] [--limit 500]
  */
+import 'dotenv/config';
 import prisma from '../db';
 
 interface OSMElement {
@@ -220,6 +221,7 @@ function osmToListing(el: OSMElement, city: string, country: string) {
     whatsapp: null,
     latitude: lat || null,
     longitude: lon || null,
+    photos: [] as string[],
     verified: false,
     active: true,
     language: 'en',
@@ -259,10 +261,11 @@ export async function scrapeCity(
   if (dryRun) return toInsert.length;
 
   let inserted = 0;
+  let failed = 0;
   const BATCH = 50;
   for (let i = 0; i < toInsert.length; i += BATCH) {
     const batch = toInsert.slice(i, i + BATCH);
-    await Promise.all(
+    const results = await Promise.all(
       batch.map(l =>
         prisma.listing.upsert({
           where: { osmId: l.osmId! },
@@ -273,11 +276,15 @@ export async function scrapeCity(
             longitude: l.longitude,
           },
           create: l,
-        }).catch(() => null)
+        }).catch((err) => {
+          failed++;
+          if (process.env.DEBUG_OSM) console.error(`  ✗ osmId ${l.osmId}: ${err.message}`);
+          return null;
+        })
       )
     );
-    inserted += batch.length;
-    process.stdout.write(`\r  ✓ ${inserted}/${toInsert.length}`);
+    inserted += results.filter(Boolean).length;
+    process.stdout.write(`\r  ✓ ${inserted}/${toInsert.length} (${failed} skipped)`);
   }
   console.log('');
   return inserted;
