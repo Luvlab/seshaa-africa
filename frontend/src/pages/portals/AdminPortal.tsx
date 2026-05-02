@@ -152,6 +152,17 @@ export default function AdminPortal() {
   const [slideSaving, setSlideSaving]     = useState(false);
   const [slideMsg, setSlideMsg]           = useState('');
 
+  // User analytics state
+  interface UserAnalytics {
+    live: { onlineNow: number; activeHour: number; activeDay: number };
+    totals: { totalUsers: number; newLast30: number; newLast90: number };
+    byRole: { role: string; count: number }[];
+    byCountry: { country: string; count: number }[];
+    dailySignups: { day: string; count: number }[];
+    peakHours: { hour: number; count: number }[];
+  }
+  const [userAnalytics, setUserAnalytics] = useState<UserAnalytics | null>(null);
+
   // Scraper state
   const [scrapeCounts, setScrapeCounts]   = useState<{ city: string; country: string; count: number }[]>([]);
   const [scrapeTotal, setScrapeTotal]     = useState(0);
@@ -222,6 +233,7 @@ export default function AdminPortal() {
   useEffect(() => {
     adminApi.stats().then(r => r.data?.stats && setStats(r.data.stats)).catch(() => {});
     adminApi.financials().then(r => setFinancials(r.data)).catch(() => {});
+    adminApi.userAnalytics().then(r => setUserAnalytics(r.data)).catch(() => {});
     adminApi.listings({ status: 'pending' }).then(r => setPendingListings(r.data.listings || [])).catch(() => {});
     adminApi.pendingPayouts().then(r => setPendingPayouts(r.data || [])).catch(() => {});
     adminApi.loanApplications('PENDING').then(r => setLoanApps(r.data || [])).catch(() => {});
@@ -770,6 +782,120 @@ export default function AdminPortal() {
               <StatSparkle value={loanApps.length} label="loan apps" color="bg-rose-500/15 text-rose-400" icon={<Award size={16} strokeWidth={1.5} />} />
               <StatSparkle value={stats.pendingListings} label="listings to review" color="bg-purple-500/15 text-purple-400" icon={<List size={16} strokeWidth={1.5} />} />
               <StatSparkle value={stats.salesReps} label="sales reps" color="bg-pink-500/15 text-pink-400" icon={<Briefcase size={16} strokeWidth={1.5} />} />
+            </div>
+
+            {/* ── User Analytics ────────────────────────────────────────── */}
+            <div className="bg-gray-900 rounded-2xl border border-gray-800 p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <Users size={16} className="text-cyan-400" strokeWidth={1.5} />
+                <span className="font-bold text-sm text-white">User Analytics</span>
+                {userAnalytics && (
+                  <span className="ml-auto flex items-center gap-1.5 text-xs text-green-400 font-semibold">
+                    <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse inline-block" />
+                    {userAnalytics.live.onlineNow} online now
+                  </span>
+                )}
+              </div>
+
+              {userAnalytics ? (
+                <>
+                  {/* Live + totals row */}
+                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-5">
+                    {[
+                      { label: 'Online now',    value: userAnalytics.live.onlineNow,         color: 'text-green-400',   bg: 'bg-green-500/10'  },
+                      { label: 'Last hour',     value: userAnalytics.live.activeHour,        color: 'text-cyan-400',    bg: 'bg-cyan-500/10'   },
+                      { label: 'Today',         value: userAnalytics.live.activeDay,         color: 'text-blue-400',    bg: 'bg-blue-500/10'   },
+                      { label: 'Total users',   value: userAnalytics.totals.totalUsers,      color: 'text-white',       bg: 'bg-gray-700/40'   },
+                      { label: 'New (30d)',      value: userAnalytics.totals.newLast30,       color: 'text-emerald-400', bg: 'bg-emerald-500/10'},
+                      { label: 'New (90d)',      value: userAnalytics.totals.newLast90,       color: 'text-purple-400',  bg: 'bg-purple-500/10' },
+                    ].map(s => (
+                      <div key={s.label} className={`rounded-xl p-3 text-center ${s.bg}`}>
+                        <p className={`text-xl font-black ${s.color}`}>{s.value.toLocaleString()}</p>
+                        <p className="text-[10px] text-gray-500 mt-0.5">{s.label}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-5">
+                    {/* Daily signups chart */}
+                    <div>
+                      <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Daily Signups — Last 30 days</p>
+                      <div className="space-y-1 max-h-48 overflow-y-auto pr-1">
+                        {userAnalytics.dailySignups.length > 0 ? (() => {
+                          const maxVal = Math.max(...userAnalytics.dailySignups.map(d => d.count), 1);
+                          return userAnalytics.dailySignups.slice(-30).reverse().map(d => (
+                            <div key={d.day} className="flex items-center gap-2 text-[11px]">
+                              <span className="text-gray-500 w-20 shrink-0">{d.day.slice(5)}</span>
+                              <div className="flex-1 bg-gray-800 rounded-full h-1.5 overflow-hidden">
+                                <div className="h-full rounded-full bg-cyan-500"
+                                  style={{ width: `${(d.count / maxVal) * 100}%` }} />
+                              </div>
+                              <span className="text-gray-400 w-6 text-right shrink-0">{d.count}</span>
+                            </div>
+                          ));
+                        })() : <p className="text-xs text-gray-600">No signup data yet</p>}
+                      </div>
+                    </div>
+
+                    {/* Demographics: by country */}
+                    <div>
+                      <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Users by Country (top 15)</p>
+                      <div className="space-y-1 max-h-48 overflow-y-auto pr-1">
+                        {userAnalytics.byCountry.length > 0 ? (() => {
+                          const maxVal = Math.max(...userAnalytics.byCountry.map(c => c.count), 1);
+                          return userAnalytics.byCountry.slice(0, 15).map(c => (
+                            <div key={c.country ?? 'unknown'} className="flex items-center gap-2 text-[11px]">
+                              <span className="text-gray-400 w-24 shrink-0 truncate">{c.country || '(unknown)'}</span>
+                              <div className="flex-1 bg-gray-800 rounded-full h-1.5 overflow-hidden">
+                                <div className="h-full rounded-full bg-emerald-500"
+                                  style={{ width: `${(c.count / maxVal) * 100}%` }} />
+                              </div>
+                              <span className="text-gray-400 w-6 text-right shrink-0">{c.count}</span>
+                            </div>
+                          ));
+                        })() : <p className="text-xs text-gray-600">No country data yet</p>}
+                      </div>
+                    </div>
+
+                    {/* By role */}
+                    <div>
+                      <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Users by Role</p>
+                      <div className="flex flex-wrap gap-2">
+                        {userAnalytics.byRole.map(r => (
+                          <div key={r.role} className="bg-gray-800 rounded-xl px-3 py-2 text-center min-w-[80px]">
+                            <p className="text-sm font-black text-white">{r.count.toLocaleString()}</p>
+                            <p className="text-[10px] text-gray-500 mt-0.5">{r.role}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Peak hours */}
+                    <div>
+                      <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Activity by Hour (UTC)</p>
+                      {userAnalytics.peakHours.length > 0 ? (() => {
+                        const maxVal = Math.max(...userAnalytics.peakHours.map(h => h.count), 1);
+                        return (
+                          <div className="flex items-end gap-0.5 h-16">
+                            {Array.from({ length: 24 }, (_, hr) => {
+                              const found = userAnalytics.peakHours.find(h => h.hour === hr);
+                              const pct = found ? (found.count / maxVal) * 100 : 0;
+                              return (
+                                <div key={hr} className="flex-1 flex flex-col items-center gap-0.5" title={`${hr}:00 — ${found?.count ?? 0} sessions`}>
+                                  <div className="w-full rounded-sm bg-blue-500/80 transition-all" style={{ height: `${Math.max(pct, 2)}%` }} />
+                                  {hr % 6 === 0 && <span className="text-[8px] text-gray-600">{hr}</span>}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        );
+                      })() : <p className="text-xs text-gray-600">No activity data yet</p>}
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="flex items-center justify-center py-8 text-gray-600 text-sm">Loading analytics…</div>
+              )}
             </div>
 
             {/* System status */}

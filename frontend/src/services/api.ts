@@ -220,6 +220,7 @@ export const adminApi = {
   getPodSettings: () => api.get('/admin/pod-settings'),
   savePodSettings: (data: { printifyApiKey?: string; printfulApiKey?: string }) => api.post('/admin/pod-settings', data),
   scrapePodServices: () => api.post('/admin/pod-services/scrape'),
+  userAnalytics: () => api.get('/admin/user-analytics'),
 };
 
 // Community Translations

@@ -42,6 +42,72 @@ router.get('/stats', requireAuth, adminOnly, async (_req, res) => {
   });
 });
 
+// GET /admin/user-analytics — online now, growth, demographics
+router.get('/user-analytics', requireAuth, adminOnly, async (_req, res) => {
+  const now = new Date();
+  const fiveMinAgo  = new Date(now.getTime() - 5  * 60_000);
+  const oneHourAgo  = new Date(now.getTime() - 60 * 60_000);
+  const thirtyDays  = new Date(now.getTime() - 30 * 24 * 60 * 60_000);
+  const ninetyDays  = new Date(now.getTime() - 90 * 24 * 60 * 60_000);
+
+  const [
+    onlineNow, activeHour, activeDay,
+    totalUsers, newLast30, newLast90,
+    byRole, byCountry, recentSignups, peakHours,
+  ] = await Promise.all([
+    // Online now (seen in last 5 min)
+    prisma.user.count({ where: { lastSeen: { gte: fiveMinAgo } } }),
+    // Active in last hour
+    prisma.user.count({ where: { lastSeen: { gte: oneHourAgo } } }),
+    // Active today
+    prisma.user.count({ where: { lastSeen: { gte: new Date(now.setHours(0,0,0,0)) } } }),
+    // Total
+    prisma.user.count(),
+    // New last 30 days
+    prisma.user.count({ where: { createdAt: { gte: thirtyDays } } }),
+    // New last 90 days
+    prisma.user.count({ where: { createdAt: { gte: ninetyDays } } }),
+    // By role
+    prisma.user.groupBy({ by: ['role'], _count: { id: true } }),
+    // By country (top 30)
+    prisma.user.groupBy({
+      by: ['country'],
+      _count: { id: true },
+      where: { country: { not: null } },
+      orderBy: { _count: { id: 'desc' } },
+      take: 30,
+    }),
+    // Daily signups last 30 days (raw SQL for date grouping)
+    prisma.$queryRaw<{ day: Date; count: bigint }[]>`
+      SELECT DATE_TRUNC('day', "createdAt") AS day, COUNT(*) AS count
+      FROM "User"
+      WHERE "createdAt" >= ${thirtyDays}
+      GROUP BY DATE_TRUNC('day', "createdAt")
+      ORDER BY day ASC
+    `,
+    // Peak hours (UTC) from lastSeen
+    prisma.$queryRaw<{ hour: number; count: bigint }[]>`
+      SELECT EXTRACT(HOUR FROM "lastSeen") AS hour, COUNT(*) AS count
+      FROM "User"
+      WHERE "lastSeen" IS NOT NULL
+      GROUP BY EXTRACT(HOUR FROM "lastSeen")
+      ORDER BY hour ASC
+    `,
+  ]);
+
+  res.json({
+    live: { onlineNow, activeHour, activeDay },
+    totals: { totalUsers, newLast30, newLast90 },
+    byRole: byRole.map(r => ({ role: r.role, count: Number(r._count.id) })),
+    byCountry: byCountry.map(c => ({ country: c.country, count: Number(c._count.id) })),
+    dailySignups: recentSignups.map(r => ({
+      day: r.day.toISOString().slice(0, 10),
+      count: Number(r.count),
+    })),
+    peakHours: peakHours.map(r => ({ hour: Number(r.hour), count: Number(r.count) })),
+  });
+});
+
 // GET /admin/listings?status=pending
 router.get('/listings', requireAuth, adminOnly, async (req, res) => {
   const { status = 'pending', page = '1' } = req.query as Record<string, string>;

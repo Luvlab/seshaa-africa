@@ -109,8 +109,15 @@ export default function SearchPage() {
         >
           {t('search.findBtn', { defaultValue: t('search.searchBtn') })}
         </button>
+        <a
+          href="/add-listing"
+          className="flex items-center gap-1.5 text-sm font-bold px-4 rounded-xl text-white whitespace-nowrap"
+          style={{ background: 'var(--cp, #008751)' }}
+        >
+          <Plus size={15} /> {t('listing.addNew', { defaultValue: 'Add Listing' })}
+        </a>
         <button
-          className="bg-white border px-4 rounded-xl hover:bg-gray-50"
+          className="bg-white border px-4 rounded-xl hover:bg-gray-50 shrink-0"
           onClick={() => setShowFilters(v => !v)}
         >
           <SlidersHorizontal size={18} />

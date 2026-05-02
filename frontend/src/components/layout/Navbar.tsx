@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
-  Search, Plus, Menu, X, MessageCircle, Bell, User, ChevronDown, Sparkles, Globe,
+  Search, Menu, X, MessageCircle, Bell, User, ChevronDown, Sparkles, Globe,
   Home, Newspaper, Tag, BarChart2, Megaphone, PartyPopper,
   Star, Briefcase, Languages, Settings, Globe2, Plane, Archive,
   ShoppingBag,
@@ -248,13 +248,6 @@ export default function Navbar() {
               <MessageCircle size={18} />
             </button>
           )}
-
-          <Link
-            to="/add-listing"
-            className="hidden lg:flex items-center gap-1 bg-white/20 hover:bg-white/30 text-white text-xs font-semibold px-3 py-1.5 rounded-full border border-white/30"
-          >
-            <Plus size={13} /> Add Listing
-          </Link>
 
           <button className="md:hidden p-2 text-white" onClick={() => { closeChatPanel(); setMobileOpen(v => !v); }}>
             {mobileOpen ? <X size={20} /> : <Menu size={20} />}
