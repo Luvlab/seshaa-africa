@@ -47,6 +47,9 @@ export interface Listing {
   logoUrl?: string;
   photos?: string[];
   openingHours?: string;
+  osmId?: string;
+  zipCode?: string;
+  tier?: 'SILVER' | 'GOLD' | 'DIAMOND';
   avgRating: number;
   reviewCount: number;
   certification?: SeshaaCertification;
