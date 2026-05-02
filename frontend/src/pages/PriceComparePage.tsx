@@ -17,6 +17,7 @@ import {
 import { pricesApi, listingsApi } from '../services/api';
 import type { PriceEntry } from '../types';
 import { useAuthStore } from '../store/auth';
+import { useThemeStore } from '../store/theme';
 
 const CATEGORIES = [
   { id: 'Health',      emoji: '🏥', items: ['Consultation (GP)', 'Blood Test', 'Paracetamol 500mg', 'Malaria Test', 'Ambulance Service', 'Dental Cleaning', 'Eye Test', 'X-Ray'] },
@@ -49,10 +50,11 @@ interface SubmitForm {
 export default function PriceComparePage() {
   const { t } = useTranslation();
   const { user } = useAuthStore();
+  const { countryCode } = useThemeStore();
   const [activeCategory, setActiveCategory] = useState(CATEGORIES[0].id);
   const [selectedItem, setSelectedItem]     = useState('');
   const [searchCity, setSearchCity]         = useState('');
-  const [searchCountry, setSearchCountry]   = useState('');
+  const [searchCountry, setSearchCountry]   = useState(countryCode || '');
   const [entries, setEntries]               = useState<PriceEntry[]>([]);
   const [trending, setTrending]             = useState<{ item: string; category: string; _count: { item: number } }[]>([]);
   const [loading, setLoading]               = useState(false);
@@ -70,8 +72,12 @@ export default function PriceComparePage() {
   const cat = CATEGORIES.find(c => c.id === activeCategory)!;
 
   useEffect(() => {
+    setSearchCountry(countryCode || '');
+  }, [countryCode]);
+
+  useEffect(() => {
     pricesApi.trending({ country: searchCountry || undefined }).then(r => setTrending(r.data)).catch(() => {});
-  }, []);
+  }, [searchCountry]);
 
   const handleSearch = async () => {
     if (!selectedItem) return;

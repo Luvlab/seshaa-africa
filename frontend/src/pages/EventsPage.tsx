@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Calendar, MapPin, Users, Ticket, Plus, ChevronDown } from 'lucide-react';
 import { eventsApi } from '../services/api';
 import { useAuthStore } from '../store/auth';
+import { useThemeStore } from '../store/theme';
+import { COUNTRIES } from '../components/layout/CountryPicker';
 import clsx from 'clsx';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -54,6 +56,7 @@ function formatDate(d: string) {
 // ── Component ─────────────────────────────────────────────────────────────────
 export default function EventsPage() {
   const { user } = useAuthStore();
+  const { countryCode } = useThemeStore();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [country, setCountry] = useState('');
@@ -80,6 +83,11 @@ export default function EventsPage() {
   });
 
   const setF = (k: string, v: string | boolean) => setForm(f => ({ ...f, [k]: v }));
+
+  useEffect(() => {
+    const mapped = countryCode ? (COUNTRIES.find(c => c.code === countryCode)?.name || '') : '';
+    setCountry(mapped);
+  }, [countryCode]);
 
   useEffect(() => {
     async function load() {

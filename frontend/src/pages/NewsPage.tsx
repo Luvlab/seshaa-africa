@@ -9,6 +9,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { ExternalLink, RefreshCw, Clock, Newspaper, Search } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useThemeStore } from '../store/theme';
+import { COUNTRIES } from '../components/layout/CountryPicker';
 import SeshaaTitle from '../components/brand/SeshaaTitle';
 import api from '../services/api';
 
@@ -217,15 +218,19 @@ export default function NewsPage() {
   const [searchQ, setSearchQ] = useState('');
   const autoRefreshRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  const selectedCountry = countryCode ? (COUNTRIES.find(c => c.code === countryCode)?.name || countryCode) : '';
+
   const fetchNews = useCallback(async (cat: string) => {
     setLoading(true);
     try {
-      const r = await api.get(`/news?category=${cat}&limit=60`);
+      const params = new URLSearchParams({ category: cat, limit: '60' });
+      if (selectedCountry) params.set('country', selectedCountry);
+      const r = await api.get(`/news?${params.toString()}`);
       setItems(r.data.items || []);
       setSources(r.data.sources || []);
     } catch { setItems([]); }
     finally { setLoading(false); }
-  }, []);
+  }, [selectedCountry]);
 
   useEffect(() => {
     fetchNews(activeCategory);

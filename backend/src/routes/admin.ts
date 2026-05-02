@@ -597,4 +597,72 @@ router.get('/public/hero-slides', async (_req, res) => {
   }));
 });
 
+// GET /admin/ai-settings — fetch AI provider settings for admin UI
+router.get('/ai-settings', requireAuth, adminOnly, async (_req, res) => {
+  const envKey = (process.env.OPENROUTER_API_KEY || '').trim();
+  const record = await prisma.listing.findUnique({ where: { osmId: 'seshaa-ai-config' } });
+
+  let dbKey = '';
+  let model = '';
+  if (record?.description) {
+    try {
+      const parsed = JSON.parse(record.description) as { openRouterApiKey?: string; openRouterModel?: string };
+      dbKey = (parsed.openRouterApiKey || '').trim();
+      model = (parsed.openRouterModel || '').trim();
+    } catch {
+      // ignore malformed legacy config
+    }
+  }
+
+  res.json({
+    hasOpenRouterKey: Boolean(envKey || dbKey),
+    keySource: envKey ? 'env' : dbKey ? 'db' : 'none',
+    openRouterModel: model || process.env.OPENROUTER_MODEL || 'openai/gpt-4o-mini',
+  });
+});
+
+// POST /admin/ai-settings — save OpenRouter key/model to DB config
+router.post('/ai-settings', requireAuth, adminOnly, async (req, res) => {
+  const openRouterApiKey = String(req.body?.openRouterApiKey || '').trim();
+  const openRouterModel = String(req.body?.openRouterModel || '').trim() || 'openai/gpt-4o-mini';
+
+  const existing = await prisma.listing.findUnique({ where: { osmId: 'seshaa-ai-config' } });
+  let existingConfig: { openRouterApiKey?: string; openRouterModel?: string } = {};
+  if (existing?.description) {
+    try {
+      existingConfig = JSON.parse(existing.description) as { openRouterApiKey?: string; openRouterModel?: string };
+    } catch {
+      existingConfig = {};
+    }
+  }
+
+  const merged = {
+    ...existingConfig,
+    ...(openRouterApiKey ? { openRouterApiKey } : {}),
+    openRouterModel,
+  };
+
+  await prisma.listing.upsert({
+    where: { osmId: 'seshaa-ai-config' },
+    update: {
+      name: 'AI Provider Config',
+      description: JSON.stringify(merged),
+      active: true,
+      verified: true,
+    },
+    create: {
+      name: 'AI Provider Config',
+      description: JSON.stringify(merged),
+      osmId: 'seshaa-ai-config',
+      country: 'ZZ',
+      city: 'Global',
+      type: 'BUSINESS',
+      active: true,
+      verified: true,
+    },
+  });
+
+  res.json({ ok: true, hasOpenRouterKey: Boolean(merged.openRouterApiKey), openRouterModel: merged.openRouterModel });
+});
+
 export default router;

@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Plus, Search, MapPin, Tag, Shield, AlertTriangle, X, ChevronRight, Clock, CheckCircle } from 'lucide-react';
 import { classifiedsApi } from '../services/api';
 import { useAuthStore } from '../store/auth';
+import { useThemeStore } from '../store/theme';
+import { COUNTRIES } from '../components/layout/CountryPicker';
 import type { Classified } from '../types';
 
 const CATEGORIES = [
@@ -202,6 +204,7 @@ function ClassifiedCard({ item }: { item: Classified }) {
 
 export default function ClassifiedsPage() {
   const { user } = useAuthStore();
+  const { countryCode } = useThemeStore();
   const [items, setItems] = useState<Classified[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -210,17 +213,24 @@ export default function ClassifiedsPage() {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
 
+  const selectedCountry = countryCode ? (COUNTRIES.find(c => c.code === countryCode)?.name || countryCode) : '';
+
   const load = async () => {
     setLoading(true);
     try {
-      const r = await classifiedsApi.list({ category: activeCategory || undefined, q: search || undefined, page });
+      const r = await classifiedsApi.list({
+        category: activeCategory || undefined,
+        q: search || undefined,
+        country: selectedCountry || undefined,
+        page,
+      });
       setItems(r.data.items);
       setTotal(r.data.total);
     } catch {}
     finally { setLoading(false); }
   };
 
-  useEffect(() => { load(); }, [activeCategory, page]);
+  useEffect(() => { load(); }, [activeCategory, page, selectedCountry]);
 
   const handleSearch = (e: React.FormEvent) => { e.preventDefault(); load(); };
 

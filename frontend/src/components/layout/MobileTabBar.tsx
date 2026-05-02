@@ -21,7 +21,7 @@ export default function MobileTabBar() {
   }));
 
   const openChatPanel = () => {
-    window.dispatchEvent(new CustomEvent('seshaa:chat-open', { detail: { tab: 'messages' } }));
+    window.dispatchEvent(new CustomEvent('seshaa:chat-toggle', { detail: { tab: 'messages' } }));
   };
 
   return (

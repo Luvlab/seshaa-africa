@@ -98,11 +98,15 @@ export default function Navbar() {
   };
 
   const openChatPanel = () => {
-    window.dispatchEvent(new CustomEvent('seshaa:chat-open', { detail: { tab: 'messages' } }));
+    window.dispatchEvent(new CustomEvent('seshaa:chat-toggle', { detail: { tab: 'messages' } }));
+  };
+
+  const closeChatPanel = () => {
+    window.dispatchEvent(new Event('seshaa:chat-close'));
   };
 
   return (
-    <nav className="sticky top-0 z-50 shadow-md" style={{ backgroundColor: 'var(--cp)' }}>
+    <nav className="fixed top-0 left-0 right-0 z-50 shadow-md" style={{ backgroundColor: 'var(--cp)' }}>
       {/* ── Main header row — full viewport width, 56px fixed height ── */}
       <div className="w-full px-4 sm:px-6 h-14 flex items-center gap-3">
 
@@ -118,7 +122,7 @@ export default function Navbar() {
         {/* Country flag badge */}
         <button
           className="shrink-0 flex items-center gap-1.5 text-xs bg-white/20 hover:bg-white/30 text-white px-2 py-1.5 rounded-full transition-colors ml-1 sm:ml-3"
-          onClick={() => setCountryPickerOpen(true)}
+          onClick={() => { closeChatPanel(); setCountryPickerOpen(true); }}
           title={`${theme.name} — tap to change`}
         >
           <span className="text-base leading-none">
@@ -159,7 +163,7 @@ export default function Navbar() {
           <div className="relative">
             <button
               className="flex items-center gap-1.5 text-white/90 text-sm px-2 py-1 rounded-lg hover:bg-white/20"
-              onClick={() => setLangOpen(v => !v)}
+              onClick={() => { closeChatPanel(); setLangOpen(v => !v); }}
             >
               <Globe size={15} className="shrink-0" />
               <span className="text-xs font-semibold uppercase tracking-wide">{currentLang.code.slice(0, 2)}</span>
@@ -188,7 +192,7 @@ export default function Navbar() {
             <div className="relative">
               <button
                 className="flex items-center gap-1 text-white text-xs px-2 py-1 rounded-lg hover:bg-white/20 border border-white/30"
-                onClick={() => setPortalOpen(v => !v)}
+                onClick={() => { closeChatPanel(); setPortalOpen(v => !v); }}
               >
                 {PORTAL_LABELS[portal]} <ChevronDown size={11} />
               </button>
@@ -250,7 +254,7 @@ export default function Navbar() {
             <Plus size={13} /> Add Listing
           </Link>
 
-          <button className="md:hidden p-2 text-white" onClick={() => setMobileOpen(v => !v)}>
+          <button className="md:hidden p-2 text-white" onClick={() => { closeChatPanel(); setMobileOpen(v => !v); }}>
             {mobileOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>

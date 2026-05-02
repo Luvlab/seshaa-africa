@@ -199,7 +199,7 @@ export default function App() {
       <BrowserRouter>
         <div className="min-h-screen flex flex-col bg-gray-50">
           <Navbar />
-          <main className="flex-1 pb-16 md:pb-0">
+          <main className="flex-1 pt-14 pb-16 md:pb-0">
             <TabContainer />
           </main>
           <Footer />

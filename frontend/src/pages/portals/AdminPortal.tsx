@@ -168,6 +168,9 @@ export default function AdminPortal() {
   const [logoStroke,    setLogoStroke]    = useState(() => readCss('seshaa-logo-stroke', 1.5));
   const [customCss,     setCustomCss]     = useState(() => localStorage.getItem('seshaa-custom-css') ?? '');
   const [cssSaved,      setCssSaved]      = useState(false);
+  const [openRouterApiKey, setOpenRouterApiKey] = useState('');
+  const [openRouterModel, setOpenRouterModel] = useState('openai/gpt-4o-mini');
+  const [aiSettingsMsg, setAiSettingsMsg] = useState('');
 
   const applyCssVar = (varName: string, value: string, lsKey: string, raw: number) => {
     document.documentElement.style.setProperty(varName, value);
@@ -199,6 +202,9 @@ export default function AdminPortal() {
       setHeroSlides(r.data || []);
       setSlidesLoaded(true);
     }).catch(() => { setSlidesLoaded(true); });
+    adminApi.getAiSettings().then(r => {
+      if (r.data?.openRouterModel) setOpenRouterModel(r.data.openRouterModel);
+    }).catch(() => {});
   }, []);
 
   const verifyListing = async (id: string) => {
@@ -343,6 +349,20 @@ export default function AdminPortal() {
       window.dispatchEvent(new Event('storage'));
       return safe;
     });
+  };
+
+  const saveAiSettings = async () => {
+    try {
+      await adminApi.saveAiSettings({
+        openRouterApiKey: openRouterApiKey.trim() || undefined,
+        openRouterModel: openRouterModel.trim() || 'openai/gpt-4o-mini',
+      });
+      setOpenRouterApiKey('');
+      setAiSettingsMsg('Saved. AI will now use OpenRouter when key is configured.');
+      setTimeout(() => setAiSettingsMsg(''), 2600);
+    } catch {
+      setAiSettingsMsg('Failed to save AI settings.');
+    }
   };
 
   const generatePressRelease = () => {
@@ -1425,6 +1445,42 @@ export default function AdminPortal() {
                   {cssSaved ? '✓ Applied' : 'Apply & Save'}
                 </button>
                 <button onClick={() => { setCustomCss(''); applyCustomCss(''); }} className="text-xs text-gray-500 hover:text-gray-300 underline">Clear</button>
+              </div>
+            </div>
+
+            <div className="bg-gray-900 rounded-2xl border border-gray-800 p-5">
+              <h3 className="font-bold text-white mb-1 flex items-center gap-2">
+                <Zap size={16} className="text-cyan-400" strokeWidth={1.5} /> AI Provider (OpenRouter)
+              </h3>
+              <p className="text-xs text-gray-500 mb-4">Set your OpenRouter key so Seshaa AI chat and AI search use your configured provider.</p>
+
+              <div className="grid md:grid-cols-2 gap-3">
+                <label className="text-xs text-gray-400">
+                  OpenRouter API Key
+                  <input
+                    type="password"
+                    value={openRouterApiKey}
+                    onChange={e => setOpenRouterApiKey(e.target.value)}
+                    placeholder="sk-or-v1-..."
+                    className="mt-1 w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-sm text-gray-100"
+                  />
+                </label>
+                <label className="text-xs text-gray-400">
+                  Model
+                  <input
+                    value={openRouterModel}
+                    onChange={e => setOpenRouterModel(e.target.value)}
+                    placeholder="openai/gpt-4o-mini"
+                    className="mt-1 w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-sm text-gray-100"
+                  />
+                </label>
+              </div>
+
+              <div className="flex items-center gap-3 mt-4">
+                <button onClick={saveAiSettings} className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold rounded-xl transition-colors">
+                  Save AI Settings
+                </button>
+                {aiSettingsMsg && <span className="text-xs text-cyan-300">{aiSettingsMsg}</span>}
               </div>
             </div>
 

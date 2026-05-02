@@ -6,7 +6,7 @@
  * • Opened from header (desktop) and footer menu (mobile)
  */
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { MessageCircle, X, Sparkles, Send, MessagesSquare, ArrowRight } from 'lucide-react';
 import { useAuthStore } from '../../store/auth';
 import api from '../../services/api';
@@ -14,8 +14,31 @@ import type { ChatRoom } from '../../types';
 
 interface AIMsg { role: 'user' | 'assistant'; content: string; }
 
+const SHARE_LINKS = [
+  { label: 'Home', url: 'https://www.seshaa.africa/' },
+  { label: 'Directory', url: 'https://www.seshaa.africa/search' },
+  { label: 'News', url: 'https://www.seshaa.africa/news' },
+  { label: 'Classifieds', url: 'https://www.seshaa.africa/classifieds' },
+  { label: 'Prices', url: 'https://www.seshaa.africa/prices' },
+  { label: 'Events', url: 'https://www.seshaa.africa/events' },
+];
+
+function LinkifiedText({ text }: { text: string }) {
+  const parts = text.split(/(https?:\/\/[^\s]+)/g);
+  return (
+    <>
+      {parts.map((part, i) => (
+        /^https?:\/\//.test(part)
+          ? <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="underline break-all">{part}</a>
+          : <span key={i}>{part}</span>
+      ))}
+    </>
+  );
+}
+
 export default function ChatFAB() {
   const { user } = useAuthStore();
+  const { pathname } = useLocation();
   const navigate = useNavigate();
   const [open, setOpen]       = useState(false);
   const [tab, setTab]         = useState<'ai' | 'messages'>('ai');
@@ -24,6 +47,7 @@ export default function ChatFAB() {
   const [aiLoading, setAiLoading] = useState(false);
   const [rooms, setRooms]     = useState<ChatRoom[]>([]);
   const [unread, setUnread]   = useState(0);
+  const [shareCopied, setShareCopied] = useState<string>('');
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -32,9 +56,26 @@ export default function ChatFAB() {
       if (detail?.tab) setTab(detail.tab);
       setOpen(true);
     };
+    const onToggle = (event: Event) => {
+      const detail = (event as CustomEvent<{ tab?: 'ai' | 'messages' }>).detail;
+      if (detail?.tab) setTab(detail.tab);
+      setOpen(v => !v);
+    };
+    const onClose = () => setOpen(false);
     window.addEventListener('seshaa:chat-open', onOpen as EventListener);
-    return () => window.removeEventListener('seshaa:chat-open', onOpen as EventListener);
+    window.addEventListener('seshaa:chat-toggle', onToggle as EventListener);
+    window.addEventListener('seshaa:chat-close', onClose as EventListener);
+    return () => {
+      window.removeEventListener('seshaa:chat-open', onOpen as EventListener);
+      window.removeEventListener('seshaa:chat-toggle', onToggle as EventListener);
+      window.removeEventListener('seshaa:chat-close', onClose as EventListener);
+    };
   }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    setOpen(false);
+  }, [pathname]);
 
   // Poll unread count every 30 s when user is logged in
   useEffect(() => {
@@ -97,6 +138,18 @@ export default function ChatFAB() {
   };
 
   const QUICK = ['Hotels in Nairobi', 'Salons in Lagos', 'Send money to Ghana', 'Hospitals in Accra'];
+
+  const shareLink = async (label: string, url: string) => {
+    const msg = `Check this on Seshaa: ${url}`;
+    setAiMsgs(m => [...m, { role: 'user', content: msg }]);
+    try {
+      await navigator.clipboard.writeText(url);
+      setShareCopied(label);
+      setTimeout(() => setShareCopied(''), 1400);
+    } catch {
+      // ignore clipboard errors
+    }
+  };
 
   return (
     <>
@@ -164,6 +217,20 @@ export default function ChatFAB() {
                         </button>
                       ))}
                     </div>
+                    <div className="mt-4 text-left">
+                      <p className="text-[11px] text-gray-400 mb-1.5">Share Seshaa links</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {SHARE_LINKS.map(s => (
+                          <button
+                            key={s.label}
+                            onClick={() => shareLink(s.label, s.url)}
+                            className="text-[11px] bg-gray-100 text-gray-700 px-2.5 py-1 rounded-full border border-gray-200 hover:bg-gray-200"
+                          >
+                            {shareCopied === s.label ? `Copied ${s.label}` : s.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 )}
                 {aiMsgs.map((m, i) => (
@@ -174,7 +241,7 @@ export default function ChatFAB() {
                       }`}
                       style={m.role === 'user' ? { background: 'var(--cp, #008751)' } : {}}
                     >
-                      {m.content || <span className="text-gray-400 animate-pulse">…</span>}
+                      {m.content ? <LinkifiedText text={m.content} /> : <span className="text-gray-400 animate-pulse">…</span>}
                     </div>
                   </div>
                 ))}

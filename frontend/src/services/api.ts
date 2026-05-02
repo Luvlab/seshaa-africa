@@ -202,6 +202,8 @@ export const adminApi = {
   getSalesReps: () => api.get('/admin/salesreps'),
   approveSalesRep: (id: string) => api.post(`/admin/salesreps/${id}/approve`),
   rejectSalesRep: (id: string) => api.delete(`/admin/salesreps/${id}`),
+  getAiSettings: () => api.get('/admin/ai-settings'),
+  saveAiSettings: (data: { openRouterApiKey?: string; openRouterModel?: string }) => api.post('/admin/ai-settings', data),
 };
 
 // Community Translations
