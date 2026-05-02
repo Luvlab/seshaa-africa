@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react';
 import {
   LayoutDashboard, List, Megaphone, TrendingUp, Shield, DollarSign, Award,
   Send, CheckCircle, X, Users, Activity, Globe, Bell, ChevronRight,
-  AlertTriangle, Tv, Database, Paintbrush, RefreshCw, Briefcase,
+  AlertTriangle, Tv, Database, Paintbrush, RefreshCw, Briefcase, BarChart2,
+  Zap, ArrowUpRight, Plus, Edit2, Trash2, Eye, EyeOff, Play,
+  CreditCard, Phone, Mail, Calendar, Info,
 } from 'lucide-react';
 import { adminApi, adsApi } from '../../services/api';
 import { useAuthStore } from '../../store/auth';
@@ -23,7 +25,6 @@ interface LoanApp        { id: string; amount: number; purpose: string; status: 
 
 type Tab = 'overview' | 'listings' | 'payouts' | 'loans' | 'finance' | 'adcms' | 'promote' | 'scraper' | 'branding' | 'salesreps';
 
-// Hero media config
 interface HeroConfig {
   mediaType: 'youtube' | 'image' | 'video' | 'default';
   mediaUrl: string;
@@ -44,6 +45,55 @@ const DEFAULT_HERO: HeroConfig = {
   advertiser: 'Demo — Uganda Coffee Company',
 };
 
+// ── Chart helpers ────────────────────────────────────────────────────────────
+function HBar({ label, value, max, color = 'bg-green-500', suffix }: {
+  label: string; value: number; max: number; color?: string; suffix?: string;
+}) {
+  const pct = max > 0 ? Math.min(100, (value / max) * 100) : 0;
+  return (
+    <div className="flex items-center gap-3 min-w-0">
+      <span className="text-xs text-gray-400 w-28 shrink-0 truncate">{label}</span>
+      <div className="flex-1 bg-gray-800 rounded-full h-2 overflow-hidden">
+        <div className={`h-full rounded-full transition-all duration-700 ${color}`} style={{ width: `${pct}%` }} />
+      </div>
+      <span className="text-xs text-gray-500 tabular-nums w-14 text-right shrink-0">
+        {suffix ?? value.toLocaleString()}
+      </span>
+    </div>
+  );
+}
+
+function FundBar({ label, value, total, color }: { label: string; value: number; total: number; color: string }) {
+  const pct = total > 0 ? Math.min(100, (value / total) * 100) : 0;
+  return (
+    <div>
+      <div className="flex justify-between text-xs mb-1.5">
+        <span className="text-gray-400">{label}</span>
+        <span className="font-bold text-white">
+          ${value.toFixed(0)} <span className="text-gray-600 font-normal">/ ${total.toFixed(0)}</span>
+          <span className="text-gray-600 ml-1.5">({pct.toFixed(0)}%)</span>
+        </span>
+      </div>
+      <div className="bg-gray-800 rounded-full h-3 overflow-hidden">
+        <div className={`h-full rounded-full transition-all duration-700 ${color}`} style={{ width: `${pct}%` }} />
+      </div>
+    </div>
+  );
+}
+
+function StatSparkle({ value, label, color, icon }: { value: string | number; label: string; color: string; icon: React.ReactNode }) {
+  return (
+    <div className={`flex items-center gap-3 p-3 rounded-xl bg-gray-950 border border-gray-800`}>
+      <div className={`w-9 h-9 rounded-xl ${color} flex items-center justify-center shrink-0`}>{icon}</div>
+      <div className="min-w-0">
+        <p className="text-lg font-black text-white leading-tight">{value}</p>
+        <p className="text-xs text-gray-500 truncate">{label}</p>
+      </div>
+    </div>
+  );
+}
+
+// ── Main component ───────────────────────────────────────────────────────────
 export default function AdminPortal() {
   const { user } = useAuthStore();
   const [stats, setStats]                 = useState<Stats>({ listings: 0, users: 0, ads: 0, salesReps: 0, pendingListings: 0 });
@@ -56,10 +106,36 @@ export default function AdminPortal() {
   const [pressType, setPressType]         = useState('award_winner');
   const [pressCopied, setPressCopied]     = useState(false);
 
-  // Hero CMS state
+  // Hero CMS state (legacy single slot)
   const [hero, setHero]                   = useState<HeroConfig>(DEFAULT_HERO);
   const [heroSaving, setHeroSaving]       = useState(false);
   const [heroSaved, setHeroSaved]         = useState(false);
+
+  // Hero slideshow state
+  interface HeroSlide {
+    id: string; advertiser: string; targetUrl: string; imageUrl?: string | null;
+    mediaType?: string; mediaUrl?: string; youtubeId?: string;
+    overlayTitle?: string; overlaySubtitle?: string; ctaText?: string;
+    clientEmail?: string; clientPhone?: string; clientCountry?: string;
+    paymentStatus?: string; paymentAmount?: number; invoiceRef?: string;
+    notes?: string; active: boolean; impressions: number; clicks: number;
+    startDate?: string; endDate?: string; budget?: number;
+  }
+  type SlideForm = Omit<HeroSlide, 'id' | 'impressions' | 'clicks'>;
+  const BLANK_SLIDE: SlideForm = {
+    advertiser: '', targetUrl: '/advertise', mediaType: 'youtube', mediaUrl: '', youtubeId: '',
+    overlayTitle: '', overlaySubtitle: '', ctaText: 'Learn More',
+    clientEmail: '', clientPhone: '', clientCountry: '',
+    paymentStatus: 'unpaid', paymentAmount: 0, invoiceRef: '', notes: '',
+    active: true,
+  };
+  const [heroSlides, setHeroSlides]       = useState<HeroSlide[]>([]);
+  const [slidesLoaded, setSlidesLoaded]   = useState(false);
+  const [editingSlide, setEditingSlide]   = useState<HeroSlide | null>(null);
+  const [showSlideForm, setShowSlideForm] = useState(false);
+  const [slideForm, setSlideForm]         = useState<SlideForm>(BLANK_SLIDE);
+  const [slideSaving, setSlideSaving]     = useState(false);
+  const [slideMsg, setSlideMsg]           = useState('');
 
   // Scraper state
   const [scrapeCounts, setScrapeCounts]   = useState<{ city: string; country: string; count: number }[]>([]);
@@ -84,7 +160,6 @@ export default function AdminPortal() {
     catch { return ALL_LOGOS.map(l => l.id) as LogoId[]; }
   });
 
-  // CSS settings — read from localStorage, applied as CSS custom properties
   const readCss = (key: string, def: number) => {
     const v = parseFloat(localStorage.getItem(key) ?? '');
     return isNaN(v) ? def : v;
@@ -95,7 +170,6 @@ export default function AdminPortal() {
   const [customCss,     setCustomCss]     = useState(() => localStorage.getItem('seshaa-custom-css') ?? '');
   const [cssSaved,      setCssSaved]      = useState(false);
 
-  // Apply a CSS custom property on the root element + persist
   const applyCssVar = (varName: string, value: string, lsKey: string, raw: number) => {
     document.documentElement.style.setProperty(varName, value);
     localStorage.setItem(lsKey, String(raw));
@@ -122,6 +196,10 @@ export default function AdminPortal() {
         try { const d = JSON.parse(r.data.description); setHero(d); } catch { /* use default */ }
       }
     }).catch(() => {});
+    adminApi.getHeroSlides().then(r => {
+      setHeroSlides(r.data || []);
+      setSlidesLoaded(true);
+    }).catch(() => { setSlidesLoaded(true); });
   }, []);
 
   const verifyListing = async (id: string) => {
@@ -166,8 +244,74 @@ export default function AdminPortal() {
       await adminApi.setHero(hero);
       setHeroSaved(true);
       setTimeout(() => setHeroSaved(false), 3000);
-    } catch { alert('Error saving hero config'); }
+    } catch (err) {
+      console.error('Hero save error', err);
+      alert('Error saving hero config — check console');
+    }
     finally { setHeroSaving(false); }
+  };
+
+  // ── Hero slides CRUD ──
+  const loadHeroSlides = async () => {
+    try {
+      const r = await adminApi.getHeroSlides();
+      setHeroSlides(r.data || []);
+      setSlidesLoaded(true);
+    } catch { /* ignore */ }
+  };
+
+  const saveSlide = async () => {
+    setSlideSaving(true);
+    setSlideMsg('');
+    try {
+      if (editingSlide) {
+        const r = await adminApi.updateHeroSlide(editingSlide.id, slideForm);
+        setHeroSlides(prev => prev.map(s => s.id === editingSlide.id ? { ...s, ...r.data } : s));
+        setSlideMsg('✓ Slide updated');
+      } else {
+        const r = await adminApi.createHeroSlide(slideForm);
+        setHeroSlides(prev => [...prev, r.data]);
+        setSlideMsg('✓ Slide added — live immediately');
+      }
+      setShowSlideForm(false);
+      setEditingSlide(null);
+      setSlideForm(BLANK_SLIDE);
+    } catch { setSlideMsg('✗ Save failed — check fields'); }
+    finally { setSlideSaving(false); }
+  };
+
+  const deleteSlide = async (id: string) => {
+    if (!confirm('Delete this slide? This cannot be undone.')) return;
+    await adminApi.deleteHeroSlide(id).catch(() => {});
+    setHeroSlides(prev => prev.filter(s => s.id !== id));
+  };
+
+  const toggleSlide = async (id: string) => {
+    await adminApi.toggleHeroSlide(id).catch(() => {});
+    setHeroSlides(prev => prev.map(s => s.id === id ? { ...s, active: !s.active } : s));
+  };
+
+  const startEditSlide = (slide: HeroSlide) => {
+    setEditingSlide(slide);
+    setSlideForm({
+      advertiser: slide.advertiser,
+      targetUrl: slide.targetUrl,
+      mediaType: slide.mediaType ?? 'youtube',
+      mediaUrl: slide.mediaUrl ?? '',
+      youtubeId: slide.youtubeId ?? '',
+      overlayTitle: slide.overlayTitle ?? '',
+      overlaySubtitle: slide.overlaySubtitle ?? '',
+      ctaText: slide.ctaText ?? '',
+      clientEmail: slide.clientEmail ?? '',
+      clientPhone: slide.clientPhone ?? '',
+      clientCountry: slide.clientCountry ?? '',
+      paymentStatus: slide.paymentStatus ?? 'unpaid',
+      paymentAmount: slide.paymentAmount ?? 0,
+      invoiceRef: slide.invoiceRef ?? '',
+      notes: slide.notes ?? '',
+      active: slide.active,
+    });
+    setShowSlideForm(true);
   };
 
   const triggerScrape = async (city: string, country: string) => {
@@ -177,7 +321,6 @@ export default function AdminPortal() {
     try {
       const r = await adminApi.scrapeCity(city, country);
       setScrapeMsg(`✓ ${city}: ${r.data.inserted} listings imported`);
-      // Refresh counts
       adminApi.scrapeCounts().then(r2 => { setScrapeCounts(r2.data.counts || []); setScrapeTotal(r2.data.total || 0); }).catch(() => {});
     } catch {
       setScrapeMsg(`✗ ${city}: scrape failed — check network / Overpass status`);
@@ -215,9 +358,9 @@ export default function AdminPortal() {
   const toggleLogo = (id: LogoId) => {
     setEnabledLogos(prev => {
       const next = prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id];
-      const safe = next.length === 0 ? [id] : next; // always keep at least 1
+      const safe = next.length === 0 ? [id] : next;
       saveEnabled(safe);
-      window.dispatchEvent(new Event('storage')); // notify LogoRotator on same tab
+      window.dispatchEvent(new Event('storage'));
       return safe;
     });
   };
@@ -232,7 +375,6 @@ export default function AdminPortal() {
     setPressMsg(templates[pressType] || '');
   };
 
-  // Not logged in or not admin
   if (!user || user.role !== 'ADMIN') {
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center p-6">
@@ -263,11 +405,22 @@ export default function AdminPortal() {
     { key: 'promote',  label: 'Press',      icon: <Send size={20} strokeWidth={1.5} /> },
   ];
 
+  // Derived data for charts
+  const countryTotals = scrapeCounts.reduce<Record<string, number>>((acc, c) => {
+    acc[c.country] = (acc[c.country] || 0) + c.count;
+    return acc;
+  }, {});
+  const topCountries = Object.entries(countryTotals).sort((a, b) => b[1] - a[1]).slice(0, 12);
+  const maxCountryCount = topCountries[0]?.[1] || 1;
+
+  const totalRev = financials ? financials.revenue.totalProSubscriptions + financials.revenue.adRevenue : 0;
+  const totalCosts = financials ? financials.costs.salesCommissionsPaid + financials.costs.ambassadorPayoutsPaid : 0;
+
   return (
     <div className="min-h-screen bg-gray-950 text-white">
 
-      {/* Admin top bar */}
-      <div className="bg-gray-900 border-b border-gray-800 px-4 py-3 flex items-center gap-3">
+      {/* Admin top bar — full width */}
+      <div className="w-full bg-gray-900 border-b border-gray-800 px-4 sm:px-6 lg:px-10 py-3 flex items-center gap-3">
         <div className="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center shrink-0">
           <Shield size={16} />
         </div>
@@ -281,14 +434,15 @@ export default function AdminPortal() {
           </div>
         )}
         <a href="/" className="text-xs text-gray-500 hover:text-gray-300 flex items-center gap-1">
-          <Globe size={12} /> Live site
+          <Globe size={12} /> Live site <ArrowUpRight size={10} />
         </a>
       </div>
 
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-6">
+      {/* Full-width content area */}
+      <div className="w-full px-4 sm:px-6 lg:px-10 py-6">
 
         {/* Tab bar */}
-        <div className="flex gap-1 overflow-x-auto bg-gray-900 rounded-xl p-1 mb-6 border border-gray-800">
+        <div className="flex gap-1 overflow-x-auto bg-gray-900 rounded-xl p-1 mb-6 border border-gray-800 scrollbar-none">
           {TABS.map(t => (
             <button key={t.key} onClick={() => setTab(t.key)}
               className={`flex items-center gap-1.5 px-3 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-colors relative ${
@@ -308,16 +462,17 @@ export default function AdminPortal() {
 
         {/* ── OVERVIEW ── */}
         {tab === 'overview' && (
-          <div className="space-y-4">
-            {/* KPI grid */}
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          <div className="space-y-5">
+
+            {/* KPI grid — 2 cols mobile, 3 tablet, 6 desktop */}
+            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
               {[
-                { label: 'Total Listings', value: stats.listings.toLocaleString(), sub: `${stats.pendingListings} need review`, icon: <List size={20} strokeWidth={1.5} />, color: 'text-green-400', bg: 'bg-green-500/10' },
-                { label: 'Users',          value: stats.users.toLocaleString(),    icon: <Users size={20} strokeWidth={1.5} />, color: 'text-blue-400', bg: 'bg-blue-500/10' },
-                { label: 'Active Ads',     value: stats.ads.toLocaleString(),      icon: <Megaphone size={20} strokeWidth={1.5} />, color: 'text-orange-400', bg: 'bg-orange-500/10' },
-                { label: 'Sales Reps',     value: stats.salesReps.toLocaleString(), icon: <Activity size={20} strokeWidth={1.5} />, color: 'text-purple-400', bg: 'bg-purple-500/10' },
-                { label: 'MRR',            value: financials ? `$${financials.revenue.monthlyRecurringRevenue.toFixed(0)}` : '…', sub: 'Monthly recurring', icon: <DollarSign size={20} strokeWidth={1.5} />, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
-                { label: 'Loan Fund',      value: financials ? `$${financials.loanFund.available.toFixed(0)}` : '…', sub: 'Available to disburse', icon: <Award size={20} strokeWidth={1.5} />, color: 'text-rose-400', bg: 'bg-rose-500/10' },
+                { label: 'Total Listings', value: stats.listings.toLocaleString(), sub: `${stats.pendingListings} pending`, icon: <List size={20} strokeWidth={1.5} />, color: 'text-green-400', bg: 'bg-green-500/10' },
+                { label: 'Registered Users', value: stats.users.toLocaleString(), sub: 'all time', icon: <Users size={20} strokeWidth={1.5} />, color: 'text-blue-400', bg: 'bg-blue-500/10' },
+                { label: 'Active Ads', value: stats.ads.toLocaleString(), sub: 'live campaigns', icon: <Megaphone size={20} strokeWidth={1.5} />, color: 'text-orange-400', bg: 'bg-orange-500/10' },
+                { label: 'Sales Reps', value: stats.salesReps.toLocaleString(), sub: 'active reps', icon: <Activity size={20} strokeWidth={1.5} />, color: 'text-purple-400', bg: 'bg-purple-500/10' },
+                { label: 'MRR', value: financials ? `$${financials.revenue.monthlyRecurringRevenue.toFixed(0)}` : '…', sub: 'monthly recurring', icon: <DollarSign size={20} strokeWidth={1.5} />, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
+                { label: 'Loan Fund', value: financials ? `$${financials.loanFund.available.toFixed(0)}` : '…', sub: 'available to disburse', icon: <Award size={20} strokeWidth={1.5} />, color: 'text-rose-400', bg: 'bg-rose-500/10' },
               ].map(s => (
                 <div key={s.label} className="bg-gray-900 rounded-2xl border border-gray-800 p-4">
                   <div className={`w-10 h-10 rounded-xl ${s.bg} ${s.color} flex items-center justify-center mb-3`}>{s.icon}</div>
@@ -328,22 +483,135 @@ export default function AdminPortal() {
               ))}
             </div>
 
-            {/* Quick action cards */}
-            <div className="grid sm:grid-cols-3 gap-3">
+            {/* Charts row — 2 panels on lg, 3 on xl */}
+            <div className="grid lg:grid-cols-2 xl:grid-cols-3 gap-5">
+
+              {/* Listings by country chart */}
+              <div className="xl:col-span-2 bg-gray-900 rounded-2xl border border-gray-800 p-5">
+                <div className="flex items-center gap-2 mb-4">
+                  <BarChart2 size={16} className="text-green-400" strokeWidth={1.5} />
+                  <h3 className="font-bold text-sm text-gray-200">Listings by Country</h3>
+                  <span className="ml-auto text-xs text-gray-600 tabular-nums">{scrapeTotal.toLocaleString()} total</span>
+                </div>
+                {topCountries.length === 0 ? (
+                  <div className="py-10 text-center">
+                    <Database size={28} className="mx-auto mb-2 text-gray-700" strokeWidth={1} />
+                    <p className="text-xs text-gray-600">No scrape data yet — use the Scraper tab to import cities</p>
+                  </div>
+                ) : (
+                  <div className="grid sm:grid-cols-2 gap-x-8 gap-y-2.5">
+                    {topCountries.map(([country, count]) => (
+                      <HBar key={country} label={country} value={count} max={maxCountryCount} color="bg-green-500" />
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Revenue & costs breakdown */}
+              <div className="bg-gray-900 rounded-2xl border border-gray-800 p-5">
+                <div className="flex items-center gap-2 mb-4">
+                  <DollarSign size={16} className="text-emerald-400" strokeWidth={1.5} />
+                  <h3 className="font-bold text-sm text-gray-200">Revenue vs Costs</h3>
+                </div>
+                {financials ? (
+                  <div className="space-y-4">
+                    <div className="space-y-2.5">
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-600">Revenue</p>
+                      <HBar label="Pro subs" value={financials.revenue.totalProSubscriptions} max={Math.max(totalRev, 1)} color="bg-emerald-500" suffix={`$${financials.revenue.totalProSubscriptions.toFixed(0)}`} />
+                      <HBar label="Ad revenue" value={financials.revenue.adRevenue} max={Math.max(totalRev, 1)} color="bg-orange-500" suffix={`$${financials.revenue.adRevenue.toFixed(0)}`} />
+                    </div>
+                    <div className="space-y-2.5">
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-600">Costs</p>
+                      <HBar label="Commissions" value={financials.costs.salesCommissionsPaid} max={Math.max(totalRev, 1)} color="bg-red-500" suffix={`$${financials.costs.salesCommissionsPaid.toFixed(0)}`} />
+                      <HBar label="Amb. payouts" value={financials.costs.ambassadorPayoutsPaid} max={Math.max(totalRev, 1)} color="bg-pink-500" suffix={`$${financials.costs.ambassadorPayoutsPaid.toFixed(0)}`} />
+                    </div>
+                    <div className="pt-3 border-t border-gray-800 space-y-1.5">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-400">Total Revenue</span>
+                        <span className="font-black text-emerald-400">${totalRev.toFixed(0)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-400">Total Costs</span>
+                        <span className="font-black text-red-400">${totalCosts.toFixed(0)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-400">Net (est.)</span>
+                        <span className={`font-black ${financials.net.estimated >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                          ${financials.net.estimated.toFixed(0)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-sm pt-1">
+                        <span className="text-gray-400">MRR</span>
+                        <span className="font-black text-white">${financials.revenue.monthlyRecurringRevenue.toFixed(0)}<span className="text-gray-500 font-normal">/mo</span></span>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="py-10 text-center">
+                    <p className="text-xs text-gray-600">Loading financials…</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Loan fund visualization */}
+            {financials && (
+              <div className="bg-gray-900 rounded-2xl border border-gray-800 p-5">
+                <div className="flex items-center gap-2 mb-5">
+                  <span className="text-lg leading-none">🏦</span>
+                  <h3 className="font-bold text-sm text-rose-300">Women's Micro-Loan Fund</h3>
+                  <span className="ml-auto text-xs text-gray-600">{financials.loanFund.totalApplications} applications</span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+                  {[
+                    { label: 'Allocated (5% rev)',  value: financials.loanFund.totalAllocated,  color: 'text-rose-300' },
+                    { label: 'Disbursed',           value: financials.loanFund.totalDisbursed,  color: 'text-orange-300' },
+                    { label: 'Repaid',              value: financials.loanFund.totalRepaid,     color: 'text-green-300' },
+                    { label: 'Available now',       value: financials.loanFund.available,       color: 'text-emerald-400' },
+                  ].map(s => (
+                    <div key={s.label} className="bg-gray-950 rounded-xl border border-gray-800 p-3 text-center">
+                      <p className={`text-xl font-black ${s.color}`}>${s.value.toFixed(0)}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">{s.label}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="space-y-3">
+                  <FundBar label="Utilization (disbursed / allocated)" value={financials.loanFund.totalDisbursed} total={financials.loanFund.totalAllocated || 1} color="bg-orange-500" />
+                  <FundBar label="Repayment rate (repaid / disbursed)" value={financials.loanFund.totalRepaid} total={financials.loanFund.totalDisbursed || 1} color="bg-green-500" />
+                  <FundBar label="Available / allocated" value={financials.loanFund.available} total={financials.loanFund.totalAllocated || 1} color="bg-emerald-500" />
+                </div>
+              </div>
+            )}
+
+            {/* Quick action cards + system status */}
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
               {[
                 { label: `${stats.pendingListings} listings to verify`, icon: <CheckCircle size={18} strokeWidth={1.5} />, action: () => setTab('listings'), color: 'border-yellow-500/30 bg-yellow-500/5 text-yellow-300' },
                 { label: `${pendingPayouts.length} ambassador payouts`, icon: <TrendingUp size={18} strokeWidth={1.5} />, action: () => setTab('payouts'), color: 'border-blue-500/30 bg-blue-500/5 text-blue-300' },
                 { label: `${loanApps.length} loan applications`, icon: <Award size={18} strokeWidth={1.5} />, action: () => setTab('loans'), color: 'border-rose-500/30 bg-rose-500/5 text-rose-300' },
+                { label: 'Configure hero ad slot', icon: <Tv size={18} strokeWidth={1.5} />, action: () => setTab('adcms'), color: 'border-orange-500/30 bg-orange-500/5 text-orange-300' },
               ].map(c => (
                 <button key={c.label} onClick={c.action}
-                  className={`flex items-center justify-between p-4 rounded-2xl border text-left ${c.color} hover:opacity-80 transition-opacity`}>
+                  className={`flex items-center justify-between p-4 rounded-2xl border text-left transition-opacity hover:opacity-80 ${c.color}`}>
                   <span className="font-semibold text-sm">{c.label}</span>
                   <div className="flex items-center gap-1 text-xs opacity-70">{c.icon} <ChevronRight size={14} /></div>
                 </button>
               ))}
             </div>
 
-            {/* Notifications / system health */}
+            {/* Live stats mini-grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-2">
+              <StatSparkle value={`${scrapeCounts.filter(c => c.count > 0).length}`} label="cities with data" color="bg-green-500/15 text-green-400" icon={<Globe size={16} strokeWidth={1.5} />} />
+              <StatSparkle value={`${new Set(scrapeCounts.map(c => c.country)).size}`} label="countries covered" color="bg-blue-500/15 text-blue-400" icon={<Zap size={16} strokeWidth={1.5} />} />
+              <StatSparkle value={financials?.revenue.activeSubscriptions ?? '…'} label="active Pro subs" color="bg-emerald-500/15 text-emerald-400" icon={<DollarSign size={16} strokeWidth={1.5} />} />
+              <StatSparkle value={stats.ads} label="live ad campaigns" color="bg-orange-500/15 text-orange-400" icon={<Megaphone size={16} strokeWidth={1.5} />} />
+              <StatSparkle value={pendingPayouts.length} label="payouts pending" color="bg-yellow-500/15 text-yellow-400" icon={<TrendingUp size={16} strokeWidth={1.5} />} />
+              <StatSparkle value={loanApps.length} label="loan apps" color="bg-rose-500/15 text-rose-400" icon={<Award size={16} strokeWidth={1.5} />} />
+              <StatSparkle value={stats.pendingListings} label="listings to review" color="bg-purple-500/15 text-purple-400" icon={<List size={16} strokeWidth={1.5} />} />
+              <StatSparkle value={stats.salesReps} label="sales reps" color="bg-pink-500/15 text-pink-400" icon={<Briefcase size={16} strokeWidth={1.5} />} />
+            </div>
+
+            {/* System status */}
             <div className="bg-gray-900 rounded-2xl border border-gray-800 p-4">
               <div className="flex items-center gap-2 mb-3">
                 <Bell size={16} className="text-gray-400" strokeWidth={1.5} />
@@ -352,10 +620,19 @@ export default function AdminPortal() {
                   <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse inline-block" /> All systems operational
                 </span>
               </div>
-              <div className="space-y-2 text-xs text-gray-500">
-                <p>API: <span className="text-green-400 font-semibold">seshaa-api.vercel.app</span></p>
-                <p>Frontend: <span className="text-green-400 font-semibold">seshaa-africa.vercel.app + seshaa-admin.vercel.app</span></p>
-                <p>Database: <span className="text-blue-400 font-semibold">Neon PostgreSQL</span></p>
+              <div className="grid sm:grid-cols-3 gap-3 text-xs">
+                <div className="bg-gray-950 rounded-xl p-3 border border-gray-800">
+                  <p className="text-gray-600 mb-0.5">API</p>
+                  <p className="text-green-400 font-semibold">seshaa-api.vercel.app</p>
+                </div>
+                <div className="bg-gray-950 rounded-xl p-3 border border-gray-800">
+                  <p className="text-gray-600 mb-0.5">Frontend</p>
+                  <p className="text-green-400 font-semibold">www.seshaa.africa</p>
+                </div>
+                <div className="bg-gray-950 rounded-xl p-3 border border-gray-800">
+                  <p className="text-gray-600 mb-0.5">Database</p>
+                  <p className="text-blue-400 font-semibold">Neon PostgreSQL · Supabase</p>
+                </div>
               </div>
             </div>
           </div>
@@ -363,52 +640,98 @@ export default function AdminPortal() {
 
         {/* ── FINANCE ── */}
         {tab === 'finance' && financials && (
-          <div className="space-y-4">
-            <div className="grid sm:grid-cols-2 gap-3">
+          <div className="space-y-5">
+
+            {/* Revenue/Costs row */}
+            <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-3">
+              {[
+                { label: 'Active Pro Subs',    value: `${financials.revenue.activeSubscriptions}`, icon: <Users size={18} />, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
+                { label: 'MRR',               value: `$${financials.revenue.monthlyRecurringRevenue.toFixed(0)}`, icon: <TrendingUp size={18} />, color: 'text-green-400', bg: 'bg-green-500/10' },
+                { label: 'Total Revenue',     value: `$${totalRev.toFixed(0)}`, icon: <DollarSign size={18} />, color: 'text-blue-400', bg: 'bg-blue-500/10' },
+                { label: 'Net (estimated)',   value: `$${financials.net.estimated.toFixed(0)}`, icon: <BarChart2 size={18} />, color: financials.net.estimated >= 0 ? 'text-green-400' : 'text-red-400', bg: financials.net.estimated >= 0 ? 'bg-green-500/10' : 'bg-red-500/10' },
+              ].map(s => (
+                <div key={s.label} className="bg-gray-900 rounded-2xl border border-gray-800 p-4">
+                  <div className={`w-10 h-10 rounded-xl ${s.bg} ${s.color} flex items-center justify-center mb-3`}>{s.icon}</div>
+                  <p className={`text-2xl font-black ${s.color}`}>{s.value}</p>
+                  <p className="text-xs text-gray-400 mt-1">{s.label}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Revenue vs costs visual */}
+            <div className="grid sm:grid-cols-2 gap-4">
               <div className="bg-gray-900 rounded-2xl border border-gray-800 p-5">
-                <h3 className="font-bold text-green-400 mb-4 flex items-center gap-2"><DollarSign size={16} /> Revenue</h3>
-                {[
-                  ['Active Pro Subs',      `${financials.revenue.activeSubscriptions}`],
-                  ['Total Pro Revenue',    `$${financials.revenue.totalProSubscriptions.toFixed(2)}`],
-                  ['MRR (estimated)',      `$${financials.revenue.monthlyRecurringRevenue.toFixed(2)}`],
-                  ['Ad Revenue',          `$${financials.revenue.adRevenue.toFixed(2)}`],
-                ].map(([k, v]) => (
-                  <div key={k} className="flex justify-between text-sm py-2 border-b border-gray-800 last:border-0">
-                    <span className="text-gray-400">{k}</span>
-                    <span className="font-bold text-white">{v}</span>
+                <h3 className="font-bold text-green-400 mb-5 flex items-center gap-2"><DollarSign size={16} /> Revenue</h3>
+                <div className="space-y-4">
+                  <div className="space-y-2.5">
+                    <HBar label="Pro subscriptions" value={financials.revenue.totalProSubscriptions} max={Math.max(totalRev, 1)} color="bg-emerald-500" suffix={`$${financials.revenue.totalProSubscriptions.toFixed(2)}`} />
+                    <HBar label="Ad revenue" value={financials.revenue.adRevenue} max={Math.max(totalRev, 1)} color="bg-orange-500" suffix={`$${financials.revenue.adRevenue.toFixed(2)}`} />
                   </div>
-                ))}
+                  <div className="pt-3 border-t border-gray-800">
+                    {[
+                      ['Active Pro Subs',   `${financials.revenue.activeSubscriptions}`],
+                      ['Total Pro Revenue', `$${financials.revenue.totalProSubscriptions.toFixed(2)}`],
+                      ['MRR (estimated)',   `$${financials.revenue.monthlyRecurringRevenue.toFixed(2)}`],
+                      ['Ad Revenue',        `$${financials.revenue.adRevenue.toFixed(2)}`],
+                    ].map(([k, v]) => (
+                      <div key={k} className="flex justify-between text-sm py-2 border-b border-gray-800 last:border-0">
+                        <span className="text-gray-400">{k}</span>
+                        <span className="font-bold text-white">{v}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
+
               <div className="bg-gray-900 rounded-2xl border border-gray-800 p-5">
-                <h3 className="font-bold text-red-400 mb-4 flex items-center gap-2"><TrendingUp size={16} /> Costs & Net</h3>
-                {[
-                  ['Commissions Paid',    `$${financials.costs.salesCommissionsPaid.toFixed(2)}`],
-                  ['Commissions Pending', `$${financials.costs.salesCommissionsPending.toFixed(2)}`],
-                  ['Ambassador Payouts',  `$${financials.costs.ambassadorPayoutsPaid.toFixed(2)}`],
-                  ['Net (estimated)',     `$${financials.net.estimated.toFixed(2)}`],
-                ].map(([k, v]) => (
-                  <div key={k} className="flex justify-between text-sm py-2 border-b border-gray-800 last:border-0">
-                    <span className="text-gray-400">{k}</span>
-                    <span className="font-bold text-white">{v}</span>
+                <h3 className="font-bold text-red-400 mb-5 flex items-center gap-2"><TrendingUp size={16} /> Costs &amp; Net</h3>
+                <div className="space-y-4">
+                  <div className="space-y-2.5">
+                    <HBar label="Commissions" value={financials.costs.salesCommissionsPaid} max={Math.max(totalRev, 1)} color="bg-red-500" suffix={`$${financials.costs.salesCommissionsPaid.toFixed(2)}`} />
+                    <HBar label="Pending comm." value={financials.costs.salesCommissionsPending} max={Math.max(totalRev, 1)} color="bg-red-400/60" suffix={`$${financials.costs.salesCommissionsPending.toFixed(2)}`} />
+                    <HBar label="Amb. payouts" value={financials.costs.ambassadorPayoutsPaid} max={Math.max(totalRev, 1)} color="bg-pink-500" suffix={`$${financials.costs.ambassadorPayoutsPaid.toFixed(2)}`} />
                   </div>
-                ))}
-                <p className="text-xs text-gray-600 mt-2">{financials.costs.estimatedInfraNote}</p>
+                  <div className="pt-3 border-t border-gray-800">
+                    {[
+                      ['Commissions Paid',    `$${financials.costs.salesCommissionsPaid.toFixed(2)}`],
+                      ['Commissions Pending', `$${financials.costs.salesCommissionsPending.toFixed(2)}`],
+                      ['Ambassador Payouts',  `$${financials.costs.ambassadorPayoutsPaid.toFixed(2)}`],
+                      ['Net (estimated)',     `$${financials.net.estimated.toFixed(2)}`],
+                    ].map(([k, v]) => (
+                      <div key={k} className="flex justify-between text-sm py-2 border-b border-gray-800 last:border-0">
+                        <span className="text-gray-400">{k}</span>
+                        <span className="font-bold text-white">{v}</span>
+                      </div>
+                    ))}
+                    <p className="text-xs text-gray-600 mt-2">{financials.costs.estimatedInfraNote}</p>
+                  </div>
+                </div>
               </div>
             </div>
+
+            {/* Loan fund — full width visual */}
             <div className="bg-gray-900 rounded-2xl border border-gray-800 p-5">
-              <h3 className="font-bold text-rose-400 mb-4">🏦 Women's Loan Fund</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <h3 className="font-bold text-rose-400 mb-5 flex items-center gap-2">
+                🏦 Women's Loan Fund
+                <span className="ml-auto text-xs text-gray-600">{financials.loanFund.totalApplications} total applications</span>
+              </h3>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
                 {[
-                  { label: 'Allocated (5% of revenue)', value: `$${financials.loanFund.totalAllocated.toFixed(2)}` },
-                  { label: 'Disbursed',                 value: `$${financials.loanFund.totalDisbursed.toFixed(2)}` },
-                  { label: 'Repaid',                    value: `$${financials.loanFund.totalRepaid.toFixed(2)}` },
-                  { label: 'Available',                 value: `$${financials.loanFund.available.toFixed(2)}` },
+                  { label: 'Allocated (5% of revenue)', value: `$${financials.loanFund.totalAllocated.toFixed(2)}`, color: 'text-rose-300' },
+                  { label: 'Disbursed',                 value: `$${financials.loanFund.totalDisbursed.toFixed(2)}`, color: 'text-orange-300' },
+                  { label: 'Repaid',                    value: `$${financials.loanFund.totalRepaid.toFixed(2)}`,   color: 'text-green-300' },
+                  { label: 'Available',                 value: `$${financials.loanFund.available.toFixed(2)}`,     color: 'text-emerald-400' },
                 ].map(s => (
-                  <div key={s.label} className="bg-rose-500/10 border border-rose-500/20 rounded-xl p-3 text-center">
-                    <p className="text-lg font-black text-rose-300">{s.value}</p>
-                    <p className="text-xs text-rose-500 mt-0.5">{s.label}</p>
+                  <div key={s.label} className="bg-gray-950 border border-gray-800 rounded-xl p-3 text-center">
+                    <p className={`text-lg font-black ${s.color}`}>{s.value}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{s.label}</p>
                   </div>
                 ))}
+              </div>
+              <div className="space-y-4">
+                <FundBar label="Disbursement rate (of allocated)" value={financials.loanFund.totalDisbursed} total={financials.loanFund.totalAllocated || 1} color="bg-orange-500" />
+                <FundBar label="Repayment rate (of disbursed)" value={financials.loanFund.totalRepaid} total={financials.loanFund.totalDisbursed || 1} color="bg-green-500" />
+                <FundBar label="Funds still available" value={financials.loanFund.available} total={financials.loanFund.totalAllocated || 1} color="bg-emerald-500" />
               </div>
             </div>
           </div>
@@ -424,15 +747,15 @@ export default function AdminPortal() {
                 <p className="text-sm">All caught up — no pending listings</p>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
                 {pendingListings.map(l => (
-                  <div key={l.id} className="flex items-center justify-between p-3 border border-gray-800 rounded-xl bg-gray-950">
-                    <div>
+                  <div key={l.id} className="flex items-start justify-between p-3 border border-gray-800 rounded-xl bg-gray-950">
+                    <div className="min-w-0 flex-1">
                       <p className="font-semibold text-sm text-white">{l.name}</p>
                       <p className="text-xs text-gray-500">{l.city}, {l.country} · {l.category}</p>
                       {l.phone && <p className="text-xs text-gray-500">{l.phone}</p>}
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 ml-3 shrink-0">
                       <button onClick={() => verifyListing(l.id)}
                         className="p-2 rounded-lg bg-green-500/20 text-green-400 hover:bg-green-500/30">
                         <CheckCircle size={16} strokeWidth={1.5} />
@@ -456,7 +779,7 @@ export default function AdminPortal() {
             {pendingPayouts.length === 0 ? (
               <p className="text-sm text-gray-600 text-center py-10">No pending payouts</p>
             ) : (
-              <div className="space-y-3">
+              <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
                 {pendingPayouts.map(p => (
                   <div key={p.id} className="flex items-center justify-between p-3 border border-gray-800 rounded-xl bg-gray-950">
                     <div>
@@ -484,7 +807,7 @@ export default function AdminPortal() {
             {loanApps.length === 0 ? (
               <p className="text-sm text-gray-600 text-center py-10">No pending applications</p>
             ) : (
-              <div className="space-y-3">
+              <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
                 {loanApps.map(app => (
                   <div key={app.id} className="border border-gray-800 rounded-xl p-4 bg-gray-950">
                     <div className="flex justify-between items-start">
@@ -494,7 +817,7 @@ export default function AdminPortal() {
                         <p className="text-sm text-gray-300 mt-2"><strong>Purpose:</strong> {app.purpose}</p>
                         <p className="text-sm text-gray-300">Requested: <strong className="text-white">${app.amount}</strong></p>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 ml-3">
                         <button onClick={() => updateLoan(app.id, 'APPROVED', app.amount)}
                           className="px-3 py-1.5 text-xs font-semibold bg-green-500/20 text-green-400 rounded-lg hover:bg-green-500/30">
                           Approve
@@ -517,14 +840,18 @@ export default function AdminPortal() {
           if (!repsLoaded) { loadSalesReps(); }
           const pending  = salesReps.filter(r => !r.active);
           const active   = salesReps.filter(r => r.active);
+          const topEarner = active.reduce((m, r) => r.totalEarned > m ? r.totalEarned : m, 0);
           return (
             <div className="space-y-4">
               {/* Stats */}
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-3 xl:grid-cols-6 gap-3">
                 {[
-                  { label: 'Pending', value: pending.length, color: 'text-yellow-400', bg: 'bg-yellow-500/10' },
-                  { label: 'Active',  value: active.length,  color: 'text-green-400',  bg: 'bg-green-500/10'  },
+                  { label: 'Pending',      value: pending.length, color: 'text-yellow-400', bg: 'bg-yellow-500/10' },
+                  { label: 'Active',       value: active.length,  color: 'text-green-400',  bg: 'bg-green-500/10'  },
                   { label: 'Total Earned', value: `$${active.reduce((s,r) => s + r.totalEarned, 0).toFixed(0)}`, color: 'text-purple-400', bg: 'bg-purple-500/10' },
+                  { label: 'Ads Placed',   value: active.reduce((s,r) => s + r.adsCount, 0), color: 'text-orange-400', bg: 'bg-orange-500/10' },
+                  { label: 'Unpaid',       value: `$${active.reduce((s,r) => s + r.unpaidCommissions, 0).toFixed(0)}`, color: 'text-red-400', bg: 'bg-red-500/10' },
+                  { label: 'Top earner',   value: `$${topEarner.toFixed(0)}`, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
                 ].map(s => (
                   <div key={s.label} className={`${s.bg} border border-gray-800 rounded-2xl p-4 text-center`}>
                     <p className={`text-2xl font-black ${s.color}`}>{s.value}</p>
@@ -533,13 +860,27 @@ export default function AdminPortal() {
                 ))}
               </div>
 
+              {/* Performance chart */}
+              {active.length > 0 && (
+                <div className="bg-gray-900 rounded-2xl border border-gray-800 p-5">
+                  <h3 className="font-bold text-sm text-gray-200 mb-4 flex items-center gap-2">
+                    <BarChart2 size={16} className="text-purple-400" /> Earnings by Rep
+                  </h3>
+                  <div className="grid sm:grid-cols-2 gap-x-8 gap-y-2.5">
+                    {active.sort((a, b) => b.totalEarned - a.totalEarned).slice(0, 16).map(r => (
+                      <HBar key={r.id} label={r.name} value={r.totalEarned} max={Math.max(topEarner, 1)} color="bg-purple-500" suffix={`$${r.totalEarned.toFixed(0)}`} />
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Pending applications */}
               {pending.length > 0 && (
                 <div className="bg-gray-900 rounded-2xl border border-yellow-500/20 p-5">
                   <h3 className="font-bold text-yellow-400 mb-4 flex items-center gap-2">
                     <Briefcase size={16} strokeWidth={1.5} /> Pending Applications ({pending.length})
                   </h3>
-                  <div className="space-y-3">
+                  <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
                     {pending.map(r => (
                       <div key={r.id} className="flex items-center justify-between p-3 border border-gray-800 rounded-xl bg-gray-950">
                         <div>
@@ -572,8 +913,8 @@ export default function AdminPortal() {
                 {active.length === 0 ? (
                   <p className="text-sm text-gray-600 text-center py-8">No active reps yet</p>
                 ) : (
-                  <div className="space-y-2">
-                    {active.map((r, i) => (
+                  <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-2">
+                    {active.sort((a, b) => b.totalEarned - a.totalEarned).map((r, i) => (
                       <div key={r.id} className="flex items-center justify-between p-3 border border-gray-800 rounded-xl bg-gray-950">
                         <div className="flex items-center gap-3">
                           <div className="w-7 h-7 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center text-xs font-black">
@@ -602,125 +943,357 @@ export default function AdminPortal() {
 
         {/* ── AD CMS ── */}
         {tab === 'adcms' && (
-          <div className="space-y-4">
+          <div className="space-y-5">
+
+            {/* ── HERO SLIDESHOW MANAGER ── */}
             <div className="bg-gray-900 rounded-2xl border border-gray-800 p-5">
-              <h3 className="font-bold text-white mb-1 flex items-center gap-2">
-                <Tv size={16} className="text-orange-400" strokeWidth={1.5} /> Hero Ad Slot — CMS
-              </h3>
-              <p className="text-xs text-gray-500 mb-5">Configure what plays in the homepage hero. YouTube, image, or GIF. Changes go live instantly.</p>
-
-              <div className="space-y-4">
-                {/* Media type */}
-                <div>
-                  <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide block mb-2">Media Type</label>
-                  <div className="flex gap-2">
-                    {(['youtube', 'image', 'video', 'default'] as const).map(type => (
-                      <button key={type} onClick={() => setHero(h => ({ ...h, mediaType: type }))}
-                        className={`px-3 py-2 rounded-lg text-xs font-semibold transition-colors ${
-                          hero.mediaType === type ? 'bg-orange-500 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-                        }`}>
-                        {type === 'youtube' ? '▶ YouTube' : type === 'image' ? '🖼 Image/GIF' : type === 'video' ? '🎬 Video' : '🎨 Default'}
-                      </button>
-                    ))}
-                  </div>
+              <div className="flex items-center gap-2 mb-1">
+                <Play size={16} className="text-orange-400" strokeWidth={1.5} />
+                <h3 className="font-bold text-white">Hero Slideshow — Live Ad Campaigns</h3>
+                <div className="ml-auto flex items-center gap-2">
+                  <span className="text-xs text-gray-500">{heroSlides.filter(s => s.active).length} active · {heroSlides.length} total</span>
+                  <button
+                    onClick={() => { setEditingSlide(null); setSlideForm(BLANK_SLIDE); setShowSlideForm(v => !v); setSlideMsg(''); }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-500 hover:bg-orange-400 text-white text-xs font-bold rounded-xl transition-colors">
+                    <Plus size={13} /> New Slide
+                  </button>
                 </div>
-
-                {/* URL */}
-                {hero.mediaType !== 'default' && (
-                  <div>
-                    <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide block mb-2">
-                      {hero.mediaType === 'youtube' ? 'YouTube Embed URL' : hero.mediaType === 'image' ? 'Image / GIF URL' : 'Video URL (mp4)'}
-                    </label>
-                    <input
-                      className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-orange-500"
-                      placeholder={
-                        hero.mediaType === 'youtube'
-                          ? 'https://www.youtube.com/embed/VIDEO_ID'
-                          : hero.mediaType === 'image'
-                          ? 'https://yourdomain.com/hero-banner.gif'
-                          : 'https://yourdomain.com/hero-video.mp4'
-                      }
-                      value={hero.mediaUrl}
-                      onChange={e => setHero(h => ({ ...h, mediaUrl: e.target.value }))}
-                    />
-                    {hero.mediaType === 'youtube' && (
-                      <p className="text-xs text-gray-600 mt-1.5">
-                        Get the embed URL from YouTube: Share → Embed → copy the src="…" value
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                {/* Overlay text */}
-                <div className="grid sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide block mb-2">Overlay Title</label>
-                    <input
-                      className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-orange-500"
-                      value={hero.overlayTitle}
-                      onChange={e => setHero(h => ({ ...h, overlayTitle: e.target.value }))}
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide block mb-2">Overlay Subtitle</label>
-                    <input
-                      className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-orange-500"
-                      value={hero.overlaySubtitle}
-                      onChange={e => setHero(h => ({ ...h, overlaySubtitle: e.target.value }))}
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide block mb-2">CTA Button Text</label>
-                    <input
-                      className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-orange-500"
-                      value={hero.ctaText}
-                      onChange={e => setHero(h => ({ ...h, ctaText: e.target.value }))}
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide block mb-2">CTA Link</label>
-                    <input
-                      className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-orange-500"
-                      value={hero.ctaUrl}
-                      onChange={e => setHero(h => ({ ...h, ctaUrl: e.target.value }))}
-                    />
-                  </div>
-                  <div className="sm:col-span-2">
-                    <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide block mb-2">Advertiser Name</label>
-                    <input
-                      className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-orange-500"
-                      placeholder="e.g. Stanbic Bank Uganda"
-                      value={hero.advertiser}
-                      onChange={e => setHero(h => ({ ...h, advertiser: e.target.value }))}
-                    />
-                  </div>
-                </div>
-
-                <button
-                  onClick={saveHero}
-                  disabled={heroSaving}
-                  className={`w-full py-3 rounded-xl font-bold text-sm transition-colors ${
-                    heroSaved ? 'bg-green-500 text-white' : 'bg-orange-500 hover:bg-orange-400 text-white disabled:opacity-50'
-                  }`}
-                >
-                  {heroSaving ? 'Saving…' : heroSaved ? '✓ Hero saved — live now!' : 'Save & Go Live'}
-                </button>
               </div>
+              <p className="text-xs text-gray-500 mb-5">
+                Each slide plays in the homepage hero carousel. Active slides appear live immediately. Manage client billing and notes per slide.
+              </p>
+
+              {slideMsg && (
+                <div className={`mb-4 p-3 rounded-xl text-sm font-medium ${slideMsg.startsWith('✓') ? 'bg-green-500/10 border border-green-500/20 text-green-400' : 'bg-red-500/10 border border-red-500/20 text-red-400'}`}>
+                  {slideMsg}
+                </div>
+              )}
+
+              {/* ── Add / Edit Form ── */}
+              {showSlideForm && (
+                <div className="bg-gray-950 border border-orange-500/30 rounded-2xl p-5 mb-5">
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="font-bold text-orange-300 text-sm flex items-center gap-2">
+                      {editingSlide ? <Edit2 size={14} /> : <Plus size={14} />}
+                      {editingSlide ? `Editing: ${editingSlide.advertiser}` : 'New Hero Slide'}
+                    </h4>
+                    <button onClick={() => { setShowSlideForm(false); setEditingSlide(null); setSlideMsg(''); }}
+                      className="p-1 text-gray-500 hover:text-white"><X size={16} /></button>
+                  </div>
+
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {/* Media section */}
+                    <div className="sm:col-span-2 lg:col-span-3">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-gray-600 mb-2">📺 Media</p>
+                      <div className="flex gap-2 mb-3">
+                        {(['youtube', 'image', 'video', 'default'] as const).map(type => (
+                          <button key={type} onClick={() => setSlideForm(f => ({ ...f, mediaType: type }))}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${slideForm.mediaType === type ? 'bg-orange-500 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}>
+                            {type === 'youtube' ? '▶ YouTube' : type === 'image' ? '🖼 Image/GIF' : type === 'video' ? '🎬 Video' : '🎨 Default'}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {slideForm.mediaType === 'youtube' && (
+                      <div className="sm:col-span-2 lg:col-span-2">
+                        <label className="text-xs font-semibold text-gray-400 block mb-1">YouTube URL or Video ID</label>
+                        <input className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white"
+                          placeholder="https://www.youtube.com/watch?v=VIDEO_ID  or  VIDEO_ID"
+                          value={slideForm.youtubeId || slideForm.mediaUrl}
+                          onChange={e => setSlideForm(f => ({ ...f, youtubeId: e.target.value, mediaUrl: e.target.value }))} />
+                        <p className="text-xs text-gray-600 mt-1">Paste any YouTube link — video ID or full URL both work</p>
+                      </div>
+                    )}
+                    {(slideForm.mediaType === 'image' || slideForm.mediaType === 'video') && (
+                      <div className="sm:col-span-2 lg:col-span-2">
+                        <label className="text-xs font-semibold text-gray-400 block mb-1">{slideForm.mediaType === 'image' ? 'Image / GIF URL' : 'Video URL (mp4)'}</label>
+                        <input className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white"
+                          placeholder={slideForm.mediaType === 'image' ? 'https://cdn.example.com/banner.gif' : 'https://cdn.example.com/ad.mp4'}
+                          value={slideForm.mediaUrl}
+                          onChange={e => setSlideForm(f => ({ ...f, mediaUrl: e.target.value }))} />
+                      </div>
+                    )}
+
+                    {/* Content */}
+                    <div className="sm:col-span-2 lg:col-span-3">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-gray-600 mb-2 mt-1">📝 Content</p>
+                    </div>
+                    {[
+                      { key: 'advertiser',      label: 'Advertiser / Client Name *', placeholder: 'e.g. Stanbic Bank Uganda' },
+                      { key: 'overlayTitle',    label: 'Overlay Title',              placeholder: 'e.g. Uganda Tourism Board' },
+                      { key: 'overlaySubtitle', label: 'Overlay Subtitle',           placeholder: 'e.g. Come experience the Pearl of Africa' },
+                      { key: 'ctaText',         label: 'CTA Button Text',            placeholder: 'e.g. Book Now' },
+                      { key: 'targetUrl',       label: 'CTA Link URL',               placeholder: 'https://example.com/offer' },
+                    ].map(f => (
+                      <div key={f.key}>
+                        <label className="text-xs font-semibold text-gray-400 block mb-1">{f.label}</label>
+                        <input className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white"
+                          placeholder={f.placeholder}
+                          value={(slideForm as Record<string, string | number | boolean>)[f.key] as string || ''}
+                          onChange={e => setSlideForm(f2 => ({ ...f2, [f.key]: e.target.value }))} />
+                      </div>
+                    ))}
+
+                    {/* Client info */}
+                    <div className="sm:col-span-2 lg:col-span-3">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-gray-600 mb-2 mt-1">👤 Client Info</p>
+                    </div>
+                    {[
+                      { key: 'clientEmail',   label: 'Client Email',   placeholder: 'client@company.com' },
+                      { key: 'clientPhone',   label: 'Client Phone',   placeholder: '+234 800 000 0000' },
+                      { key: 'clientCountry', label: 'Client Country', placeholder: 'Nigeria' },
+                    ].map(f => (
+                      <div key={f.key}>
+                        <label className="text-xs font-semibold text-gray-400 block mb-1">{f.label}</label>
+                        <input className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white"
+                          placeholder={f.placeholder}
+                          value={(slideForm as Record<string, string | number | boolean>)[f.key] as string || ''}
+                          onChange={e => setSlideForm(f2 => ({ ...f2, [f.key]: e.target.value }))} />
+                      </div>
+                    ))}
+
+                    {/* Payment */}
+                    <div className="sm:col-span-2 lg:col-span-3">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-gray-600 mb-2 mt-1">💳 Payment</p>
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-gray-400 block mb-1">Payment Status</label>
+                      <select className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white"
+                        value={slideForm.paymentStatus}
+                        onChange={e => setSlideForm(f => ({ ...f, paymentStatus: e.target.value }))}>
+                        <option value="unpaid">⚠️ Unpaid</option>
+                        <option value="pending">🕐 Pending / Invoice sent</option>
+                        <option value="partial">💛 Partially paid</option>
+                        <option value="paid">✅ Paid</option>
+                        <option value="overdue">🔴 Overdue</option>
+                        <option value="comp">🎁 Complimentary</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-gray-400 block mb-1">Campaign Value ($)</label>
+                      <input type="number" className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white"
+                        placeholder="0.00" min={0} step={10}
+                        value={slideForm.paymentAmount || ''}
+                        onChange={e => setSlideForm(f => ({ ...f, paymentAmount: parseFloat(e.target.value) || 0 }))} />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-gray-400 block mb-1">Invoice Ref / Ref #</label>
+                      <input className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white"
+                        placeholder="INV-2026-001"
+                        value={slideForm.invoiceRef || ''}
+                        onChange={e => setSlideForm(f => ({ ...f, invoiceRef: e.target.value }))} />
+                    </div>
+                    <div className="sm:col-span-2 lg:col-span-3">
+                      <label className="text-xs font-semibold text-gray-400 block mb-1">Internal Notes</label>
+                      <textarea className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white resize-none" rows={2}
+                        placeholder="e.g. Agreed 3-month run, renewal call April 2026…"
+                        value={slideForm.notes || ''}
+                        onChange={e => setSlideForm(f => ({ ...f, notes: e.target.value }))} />
+                    </div>
+
+                    <div className="sm:col-span-2 lg:col-span-3 flex items-center gap-3">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" className="w-4 h-4 accent-orange-500"
+                          checked={slideForm.active}
+                          onChange={e => setSlideForm(f => ({ ...f, active: e.target.checked }))} />
+                        <span className="text-sm text-gray-300">Active (show in homepage slideshow)</span>
+                      </label>
+                    </div>
+
+                    <div className="sm:col-span-2 lg:col-span-3 flex gap-3">
+                      <button onClick={saveSlide} disabled={slideSaving}
+                        className="flex-1 py-3 bg-orange-500 hover:bg-orange-400 text-white font-bold rounded-xl text-sm disabled:opacity-50">
+                        {slideSaving ? 'Saving…' : editingSlide ? '✓ Update Slide' : '+ Add Slide to Slideshow'}
+                      </button>
+                      <button onClick={() => { setShowSlideForm(false); setEditingSlide(null); }}
+                        className="px-4 py-3 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl text-sm">
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Slides list ── */}
+              {!slidesLoaded ? (
+                <div className="text-center py-8 text-gray-600 text-sm">Loading slides…</div>
+              ) : heroSlides.length === 0 ? (
+                <div className="text-center py-10 text-gray-600">
+                  <Tv size={32} className="mx-auto mb-3 opacity-30" strokeWidth={1} />
+                  <p className="text-sm">No hero slides configured yet.</p>
+                  <p className="text-xs mt-1">Click <strong className="text-orange-400">New Slide</strong> to add the first ad campaign to the homepage carousel.</p>
+                  <p className="text-xs mt-3 text-gray-700">Until slides are added, the homepage uses the built-in Uganda Tourism demo videos.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {heroSlides.map((slide, idx) => {
+                    const payColor: Record<string, string> = {
+                      paid: 'text-green-400 bg-green-500/10 border-green-500/20',
+                      partial: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20',
+                      pending: 'text-blue-400 bg-blue-500/10 border-blue-500/20',
+                      unpaid: 'text-red-400 bg-red-500/10 border-red-500/20',
+                      overdue: 'text-red-500 bg-red-600/10 border-red-600/20',
+                      comp: 'text-purple-400 bg-purple-500/10 border-purple-500/20',
+                    };
+                    const pStatus = slide.paymentStatus ?? 'unpaid';
+                    const payLabel: Record<string, string> = { paid: '✅ Paid', pending: '🕐 Pending', partial: '💛 Partial', unpaid: '⚠️ Unpaid', overdue: '🔴 Overdue', comp: '🎁 Comp' };
+                    return (
+                      <div key={slide.id}
+                        className={`border rounded-2xl p-4 transition-opacity ${slide.active ? 'border-gray-700 bg-gray-950' : 'border-gray-800 bg-gray-900/50 opacity-60'}`}>
+                        <div className="flex items-start gap-3">
+                          {/* Index */}
+                          <div className="w-8 h-8 rounded-full bg-orange-500/20 text-orange-400 flex items-center justify-center text-xs font-black shrink-0">
+                            {idx + 1}
+                          </div>
+
+                          {/* Main info */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-2">
+                              <div>
+                                <p className="font-bold text-white text-sm">{slide.advertiser || '(no name)'}</p>
+                                <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-1.5 flex-wrap">
+                                  <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md border text-[10px] font-bold ${payColor[pStatus] || payColor.unpaid}`}>
+                                    {payLabel[pStatus] || pStatus}
+                                  </span>
+                                  {slide.paymentAmount != null && slide.paymentAmount > 0 && (
+                                    <span className="text-gray-400">${slide.paymentAmount}</span>
+                                  )}
+                                  {slide.invoiceRef && <span className="text-gray-600">#{slide.invoiceRef}</span>}
+                                  <span className="text-gray-700">·</span>
+                                  <span className="capitalize text-gray-500">{slide.mediaType ?? 'youtube'}</span>
+                                  <span className="text-gray-700">·</span>
+                                  <span>{slide.impressions.toLocaleString()} impr</span>
+                                </p>
+                              </div>
+                              {/* Action buttons */}
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                <button onClick={() => toggleSlide(slide.id)}
+                                  className={`p-1.5 rounded-lg transition-colors ${slide.active ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30' : 'bg-gray-800 text-gray-500 hover:bg-gray-700 hover:text-gray-300'}`}
+                                  title={slide.active ? 'Hide slide' : 'Show slide'}>
+                                  {slide.active ? <Eye size={14} /> : <EyeOff size={14} />}
+                                </button>
+                                <button onClick={() => startEditSlide(slide)}
+                                  className="p-1.5 rounded-lg bg-blue-500/20 text-blue-400 hover:bg-blue-500/30">
+                                  <Edit2 size={14} />
+                                </button>
+                                <button onClick={() => deleteSlide(slide.id)}
+                                  className="p-1.5 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30">
+                                  <Trash2 size={14} />
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Details row */}
+                            <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-gray-500">
+                              {slide.overlayTitle && (
+                                <span className="flex items-center gap-1"><Info size={10} /> "{slide.overlayTitle}"</span>
+                              )}
+                              {slide.clientEmail && (
+                                <span className="flex items-center gap-1"><Mail size={10} /> {slide.clientEmail}</span>
+                              )}
+                              {slide.clientPhone && (
+                                <span className="flex items-center gap-1"><Phone size={10} /> {slide.clientPhone}</span>
+                              )}
+                              {slide.clientCountry && (
+                                <span className="flex items-center gap-1"><Globe size={10} /> {slide.clientCountry}</span>
+                              )}
+                              {(slide.youtubeId || slide.mediaUrl) && (
+                                <span className="flex items-center gap-1 text-orange-500/80 truncate max-w-xs">
+                                  <Play size={10} /> {(slide.youtubeId || slide.mediaUrl || '').slice(0, 40)}…
+                                </span>
+                              )}
+                            </div>
+                            {slide.notes && (
+                              <p className="mt-1.5 text-xs text-gray-600 italic border-l-2 border-gray-700 pl-2">{slide.notes}</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Revenue summary */}
+              {heroSlides.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-gray-800 grid grid-cols-3 gap-3">
+                  {[
+                    { label: 'Total campaign value', value: `$${heroSlides.reduce((s, sl) => s + (sl.paymentAmount ?? 0), 0).toFixed(0)}` },
+                    { label: 'Active slides', value: `${heroSlides.filter(s => s.active).length} / ${heroSlides.length}` },
+                    { label: 'Total impressions', value: heroSlides.reduce((s, sl) => s + sl.impressions, 0).toLocaleString() },
+                  ].map(s => (
+                    <div key={s.label} className="bg-gray-950 rounded-xl border border-gray-800 p-3 text-center">
+                      <p className="text-lg font-black text-orange-400">{s.value}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">{s.label}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* All active ads */}
+            {/* Active standard campaigns */}
             <div className="bg-gray-900 rounded-2xl border border-gray-800 p-5">
               <h3 className="font-bold text-white mb-4 flex items-center gap-2">
-                <Megaphone size={16} className="text-orange-400" strokeWidth={1.5} /> Active Campaigns
+                <Megaphone size={16} className="text-orange-400" strokeWidth={1.5} /> Other Active Ad Campaigns
               </h3>
               <ActiveAdsList />
             </div>
+
+            {/* Payment quick-reference */}
+            <div className="bg-gray-900 rounded-2xl border border-gray-800 p-5">
+              <h3 className="font-bold text-white mb-3 flex items-center gap-2">
+                <CreditCard size={16} className="text-emerald-400" strokeWidth={1.5} /> Payment Status Summary
+              </h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+                {[
+                  { status: 'paid',    label: '✅ Paid',    color: 'bg-green-500/10 border-green-500/20 text-green-400' },
+                  { status: 'pending', label: '🕐 Pending', color: 'bg-blue-500/10 border-blue-500/20 text-blue-400' },
+                  { status: 'partial', label: '💛 Partial', color: 'bg-yellow-500/10 border-yellow-500/20 text-yellow-400' },
+                  { status: 'unpaid',  label: '⚠️ Unpaid',  color: 'bg-red-500/10 border-red-500/20 text-red-400' },
+                  { status: 'overdue', label: '🔴 Overdue', color: 'bg-red-600/10 border-red-600/20 text-red-500' },
+                  { status: 'comp',    label: '🎁 Comp',    color: 'bg-purple-500/10 border-purple-500/20 text-purple-400' },
+                ].map(s => {
+                  const count = heroSlides.filter(sl => (sl.paymentStatus ?? 'unpaid') === s.status).length;
+                  const total = heroSlides.filter(sl => (sl.paymentStatus ?? 'unpaid') === s.status).reduce((acc, sl) => acc + (sl.paymentAmount ?? 0), 0);
+                  return (
+                    <div key={s.status} className={`border rounded-xl p-3 text-center ${s.color}`}>
+                      <p className="text-lg font-black">{count}</p>
+                      <p className="text-xs mt-0.5">{s.label}</p>
+                      {total > 0 && <p className="text-[10px] mt-0.5 opacity-70">${total.toFixed(0)}</p>}
+                    </div>
+                  );
+                })}
+              </div>
+              {heroSlides.some(s => (s.paymentStatus ?? 'unpaid') === 'overdue') && (
+                <div className="mt-3 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-sm text-red-400">
+                  ⚠️ {heroSlides.filter(s => (s.paymentStatus ?? 'unpaid') === 'overdue').length} slide(s) overdue — follow up required.
+                </div>
+              )}
+            </div>
+
           </div>
         )}
 
         {/* ── SCRAPER ── */}
         {tab === 'scraper' && (
           <div className="space-y-4">
+            {/* Coverage chart */}
+            {topCountries.length > 0 && (
+              <div className="bg-gray-900 rounded-2xl border border-gray-800 p-5">
+                <div className="flex items-center gap-2 mb-4">
+                  <BarChart2 size={16} className="text-blue-400" strokeWidth={1.5} />
+                  <h3 className="font-bold text-sm text-gray-200">Coverage by Country</h3>
+                  <span className="ml-auto text-xs text-green-400 font-semibold">{scrapeTotal.toLocaleString()} total</span>
+                </div>
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-2.5">
+                  {topCountries.map(([country, count]) => (
+                    <HBar key={country} label={country} value={count} max={maxCountryCount} color="bg-blue-500" />
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="bg-gray-900 rounded-2xl border border-gray-800 p-5">
               <div className="flex items-center justify-between mb-1">
                 <h3 className="font-bold text-white flex items-center gap-2">
@@ -734,26 +1307,17 @@ export default function AdminPortal() {
                 One city at a time — ~30s each.
               </p>
 
-              {/* Bulk action buttons */}
               <div className="flex flex-wrap gap-2 mb-4">
-                <button
-                  onClick={triggerScrapeAll}
-                  disabled={scrapingAll || scrapingCity !== null}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl text-sm font-semibold transition-colors"
-                >
+                <button onClick={triggerScrapeAll} disabled={scrapingAll || scrapingCity !== null}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl text-sm font-semibold transition-colors">
                   {scrapingAll ? <><RefreshCw size={14} className="animate-spin" /> Starting…</> : <><Database size={14} /> Scrape All Africa (background)</>}
                 </button>
-                <button
-                  onClick={triggerEnrich}
-                  disabled={enriching}
-                  className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white rounded-xl text-sm font-semibold transition-colors"
-                >
+                <button onClick={triggerEnrich} disabled={enriching}
+                  className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white rounded-xl text-sm font-semibold transition-colors">
                   {enriching ? <><RefreshCw size={14} className="animate-spin" /> Enriching…</> : '💰 Enrich Prices from Websites'}
                 </button>
-                <button
-                  onClick={() => adminApi.scrapeCounts().then(r => { setScrapeCounts(r.data.counts || []); setScrapeTotal(r.data.total || 0); }).catch(() => {})}
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl text-sm font-semibold transition-colors"
-                >
+                <button onClick={() => adminApi.scrapeCounts().then(r => { setScrapeCounts(r.data.counts || []); setScrapeTotal(r.data.total || 0); }).catch(() => {})}
+                  className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl text-sm font-semibold transition-colors">
                   <RefreshCw size={14} /> Refresh Counts
                 </button>
               </div>
@@ -764,8 +1328,7 @@ export default function AdminPortal() {
                 </div>
               )}
 
-              {/* Cities grid */}
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2 max-h-[60vh] overflow-y-auto pr-1">
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 max-h-[60vh] overflow-y-auto pr-1">
                 {[
                   { city: 'Lagos', country: 'Nigeria' },
                   { city: 'Nairobi', country: 'Kenya' },
@@ -808,27 +1371,19 @@ export default function AdminPortal() {
                         <p className="text-xs text-gray-500">{country}</p>
                         {count > 0 && <p className="text-xs text-green-400 font-semibold">{count.toLocaleString()} imported</p>}
                       </div>
-                      <button
-                        onClick={() => triggerScrape(city, country)}
-                        disabled={isScraping || scrapingCity !== null}
+                      <button onClick={() => triggerScrape(city, country)} disabled={isScraping || scrapingCity !== null}
                         className={`ml-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors shrink-0 ${
                           isScraping ? 'bg-blue-500/20 text-blue-300' :
                           count > 0 ? 'bg-gray-800 text-gray-400 hover:bg-green-500/20 hover:text-green-300' :
                           'bg-green-500/20 text-green-400 hover:bg-green-500/30'
-                        } disabled:opacity-50`}
-                      >
-                        {isScraping
-                          ? <><RefreshCw size={12} className="animate-spin" /> Scraping…</>
-                          : count > 0 ? <><RefreshCw size={12} /> Refresh</> : '+ Import'
-                        }
+                        } disabled:opacity-50`}>
+                        {isScraping ? <><RefreshCw size={12} className="animate-spin" /> Scraping…</> : count > 0 ? <><RefreshCw size={12} /> Refresh</> : '+ Import'}
                       </button>
                     </div>
                   );
                 })}
               </div>
-              <p className="text-xs text-gray-600 mt-4">
-                Data © OpenStreetMap contributors · Licensed under ODbL · Free to use commercially
-              </p>
+              <p className="text-xs text-gray-600 mt-4">Data © OpenStreetMap contributors · Licensed under ODbL · Free to use commercially</p>
             </div>
           </div>
         )}
@@ -836,187 +1391,88 @@ export default function AdminPortal() {
         {/* ── BRANDING ── */}
         {tab === 'branding' && (
           <div className="space-y-5">
-
-            {/* ── Live logo preview ── */}
             <div className="bg-gray-900 rounded-2xl border border-gray-800 p-5">
               <h3 className="font-bold text-white mb-1 flex items-center gap-2">
                 <Paintbrush size={16} className="text-pink-400" strokeWidth={1.5} /> CSS Settings
               </h3>
-              <p className="text-xs text-gray-500 mb-5">
-                Adjust logo size, outline weight, and inject custom CSS. Changes apply instantly and persist across reloads.
-              </p>
+              <p className="text-xs text-gray-500 mb-5">Adjust logo size, outline weight, and inject custom CSS. Changes apply instantly and persist across reloads.</p>
 
-              {/* Live preview */}
               <div className="flex items-center justify-center bg-gray-950 rounded-xl border border-gray-800 py-4 mb-6"
                 style={{ backgroundColor: 'var(--cp, #008751)' }}>
                 <div className="flex items-center gap-0 select-none leading-none">
-                  <span style={{
-                    fontSize: `var(--logo-main-size, ${logoMainSize}rem)`,
-                    fontWeight: 900, fontStyle: 'italic',
-                    fontFamily: '"Arial Black","Arial Bold",Arial,sans-serif',
-                    color: '#008751',
-                    WebkitTextStroke: `var(--logo-stroke, ${logoStroke}px) white`,
-                    letterSpacing: '-0.02em', lineHeight: 1,
-                  }}>seshaa</span>
-                  <span style={{
-                    fontSize: `var(--logo-dot-size, ${logoDotSize}rem)`,
-                    fontWeight: 700, fontStyle: 'italic',
-                    fontFamily: '"Arial Black","Arial Bold",Arial,sans-serif',
-                    color: 'white', letterSpacing: '-0.01em', lineHeight: 1,
-                  }}>.africa</span>
+                  <span style={{ fontSize: `var(--logo-main-size, ${logoMainSize}rem)`, fontWeight: 900, fontStyle: 'italic', fontFamily: '"Arial Black","Arial Bold",Arial,sans-serif', color: '#008751', WebkitTextStroke: `var(--logo-stroke, ${logoStroke}px) white`, letterSpacing: '-0.02em', lineHeight: 1 }}>seshaa</span>
+                  <span style={{ fontSize: `var(--logo-dot-size, ${logoDotSize}rem)`, fontWeight: 700, fontStyle: 'italic', fontFamily: '"Arial Black","Arial Bold",Arial,sans-serif', color: 'white', letterSpacing: '-0.01em', lineHeight: 1 }}>.africa</span>
                 </div>
               </div>
 
-              {/* Sliders */}
               <div className="space-y-5">
-
-                {/* Logo main size */}
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
-                      Logo size — "seshaa"
-                    </label>
-                    <span className="text-xs text-gray-500 tabular-nums">{logoMainSize.toFixed(2)}rem</span>
+                {[
+                  { label: 'Logo size — "seshaa"', value: logoMainSize, min: 1.0, max: 3.5, step: 0.05, fmt: (v: number) => `${v.toFixed(2)}rem`, onChange: (v: number) => { setLogoMainSize(v); applyCssVar('--logo-main-size', v + 'rem', 'seshaa-logo-main', v); }, minL: '1rem', maxL: '3.5rem' },
+                  { label: 'Logo size — ".africa"', value: logoDotSize, min: 0.8, max: 3.0, step: 0.05, fmt: (v: number) => `${v.toFixed(2)}rem`, onChange: (v: number) => { setLogoDotSize(v); applyCssVar('--logo-dot-size', v + 'rem', 'seshaa-logo-dot', v); }, minL: '0.8rem', maxL: '3rem' },
+                  { label: 'Outline (stroke) thickness', value: logoStroke, min: 0, max: 5, step: 0.5, fmt: (v: number) => `${v.toFixed(1)}px`, onChange: (v: number) => { setLogoStroke(v); applyCssVar('--logo-stroke', v + 'px', 'seshaa-logo-stroke', v); }, minL: '0 (none)', maxL: '5px' },
+                ].map(s => (
+                  <div key={s.label}>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide">{s.label}</label>
+                      <span className="text-xs text-gray-500 tabular-nums">{s.fmt(s.value)}</span>
+                    </div>
+                    <input type="range" min={s.min} max={s.max} step={s.step} value={s.value}
+                      onChange={e => s.onChange(parseFloat(e.target.value))}
+                      className="w-full accent-pink-400 h-1.5 cursor-pointer" />
+                    <div className="flex justify-between text-[10px] text-gray-600 mt-0.5">
+                      <span>{s.minL}</span><span>{s.maxL}</span>
+                    </div>
                   </div>
-                  <input type="range" min={1.0} max={3.5} step={0.05}
-                    value={logoMainSize}
-                    onChange={e => {
-                      const v = parseFloat(e.target.value);
-                      setLogoMainSize(v);
-                      applyCssVar('--logo-main-size', v + 'rem', 'seshaa-logo-main', v);
-                    }}
-                    className="w-full accent-pink-400 h-1.5 cursor-pointer"
-                  />
-                  <div className="flex justify-between text-[10px] text-gray-600 mt-0.5">
-                    <span>1rem</span><span>3.5rem</span>
-                  </div>
-                </div>
-
-                {/* Logo dot/suffix size */}
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
-                      Logo size — ".africa"
-                    </label>
-                    <span className="text-xs text-gray-500 tabular-nums">{logoDotSize.toFixed(2)}rem</span>
-                  </div>
-                  <input type="range" min={0.8} max={3.0} step={0.05}
-                    value={logoDotSize}
-                    onChange={e => {
-                      const v = parseFloat(e.target.value);
-                      setLogoDotSize(v);
-                      applyCssVar('--logo-dot-size', v + 'rem', 'seshaa-logo-dot', v);
-                    }}
-                    className="w-full accent-pink-400 h-1.5 cursor-pointer"
-                  />
-                  <div className="flex justify-between text-[10px] text-gray-600 mt-0.5">
-                    <span>0.8rem</span><span>3rem</span>
-                  </div>
-                </div>
-
-                {/* Outline stroke */}
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
-                      Outline (stroke) thickness
-                    </label>
-                    <span className="text-xs text-gray-500 tabular-nums">{logoStroke.toFixed(1)}px</span>
-                  </div>
-                  <input type="range" min={0} max={5} step={0.5}
-                    value={logoStroke}
-                    onChange={e => {
-                      const v = parseFloat(e.target.value);
-                      setLogoStroke(v);
-                      applyCssVar('--logo-stroke', v + 'px', 'seshaa-logo-stroke', v);
-                    }}
-                    className="w-full accent-pink-400 h-1.5 cursor-pointer"
-                  />
-                  <div className="flex justify-between text-[10px] text-gray-600 mt-0.5">
-                    <span>0 (none)</span><span>5px</span>
-                  </div>
-                </div>
-
-                {/* Reset */}
-                <button
-                  onClick={() => {
-                    setLogoMainSize(1.95); setLogoDotSize(1.65); setLogoStroke(1.5);
-                    applyCssVar('--logo-main-size', '1.95rem', 'seshaa-logo-main', 1.95);
-                    applyCssVar('--logo-dot-size',  '1.65rem', 'seshaa-logo-dot',  1.65);
-                    applyCssVar('--logo-stroke',    '1.5px',   'seshaa-logo-stroke', 1.5);
-                  }}
-                  className="text-xs text-gray-500 hover:text-gray-300 underline"
-                >
+                ))}
+                <button onClick={() => { setLogoMainSize(1.95); setLogoDotSize(1.65); setLogoStroke(1.5); applyCssVar('--logo-main-size','1.95rem','seshaa-logo-main',1.95); applyCssVar('--logo-dot-size','1.65rem','seshaa-logo-dot',1.65); applyCssVar('--logo-stroke','1.5px','seshaa-logo-stroke',1.5); }}
+                  className="text-xs text-gray-500 hover:text-gray-300 underline">
                   Reset logo to defaults
                 </button>
               </div>
             </div>
 
-            {/* ── Custom CSS injection ── */}
             <div className="bg-gray-900 rounded-2xl border border-gray-800 p-5">
               <h3 className="font-bold text-white mb-1 flex items-center gap-2">
                 <Globe size={16} className="text-blue-400" strokeWidth={1.5} /> Custom CSS
               </h3>
-              <p className="text-xs text-gray-500 mb-3">
-                Injected into the app via a &lt;style&gt; tag. Applies to every page instantly.
-                Use CSS variables like <code className="text-blue-400">--cp</code> for the primary colour.
-              </p>
-              <textarea
-                className="w-full bg-gray-950 border border-gray-700 rounded-xl px-4 py-3 text-xs font-mono text-green-300 focus:outline-none focus:border-gray-500 resize-y"
-                rows={8}
+              <p className="text-xs text-gray-500 mb-3">Injected into the app via a &lt;style&gt; tag. Applies to every page instantly. Use <code className="text-blue-400">--cp</code> for primary colour.</p>
+              <textarea className="w-full bg-gray-950 border border-gray-700 rounded-xl px-4 py-3 text-xs font-mono text-green-300 focus:border-gray-500 resize-y" rows={8}
                 placeholder={`/* Example */\n.navbar-title { opacity: 0.9; }\nbody { letter-spacing: 0.01em; }`}
-                value={customCss}
-                onChange={e => setCustomCss(e.target.value)}
-              />
+                value={customCss} onChange={e => setCustomCss(e.target.value)} />
               <div className="flex items-center gap-3 mt-3">
-                <button
-                  onClick={() => { applyCustomCss(customCss); setCssSaved(true); setTimeout(() => setCssSaved(false), 2000); }}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition-colors"
-                >
+                <button onClick={() => { applyCustomCss(customCss); setCssSaved(true); setTimeout(() => setCssSaved(false), 2000); }}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition-colors">
                   {cssSaved ? '✓ Applied' : 'Apply & Save'}
                 </button>
-                <button
-                  onClick={() => { setCustomCss(''); applyCustomCss(''); }}
-                  className="text-xs text-gray-500 hover:text-gray-300 underline"
-                >
-                  Clear
-                </button>
+                <button onClick={() => { setCustomCss(''); applyCustomCss(''); }} className="text-xs text-gray-500 hover:text-gray-300 underline">Clear</button>
               </div>
             </div>
 
-            {/* ── Logo rotation ── */}
             <div className="bg-gray-900 rounded-2xl border border-gray-800 p-5">
               <h3 className="font-bold text-white mb-1 flex items-center gap-2">
                 <RefreshCw size={16} className="text-yellow-400" strokeWidth={1.5} /> Logo Rotation
               </h3>
-              <p className="text-xs text-gray-500 mb-5">
-                Toggle which logo variants cycle in the navbar. At least one must stay enabled.
-              </p>
-              <div className="grid sm:grid-cols-2 gap-3">
+              <p className="text-xs text-gray-500 mb-5">Toggle which logo variants cycle in the navbar. At least one must stay enabled.</p>
+              <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
                 {ALL_LOGOS.map(logo => {
                   const isOn = enabledLogos.includes(logo.id);
                   return (
-                    <button
-                      key={logo.id}
-                      onClick={() => toggleLogo(logo.id)}
+                    <button key={logo.id} onClick={() => toggleLogo(logo.id)}
                       className={`flex items-center gap-4 p-4 rounded-2xl border-2 text-left transition-colors ${
                         isOn ? 'border-green-500/40 bg-green-500/5' : 'border-gray-700 bg-gray-950 opacity-50'
-                      }`}
-                    >
+                      }`}>
                       <div className="w-28 h-10 flex items-center justify-center bg-gray-900 rounded-xl overflow-hidden shrink-0 border border-gray-800">
                         <div style={{ width: 108, height: 36, overflow: 'hidden' }}>{logo.node}</div>
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold text-white">{logo.label}</p>
-                        <p className={`text-xs mt-0.5 font-semibold ${isOn ? 'text-green-400' : 'text-gray-600'}`}>
-                          {isOn ? '● Active' : '○ Off'}
-                        </p>
+                        <p className={`text-xs mt-0.5 font-semibold ${isOn ? 'text-green-400' : 'text-gray-600'}`}>{isOn ? '● Active' : '○ Off'}</p>
                       </div>
                     </button>
                   );
                 })}
               </div>
             </div>
-
           </div>
         )}
 
@@ -1024,7 +1480,7 @@ export default function AdminPortal() {
         {tab === 'promote' && (
           <div className="bg-gray-900 rounded-2xl border border-gray-800 p-5">
             <h3 className="font-bold text-white mb-4 flex items-center gap-2">
-              <Megaphone size={16} style={{ color: 'var(--cp)' }} strokeWidth={1.5} /> Press & Social Media
+              <Megaphone size={16} style={{ color: 'var(--cp)' }} strokeWidth={1.5} /> Press &amp; Social Media
             </h3>
             <div className="mb-3">
               <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide block mb-2">Template</label>
@@ -1045,19 +1501,13 @@ export default function AdminPortal() {
                 ))}
               </div>
             </div>
-            <button
-              className="w-full py-2.5 rounded-xl text-white font-semibold text-sm mb-4 bg-orange-500 hover:bg-orange-400"
-              onClick={generatePressRelease}>
+            <button className="w-full py-2.5 rounded-xl text-white font-semibold text-sm mb-4 bg-orange-500 hover:bg-orange-400" onClick={generatePressRelease}>
               Generate Content
             </button>
             {pressMsg && (
               <div className="relative">
-                <textarea
-                  className="w-full border border-gray-700 rounded-xl px-4 py-3 text-sm font-mono bg-gray-950 text-gray-300 focus:outline-none resize-none"
-                  rows={14}
-                  value={pressMsg}
-                  onChange={e => setPressMsg(e.target.value)}
-                />
+                <textarea className="w-full border border-gray-700 rounded-xl px-4 py-3 text-sm font-mono bg-gray-950 text-gray-300 resize-none" rows={14}
+                  value={pressMsg} onChange={e => setPressMsg(e.target.value)} />
                 <button
                   className={`absolute top-3 right-3 text-xs font-semibold px-3 py-1.5 rounded-lg text-white ${pressCopied ? 'bg-green-500' : 'bg-orange-500'}`}
                   onClick={() => { navigator.clipboard.writeText(pressMsg); setPressCopied(true); setTimeout(() => setPressCopied(false), 2000); }}>
@@ -1079,18 +1529,23 @@ function ActiveAdsList() {
     adsApi.myAds().then(r => setAds(r.data as typeof ads)).catch(() => {});
   }, []);
   if (ads.length === 0) return <p className="text-sm text-gray-600 text-center py-8">No active campaigns yet</p>;
+  const maxImpr = Math.max(...ads.map(a => a.impressions), 1);
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       {ads.map(ad => (
-        <div key={ad.id} className="flex items-center justify-between p-3 border border-gray-800 rounded-xl bg-gray-950 text-sm">
-          <div>
-            <p className="font-semibold text-white">{ad.title}</p>
-            <p className="text-xs text-gray-500">{ad.advertiser} · <span className="text-orange-400">{ad.tier}</span></p>
+        <div key={ad.id} className="p-3 border border-gray-800 rounded-xl bg-gray-950 text-sm">
+          <div className="flex items-start justify-between gap-3 mb-2">
+            <div>
+              <p className="font-semibold text-white">{ad.title}</p>
+              <p className="text-xs text-gray-500">{ad.advertiser} · <span className="text-orange-400">{ad.tier}</span></p>
+            </div>
+            <div className="text-right text-xs text-gray-500 shrink-0">
+              <p>{ad.impressions.toLocaleString()} impr.</p>
+              <p>{ad.clicks} clicks</p>
+              {ad.impressions > 0 && <p className="text-blue-400">{((ad.clicks / ad.impressions) * 100).toFixed(1)}% CTR</p>}
+            </div>
           </div>
-          <div className="text-right text-xs text-gray-500">
-            <p>{ad.impressions.toLocaleString()} impr.</p>
-            <p>{ad.clicks} clicks</p>
-          </div>
+          <HBar label="Impressions" value={ad.impressions} max={maxImpr} color="bg-orange-500" />
         </div>
       ))}
     </div>

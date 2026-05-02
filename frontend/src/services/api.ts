@@ -188,6 +188,12 @@ export const adminApi = {
     api.patch(`/bank/${id}`, data),
   getHero: () => api.get('/admin/hero'),
   setHero: (data: object) => api.post('/admin/hero', data),
+  // Hero slideshow management
+  getHeroSlides: () => api.get('/admin/hero-slides'),
+  createHeroSlide: (data: object) => api.post('/admin/hero-slides', data),
+  updateHeroSlide: (id: string, data: object) => api.put(`/admin/hero-slides/${id}`, data),
+  deleteHeroSlide: (id: string) => api.delete(`/admin/hero-slides/${id}`),
+  toggleHeroSlide: (id: string) => api.patch(`/admin/hero-slides/${id}/toggle`),
   scrapeCounts: () => api.get<{ counts: { city: string; country: string; count: number }[]; total: number }>('/admin/scrape/counts'),
   scrapeCity: (city: string, country: string) => api.post<{ ok: boolean; city: string; country: string; inserted: number }>('/admin/scrape', { city, country }),
   scrapeAll: () => api.post<{ ok: boolean; message: string; cities: number }>('/admin/scrape/all'),

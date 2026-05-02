@@ -6,24 +6,34 @@ import {
   Utensils, HeartPulse, GraduationCap, Banknote, Bus, BedDouble,
   Laptop, Scissors, Wrench, Wheat, Church, HardHat,
 } from 'lucide-react';
-import { listingsApi } from '../services/api';
+import { listingsApi, adminApi } from '../services/api';
 import ListingCard from '../components/directory/ListingCard';
 import type { Listing } from '../types';
 
-// ── Ad video slots — YouTube video IDs.
-// In production, ad clients upload their own videos/images from their account.
-// Each entry: { videoId, advertiser, ctaText, ctaUrl }
-const AD_SLOTS = [
-  { videoId: 'T2RpwsMIhRg', advertiser: 'Uganda Tourism Board',  ctaUrl: '/advertise' },
-  { videoId: 'mCEJBpBpX1s', advertiser: 'Pearl of Africa',       ctaUrl: '/advertise' },
-  { videoId: 'GCDJBaFKKyE', advertiser: 'Visit Uganda',          ctaUrl: '/advertise' },
-  { videoId: 'oCr_M7dQ3_Y', advertiser: 'Stanbic Bank Uganda',   ctaUrl: '/advertise' },
-  { videoId: 'h3yRY3OwJlc', advertiser: 'MTN Uganda',            ctaUrl: '/advertise' },
+// ── Hero slide type ─────────────────────────────────────────────────────────
+interface HeroSlide {
+  id?: string;
+  youtubeId?: string;
+  mediaType?: 'youtube' | 'image' | 'video' | 'default';
+  mediaUrl?: string;
+  advertiser: string;
+  overlayTitle?: string;
+  overlaySubtitle?: string;
+  ctaText?: string;
+  targetUrl?: string;
+  ctaUrl?: string;
+}
+
+// ── Fallback hardcoded slides (used when no DB slides configured) ──────────
+const FALLBACK_SLIDES: HeroSlide[] = [
+  { youtubeId: 'T2RpwsMIhRg', advertiser: 'Uganda Tourism Board',  ctaUrl: '/advertise', mediaType: 'youtube' },
+  { youtubeId: 'mCEJBpBpX1s', advertiser: 'Pearl of Africa',       ctaUrl: '/advertise', mediaType: 'youtube' },
+  { youtubeId: 'GCDJBaFKKyE', advertiser: 'Visit Uganda',          ctaUrl: '/advertise', mediaType: 'youtube' },
+  { youtubeId: 'oCr_M7dQ3_Y', advertiser: 'Stanbic Bank Uganda',   ctaUrl: '/advertise', mediaType: 'youtube' },
+  { youtubeId: 'h3yRY3OwJlc', advertiser: 'MTN Uganda',            ctaUrl: '/advertise', mediaType: 'youtube' },
 ];
 
 function ytSrc(videoId: string, muted: boolean) {
-  // autoplay=1 requires mute=1 in most browsers (autoplay policy)
-  // loop=1 + playlist=<same id> = seamless loop
   return [
     `https://www.youtube.com/embed/${videoId}`,
     `?autoplay=1`,
@@ -37,6 +47,20 @@ function ytSrc(videoId: string, muted: boolean) {
     `&iv_load_policy=3`,
     `&enablejsapi=1`,
   ].join('');
+}
+
+// Extract YouTube video ID from a full URL or embed URL or bare ID
+function extractYoutubeId(url: string): string {
+  if (!url) return '';
+  const embedMatch = url.match(/embed\/([^?&]+)/);
+  if (embedMatch) return embedMatch[1];
+  const watchMatch = url.match(/[?&]v=([^&]+)/);
+  if (watchMatch) return watchMatch[1];
+  const shortMatch = url.match(/youtu\.be\/([^?]+)/);
+  if (shortMatch) return shortMatch[1];
+  // If it looks like a bare video ID (11 chars, no slashes)
+  if (/^[\w-]{11}$/.test(url)) return url;
+  return url;
 }
 
 
@@ -128,17 +152,28 @@ const AFRICAN_COUNTRIES = [
 export default function HomePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [query, setQuery]       = useState('');
-  const [aiMode, setAiMode]     = useState(false);
-  const [featured, setFeatured] = useState<Listing[]>([]);
-  const [muted, setMuted]       = useState(true);
-  const [slideIdx, setSlideIdx] = useState(0);
+  const [query, setQuery]         = useState('');
+  const [aiMode, setAiMode]       = useState(false);
+  const [featured, setFeatured]   = useState<Listing[]>([]);
+  const [muted, setMuted]         = useState(true);
+  const [slideIdx, setSlideIdx]   = useState(0);
+  const [heroSlides, setHeroSlides] = useState<HeroSlide[]>(FALLBACK_SLIDES);
+
+  // Load live hero slides from DB; fall back to hardcoded if empty
+  useEffect(() => {
+    adminApi.getHeroSlides().then(r => {
+      const slides: HeroSlide[] = (r.data as HeroSlide[]) || [];
+      if (slides.length > 0) setHeroSlides(slides);
+    }).catch(() => { /* keep fallback */ });
+  }, []);
 
   // Auto-advance hero slides every 12 s
   useEffect(() => {
-    const id = setInterval(() => setSlideIdx(i => (i + 1) % AD_SLOTS.length), 12000);
+    const len = heroSlides.length;
+    if (len <= 1) return;
+    const id = setInterval(() => setSlideIdx(i => (i + 1) % len), 12000);
     return () => clearInterval(id);
-  }, []);
+  }, [heroSlides.length]);
 
   useEffect(() => {
     listingsApi.search({ limit: 6 }).then(r => setFeatured(r.data.listings)).catch(() => {});
@@ -153,93 +188,122 @@ export default function HomePage() {
     <div className="min-h-screen bg-gray-50">
 
       {/* ── HERO ── */}
-      <div className="relative w-full overflow-hidden" style={{ height: 'calc(100svh - 86px)', minHeight: 360 }}>
-        {/* Single active iframe — key forces remount on slide or mute change so autoplay restarts cleanly */}
-        <div className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden" style={{ zIndex: 1 }}>
-          <iframe
-            key={`${slideIdx}-${muted}`}
-            src={ytSrc(AD_SLOTS[slideIdx].videoId, muted)}
-            title={`Hero Ad - ${AD_SLOTS[slideIdx].advertiser}`}
-            frameBorder="0"
-            allow="autoplay; encrypted-media; picture-in-picture"
-            allowFullScreen
-            style={{
-              position: 'absolute', top: '50%', left: '50%',
-              transform: 'translate(-50%, -50%)',
-              width: '177.78vh', height: '100%',
-              minWidth: '100%', minHeight: '56.25vw',
-              pointerEvents: 'none',
-            }}
-          />
-        </div>
-        <div className="absolute inset-0" style={{ zIndex: 3,
-          background: 'linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.72) 100%)' }} />
+      {(() => {
+        const slide = heroSlides[slideIdx] ?? heroSlides[0];
+        const mediaType = slide?.mediaType ?? 'youtube';
+        const rawUrl = slide?.mediaUrl ?? slide?.youtubeId ?? '';
+        const ytId = mediaType === 'youtube' ? extractYoutubeId(rawUrl) : '';
+        const ctaHref = slide?.targetUrl ?? slide?.ctaUrl ?? '/advertise';
+        const ctaLabel = slide?.ctaText ?? t('home.ad.slot');
 
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center px-4 pb-20 text-center text-white">
-          <div className="w-full">
-            <h1 className="font-black mb-2 drop-shadow-lg whitespace-nowrap"
-              style={{ fontSize: 'clamp(1.15rem, 4.5vw, 3.2rem)', lineHeight: 1.15 }}>
-              {t('app.tagline')}
-            </h1>
-            <p className="text-white/85 text-base md:text-lg mb-6 leading-relaxed drop-shadow">
-              {t('app.description')}
-            </p>
-            <div className="bg-white rounded-2xl shadow-2xl overflow-hidden max-w-2xl mx-auto">
-              <div className="flex items-center gap-2 px-4 py-1">
-                {aiMode ? <Sparkles size={22} className="text-purple-500 shrink-0" /> : <Search size={22} className="text-gray-400 shrink-0" />}
-                <input className="flex-1 outline-none text-gray-800 text-lg py-3 placeholder-gray-400 min-w-0"
-                  placeholder={aiMode ? t('search.placeholder') : t('search.placeholder')}
-                  value={query} onChange={e => setQuery(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && handleSearch()} />
-                <button className={`flex items-center gap-1 text-sm px-3 py-2 rounded-xl font-bold transition-colors shrink-0 ${aiMode ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-500'}`}
-                  onClick={() => setAiMode(v => !v)}>
-                  <Zap size={16} /> AI
-                </button>
+        return (
+          <div className="relative w-full overflow-hidden" style={{ height: 'calc(100svh - 86px)', minHeight: 360 }}>
+
+            {/* Background media */}
+            <div className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden" style={{ zIndex: 1 }}>
+              {mediaType === 'image' ? (
+                <img src={rawUrl} alt={slide?.advertiser} className="absolute inset-0 w-full h-full object-cover" />
+              ) : mediaType === 'video' ? (
+                <video key={`${slideIdx}-${rawUrl}`} src={rawUrl} autoPlay muted loop playsInline
+                  className="absolute inset-0 w-full h-full object-cover" />
+              ) : mediaType === 'default' ? (
+                <div className="absolute inset-0 w-full h-full" style={{ background: 'linear-gradient(135deg, var(--cp,#008751) 0%, #1a1a2e 100%)' }} />
+              ) : (
+                <iframe
+                  key={`${slideIdx}-${muted}`}
+                  src={ytSrc(ytId, muted)}
+                  title={`Hero Ad - ${slide?.advertiser}`}
+                  frameBorder="0"
+                  allow="autoplay; encrypted-media; picture-in-picture"
+                  allowFullScreen
+                  style={{
+                    position: 'absolute', top: '50%', left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    width: '177.78vh', height: '100%',
+                    minWidth: '100%', minHeight: '56.25vw',
+                    pointerEvents: 'none',
+                  }}
+                />
+              )}
+            </div>
+            <div className="absolute inset-0" style={{ zIndex: 3, background: 'linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.72) 100%)' }} />
+
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center px-4 pb-20 text-center text-white">
+              <div className="w-full">
+                {slide?.overlayTitle ? (
+                  <h1 className="font-black mb-2 drop-shadow-lg" style={{ fontSize: 'clamp(1.15rem, 4.5vw, 3.2rem)', lineHeight: 1.15 }}>
+                    {slide.overlayTitle}
+                  </h1>
+                ) : (
+                  <h1 className="font-black mb-2 drop-shadow-lg whitespace-nowrap" style={{ fontSize: 'clamp(1.15rem, 4.5vw, 3.2rem)', lineHeight: 1.15 }}>
+                    {t('app.tagline')}
+                  </h1>
+                )}
+                <p className="text-white/85 text-base md:text-lg mb-6 leading-relaxed drop-shadow">
+                  {slide?.overlaySubtitle || t('app.description')}
+                </p>
+                <div className="bg-white rounded-2xl shadow-2xl overflow-hidden max-w-2xl mx-auto">
+                  <div className="flex items-center gap-2 px-4 py-1">
+                    {aiMode ? <Sparkles size={22} className="text-purple-500 shrink-0" /> : <Search size={22} className="text-gray-400 shrink-0" />}
+                    <input className="flex-1 outline-none text-gray-800 text-lg py-3 placeholder-gray-400 min-w-0"
+                      placeholder={t('search.placeholder')}
+                      value={query} onChange={e => setQuery(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && handleSearch()} />
+                    <button className={`flex items-center gap-1 text-sm px-3 py-2 rounded-xl font-bold transition-colors shrink-0 ${aiMode ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-500'}`}
+                      onClick={() => setAiMode(v => !v)}>
+                      <Zap size={16} /> AI
+                    </button>
+                  </div>
+                  <button className="w-full py-3.5 font-bold text-white text-lg" style={{ backgroundColor: 'var(--cp)' }} onClick={handleSearch}>
+                    {t('search.searchBtn')} →
+                  </button>
+                </div>
+                <div className="flex flex-wrap justify-center gap-2 mt-5">
+                  {[
+                    { type: 'PERSONAL',   icon: <Users size={16} />,    label: t('listing.personal') },
+                    { type: 'BUSINESS',   icon: <Building2 size={16} />, label: t('listing.business') },
+                    { type: 'GOVERNMENT', icon: <Landmark size={16} />,  label: t('listing.government') },
+                    { type: 'NGO',        icon: <Heart size={16} />,     label: t('listing.ngo') },
+                  ].map(({ type, icon, label }) => (
+                    <button key={type}
+                      className="flex items-center gap-1.5 bg-white/20 hover:bg-white/30 active:bg-white/40 px-4 py-2.5 rounded-full text-sm font-semibold backdrop-blur-sm"
+                      onClick={() => navigate(`/search?type=${type}`)}>
+                      {icon} {label}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <button className="w-full py-3.5 font-bold text-white text-lg" style={{ backgroundColor: 'var(--cp)' }} onClick={handleSearch}>
-                {t('search.searchBtn')} →
-              </button>
             </div>
-            <div className="flex flex-wrap justify-center gap-2 mt-5">
-              {[
-                { type: 'PERSONAL',   icon: <Users size={16} />,    label: t('listing.personal') },
-                { type: 'BUSINESS',   icon: <Building2 size={16} />, label: t('listing.business') },
-                { type: 'GOVERNMENT', icon: <Landmark size={16} />,  label: t('listing.government') },
-                { type: 'NGO',        icon: <Heart size={16} />,     label: t('listing.ngo') },
-              ].map(({ type, icon, label }) => (
-                <button key={type}
-                  className="flex items-center gap-1.5 bg-white/20 hover:bg-white/30 active:bg-white/40 px-4 py-2.5 rounded-full text-sm font-semibold backdrop-blur-sm"
-                  onClick={() => navigate(`/search?type=${type}`)}>
-                  {icon} {label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
 
-        <div className="absolute bottom-4 left-0 right-0 z-10 flex items-center justify-between px-4 gap-3">
-          <div className="flex items-center gap-2 flex-1 min-w-0">
-            <span className="text-xs bg-black/50 text-white/70 px-2.5 py-1 rounded-full backdrop-blur-sm truncate">
-              📢 {AD_SLOTS[slideIdx].advertiser}
-            </span>
-            <a href={AD_SLOTS[slideIdx].ctaUrl}
-              className="text-xs bg-white/90 text-gray-900 font-bold px-3 py-1.5 rounded-full hover:bg-white whitespace-nowrap">
-              {t('home.ad.slot')}
-            </a>
+            {/* Bottom bar: advertiser label, dots, mute */}
+            <div className="absolute bottom-4 left-0 right-0 z-10 flex items-center justify-between px-4 gap-3">
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                <span className="text-xs bg-black/50 text-white/70 px-2.5 py-1 rounded-full backdrop-blur-sm truncate">
+                  📢 {slide?.advertiser}
+                </span>
+                <a href={ctaHref} className="text-xs bg-white/90 text-gray-900 font-bold px-3 py-1.5 rounded-full hover:bg-white whitespace-nowrap">
+                  {ctaLabel}
+                </a>
+              </div>
+              {heroSlides.length > 1 && (
+                <div className="flex items-center gap-1.5 shrink-0">
+                  {heroSlides.map((_, i) => (
+                    <button key={i}
+                      className={`rounded-full transition-all duration-300 ${i === slideIdx ? 'w-5 h-2 bg-white' : 'w-2 h-2 bg-white/40 hover:bg-white/70'}`}
+                      onClick={() => setSlideIdx(i)} aria-label={`Slide ${i + 1}`} />
+                  ))}
+                </div>
+              )}
+              {mediaType === 'youtube' && (
+                <button className="p-2 bg-black/40 text-white rounded-full backdrop-blur-sm hover:bg-black/60 shrink-0"
+                  onClick={() => setMuted(v => !v)}>
+                  {muted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+                </button>
+              )}
+            </div>
           </div>
-          <div className="flex items-center gap-1.5 shrink-0">
-            {AD_SLOTS.map((_, i) => (
-              <button key={i}
-                className={`rounded-full transition-all duration-300 ${i === slideIdx ? 'w-5 h-2 bg-white' : 'w-2 h-2 bg-white/40 hover:bg-white/70'}`}
-                onClick={() => setSlideIdx(i)} aria-label={`Slide ${i + 1}`} />
-            ))}
-          </div>
-          <button className="p-2 bg-black/40 text-white rounded-full backdrop-blur-sm hover:bg-black/60 shrink-0"
-            onClick={() => setMuted(v => !v)}>
-            {muted ? <VolumeX size={16} /> : <Volume2 size={16} />}
-          </button>
-        </div>
-      </div>
+        );
+      })()}
 
       {/* ── CATEGORIES — full viewport width ── */}
       <div className="w-full px-4 sm:px-6 lg:px-10 py-6">

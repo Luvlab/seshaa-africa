@@ -428,30 +428,173 @@ router.delete('/salesreps/:id', requireAuth, adminOnly, async (req, res) => {
   res.json({ ok: true });
 });
 
-// ─── Hero CMS ─────────────────────────────────────────────────────────────────
+// ─── Hero CMS (legacy single-slot) ───────────────────────────────────────────
 
-// GET /admin/hero — get the current homepage hero config
+// GET /admin/hero — get the current homepage hero config (legacy)
 router.get('/hero', requireAuth, adminOnly, async (_req, res) => {
-  // Hero config stored as a special listing record with osmId='seshaa-hero-config'
   const record = await prisma.listing.findFirst({ where: { osmId: 'seshaa-hero-config' } });
   res.json(record || null);
 });
 
-// POST /admin/hero — save / update the homepage hero config
+// POST /admin/hero — save / update the homepage hero config (legacy single slot)
 router.post('/hero', requireAuth, adminOnly, async (req: AuthRequest, res) => {
-  const existing = await prisma.listing.findFirst({ where: { osmId: 'seshaa-hero-config' } });
-  const payload = {
-    name: 'Hero Ad Config',
-    description: JSON.stringify(req.body),
-    osmId: 'seshaa-hero-config',
-    country: 'ZZ',
-    active: true,
-    verified: true,
+  try {
+    const record = await prisma.listing.upsert({
+      where: { osmId: 'seshaa-hero-config' },
+      update: {
+        name: 'Hero Ad Config',
+        description: JSON.stringify(req.body),
+        active: true,
+        verified: true,
+      },
+      create: {
+        name: 'Hero Ad Config',
+        description: JSON.stringify(req.body),
+        osmId: 'seshaa-hero-config',
+        country: 'ZZ',
+        city: 'Global',
+        type: 'BUSINESS',
+        active: true,
+        verified: true,
+      },
+    });
+    res.json(record);
+  } catch (err) {
+    console.error('Hero save error:', err);
+    res.status(500).json({ error: 'Failed to save hero config', detail: String(err) });
+  }
+});
+
+// ─── Hero Slides (slideshow ad campaign manager) ──────────────────────────────
+
+// GET /admin/hero-slides — all hero slides (incl. inactive)
+router.get('/hero-slides', requireAuth, adminOnly, async (_req, res) => {
+  const slides = await prisma.ad.findMany({
+    where: { packageId: 'hero-slide' },
+    orderBy: { createdAt: 'asc' },
+  });
+  res.json(slides.map(s => {
+    let extra: Record<string, unknown> = {};
+    try { extra = JSON.parse(s.description || '{}'); } catch { /* ok */ }
+    return { ...s, ...extra };
+  }));
+});
+
+// POST /admin/hero-slides — create a new hero slide
+router.post('/hero-slides', requireAuth, adminOnly, async (req: AuthRequest, res) => {
+  const {
+    mediaType = 'youtube', mediaUrl = '', youtubeId = '',
+    overlayTitle = '', overlaySubtitle = '', ctaText = 'Learn More',
+    ctaUrl = '/advertise', advertiser = '',
+    clientEmail = '', clientPhone = '', clientCountry = '',
+    paymentStatus = 'unpaid', paymentAmount = 0, invoiceRef = '',
+    notes = '', active = true,
+  } = req.body;
+
+  const extra = JSON.stringify({ mediaType, mediaUrl, youtubeId, overlayTitle, overlaySubtitle, ctaText, clientEmail, clientPhone, clientCountry, paymentStatus, paymentAmount, invoiceRef, notes });
+
+  const slide = await prisma.ad.create({
+    data: {
+      title: overlayTitle || advertiser || 'Hero Slide',
+      description: extra,
+      imageUrl: mediaUrl || youtubeId,
+      targetUrl: ctaUrl,
+      advertiser: advertiser,
+      contactPhone: clientPhone,
+      packageId: 'hero-slide',
+      tier: 'PREMIUM',
+      startDate: new Date(),
+      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      budget: paymentAmount || 0,
+      active: Boolean(active),
+    },
+  });
+  const extra2 = JSON.parse(slide.description || '{}');
+  res.json({ ...slide, ...extra2 });
+});
+
+// PUT /admin/hero-slides/:id — update a hero slide
+router.put('/hero-slides/:id', requireAuth, adminOnly, async (req, res) => {
+  const id = req.params.id as string;
+  const {
+    mediaType, mediaUrl, youtubeId, overlayTitle, overlaySubtitle, ctaText, ctaUrl,
+    advertiser, clientEmail, clientPhone, clientCountry,
+    paymentStatus, paymentAmount, invoiceRef, notes, active,
+  } = req.body;
+
+  const current = await prisma.ad.findUnique({ where: { id } });
+  if (!current) return res.status(404).json({ error: 'Not found' });
+
+  let currentExtra: Record<string, unknown> = {};
+  try { currentExtra = JSON.parse(current.description || '{}'); } catch { /* ok */ }
+
+  const merged = {
+    ...currentExtra,
+    ...(mediaType !== undefined ? { mediaType } : {}),
+    ...(mediaUrl !== undefined ? { mediaUrl } : {}),
+    ...(youtubeId !== undefined ? { youtubeId } : {}),
+    ...(overlayTitle !== undefined ? { overlayTitle } : {}),
+    ...(overlaySubtitle !== undefined ? { overlaySubtitle } : {}),
+    ...(ctaText !== undefined ? { ctaText } : {}),
+    ...(clientEmail !== undefined ? { clientEmail } : {}),
+    ...(clientPhone !== undefined ? { clientPhone } : {}),
+    ...(clientCountry !== undefined ? { clientCountry } : {}),
+    ...(paymentStatus !== undefined ? { paymentStatus } : {}),
+    ...(paymentAmount !== undefined ? { paymentAmount } : {}),
+    ...(invoiceRef !== undefined ? { invoiceRef } : {}),
+    ...(notes !== undefined ? { notes } : {}),
   };
-  const record = existing
-    ? await prisma.listing.update({ where: { id: existing.id }, data: payload })
-    : await prisma.listing.create({ data: { ...payload, type: 'BUSINESS', city: 'Global' } });
-  res.json(record);
+
+  const slide = await prisma.ad.update({
+    where: { id },
+    data: {
+      title: (overlayTitle ?? currentExtra.overlayTitle ?? advertiser ?? current.title) as string,
+      description: JSON.stringify(merged),
+      imageUrl: mediaUrl ?? currentExtra.mediaUrl as string ?? current.imageUrl,
+      targetUrl: ctaUrl ?? current.targetUrl,
+      advertiser: advertiser ?? current.advertiser,
+      contactPhone: clientPhone ?? current.contactPhone,
+      budget: paymentAmount ?? current.budget,
+      active: active !== undefined ? Boolean(active) : current.active,
+    },
+  });
+  res.json({ ...slide, ...JSON.parse(slide.description || '{}') });
+});
+
+// DELETE /admin/hero-slides/:id — remove a hero slide
+router.delete('/hero-slides/:id', requireAuth, adminOnly, async (req, res) => {
+  const id = req.params.id as string;
+  await prisma.ad.delete({ where: { id } });
+  res.json({ ok: true });
+});
+
+// PATCH /admin/hero-slides/:id/toggle — toggle active/inactive
+router.patch('/hero-slides/:id/toggle', requireAuth, adminOnly, async (req, res) => {
+  const id = req.params.id as string;
+  const current = await prisma.ad.findUnique({ where: { id } });
+  if (!current) return res.status(404).json({ error: 'Not found' });
+  const slide = await prisma.ad.update({ where: { id }, data: { active: !current.active } });
+  res.json({ ...slide, active: slide.active });
+});
+
+// GET /hero-slides (public) — active hero slides for the homepage
+router.get('/public/hero-slides', async (_req, res) => {
+  const slides = await prisma.ad.findMany({
+    where: { packageId: 'hero-slide', active: true },
+    orderBy: { createdAt: 'asc' },
+  });
+  res.json(slides.map(s => {
+    let extra: Record<string, unknown> = {};
+    try { extra = JSON.parse(s.description || '{}'); } catch { /* ok */ }
+    return {
+      id: s.id,
+      advertiser: s.advertiser,
+      targetUrl: s.targetUrl,
+      imageUrl: s.imageUrl,
+      impressions: s.impressions,
+      ...extra,
+    };
+  }));
 });
 
 export default router;
