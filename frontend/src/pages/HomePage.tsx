@@ -210,7 +210,10 @@ export default function HomePage() {
 
   const handleSearch = () => {
     if (!query.trim()) return;
-    navigate(aiMode ? `/search?ai=1&q=${encodeURIComponent(query)}` : `/search?q=${encodeURIComponent(query)}`);
+    const p = new URLSearchParams({ q: query.trim() });
+    if (aiMode) p.set('ai', '1');
+    if (countryCode) p.set('country', countryCode);
+    navigate(`/search?${p.toString()}`);
   };
 
   return (
@@ -286,7 +289,7 @@ export default function HomePage() {
                     </button>
                   </div>
                   <button className="w-full py-3.5 font-bold text-white text-lg" style={{ backgroundColor: 'var(--cp)' }} onClick={handleSearch}>
-                    {t('search.searchBtn')} →
+                    {t('search.findBtn')} →
                   </button>
                 </div>
                 <div className="flex flex-wrap justify-center gap-2 mt-5">
