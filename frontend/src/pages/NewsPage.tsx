@@ -76,7 +76,7 @@ function SecondaryCard({ item }: { item: NewsItem }) {
     <a href={item.link} target="_blank" rel="noopener noreferrer"
       className="group flex gap-3 py-3 last:pb-0 hover:bg-gray-50 rounded transition-colors">
       {item.image && (
-        <div className="shrink-0 w-20 h-16 overflow-hidden bg-gray-100 rounded">
+        <div className="shrink-0 w-24 aspect-[4/3] overflow-hidden bg-gray-100 rounded">
           <img src={item.image} alt={item.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
@@ -101,7 +101,7 @@ function GridCard({ item, size = 'md' }: { item: NewsItem; size?: 'sm' | 'md' | 
     <a href={item.link} target="_blank" rel="noopener noreferrer"
       className="group block bg-white hover:bg-gray-50 overflow-hidden transition-colors rounded">
       {item.image && (
-        <div className={`overflow-hidden bg-gray-100 ${size === 'lg' ? 'h-44' : size === 'md' ? 'h-28' : 'h-20'}`}>
+        <div className="aspect-[4/3] overflow-hidden bg-gray-100">
           <img src={item.image} alt={item.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
@@ -174,7 +174,7 @@ function NewsSkeleton() {
         <div className="lg:col-span-4 space-y-4">
           {[1,2,3,4].map(i => (
             <div key={i} className="flex gap-3">
-              <div className="w-20 h-16 bg-gray-200 rounded shrink-0" />
+              <div className="w-24 aspect-[4/3] bg-gray-200 rounded shrink-0" />
               <div className="flex-1 space-y-2">
                 <div className="h-3 bg-gray-200 rounded" />
                 <div className="h-3 bg-gray-200 rounded w-3/4" />
