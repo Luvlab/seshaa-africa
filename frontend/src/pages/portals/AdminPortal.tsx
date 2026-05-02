@@ -66,6 +66,8 @@ export default function AdminPortal() {
   const [scrapeTotal, setScrapeTotal]     = useState(0);
   const [scrapingCity, setScrapingCity]   = useState<string | null>(null);
   const [scrapeMsg, setScrapeMsg]         = useState('');
+  const [scrapingAll, setScrapingAll]     = useState(false);
+  const [enriching, setEnriching]         = useState(false);
 
   // Sales reps state
   interface SalesRepEntry {
@@ -181,6 +183,32 @@ export default function AdminPortal() {
       setScrapeMsg(`✗ ${city}: scrape failed — check network / Overpass status`);
     } finally {
       setScrapingCity(null);
+    }
+  };
+
+  const triggerScrapeAll = async () => {
+    setScrapingAll(true);
+    setScrapeMsg('');
+    try {
+      const r = await adminApi.scrapeAll();
+      setScrapeMsg(`✓ Background scrape started — ${r.data.cities} cities queued. Refresh counts in a few minutes.`);
+    } catch {
+      setScrapeMsg('✗ Failed to start full scrape');
+    } finally {
+      setScrapingAll(false);
+    }
+  };
+
+  const triggerEnrich = async () => {
+    setEnriching(true);
+    setScrapeMsg('');
+    try {
+      const r = await adminApi.scrapeEnrich();
+      setScrapeMsg(`✓ Price enrichment complete — ${r.data.enriched} listings processed`);
+    } catch {
+      setScrapeMsg('✗ Enrich failed');
+    } finally {
+      setEnriching(false);
     }
   };
 
@@ -705,6 +733,30 @@ export default function AdminPortal() {
                 Click a city to pull the latest businesses, addresses &amp; contacts into Seshaa's database.
                 One city at a time — ~30s each.
               </p>
+
+              {/* Bulk action buttons */}
+              <div className="flex flex-wrap gap-2 mb-4">
+                <button
+                  onClick={triggerScrapeAll}
+                  disabled={scrapingAll || scrapingCity !== null}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl text-sm font-semibold transition-colors"
+                >
+                  {scrapingAll ? <><RefreshCw size={14} className="animate-spin" /> Starting…</> : <><Database size={14} /> Scrape All Africa (background)</>}
+                </button>
+                <button
+                  onClick={triggerEnrich}
+                  disabled={enriching}
+                  className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white rounded-xl text-sm font-semibold transition-colors"
+                >
+                  {enriching ? <><RefreshCw size={14} className="animate-spin" /> Enriching…</> : '💰 Enrich Prices from Websites'}
+                </button>
+                <button
+                  onClick={() => adminApi.scrapeCounts().then(r => { setScrapeCounts(r.data.counts || []); setScrapeTotal(r.data.total || 0); }).catch(() => {})}
+                  className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl text-sm font-semibold transition-colors"
+                >
+                  <RefreshCw size={14} /> Refresh Counts
+                </button>
+              </div>
 
               {scrapeMsg && (
                 <div className={`mb-4 p-3 rounded-xl text-sm font-medium ${scrapeMsg.startsWith('✓') ? 'bg-green-500/10 border border-green-500/20 text-green-400' : 'bg-red-500/10 border border-red-500/20 text-red-400'}`}>
