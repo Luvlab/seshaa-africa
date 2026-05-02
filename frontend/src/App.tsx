@@ -31,6 +31,8 @@ import EventsPage from './pages/EventsPage';
 import DiasporaPage from './pages/DiasporaPage';
 import TravelsPage from './pages/TravelsPage';
 import ArchivePage from './pages/ArchivePage';
+import RadioPage from './pages/RadioPage';
+import FooterPlayer from './components/radio/FooterPlayer';
 
 // Detail/modal pages — still lazy-loaded (rarely visited)
 const ListingDetail = lazy(() => import('./pages/ListingDetail'));
@@ -42,7 +44,7 @@ const CountryPage = lazy(() => import('./pages/CountryPage'));
 // Tab paths — all kept mounted simultaneously
 const TAB_PATHS = [
   '/', '/search', '/news', '/classifieds', '/prices',
-  '/merch',
+  '/merch', '/radio',
   '/messages', '/bookings', '/advertise',
   '/ambassador', '/salesrep', '/admin',
   '/add-listing', '/translate', '/business', '/events', '/diaspora', '/travels', '/archive',
@@ -125,6 +127,7 @@ function TabContainer() {
     { path: '/diaspora',    el: <ErrorBoundary key="diaspora"><DiasporaPage /></ErrorBoundary> },
     { path: '/travels',     el: <ErrorBoundary key="travels"><TravelsPage /></ErrorBoundary> },
     { path: '/archive',     el: <ErrorBoundary key="archive"><ArchivePage /></ErrorBoundary> },
+    { path: '/radio',       el: <ErrorBoundary key="radio"><RadioPage /></ErrorBoundary> },
   ];
 
   return (
@@ -239,11 +242,12 @@ export default function App() {
       <BrowserRouter>
         <div className="min-h-screen flex flex-col bg-gray-50">
           <Navbar />
-          <main className="flex-1 pt-14 pb-16 md:pb-0">
+          <main className="flex-1 pt-14 pb-16 md:pb-0" style={{ paddingBottom: 'calc(4rem + var(--player-bar-h, 0px))' }}>
             <TabContainer />
           </main>
           <Footer />
           <MobileTabBar />
+          <FooterPlayer />
           <ChatFAB />
           {showSurvey && <InterestSurvey onClose={() => setShowSurvey(false)} />}
         </div>

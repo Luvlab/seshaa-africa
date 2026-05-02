@@ -222,7 +222,7 @@ export default function HomePage() {
         const ctaLabel = slide?.ctaText ?? t('home.ad.slot');
 
         return (
-          <div className="relative w-full overflow-hidden" style={{ height: 'calc(100svh - 86px)', minHeight: 360 }}>
+          <div className="relative w-full overflow-hidden" style={{ height: 'calc(100svh - 86px - var(--player-bar-h, 0px))', minHeight: 360 }}>
 
             {/* Background media */}
             <div className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden" style={{ zIndex: 1 }}>

@@ -31,6 +31,7 @@ model User {
   translationVotes       TranslationVote[]
   eventsSubmitted        Event[]
   eventAttendances       EventAttendee[]
+  radioTracks            RadioTrack[]
 }
 
 enum Role {
@@ -538,6 +539,29 @@ enum PromotionType {
   ANNOUNCEMENT // general news from the business
   HIRING       // job opening
   NEW_PRODUCT  // new product or service launch
+}
+
+// ─── Seshaa Radio — user-submitted tracks (no audio storage, just URLs) ──────
+model RadioTrack {
+  id            String   @id @default(uuid())
+  title         String
+  artist        String
+  audioUrl      String                // direct stream/download URL — no file stored
+  imageUrl      String?
+  country       String?
+  genre         String?
+  album         String?
+  duration      Int?                  // seconds
+  ownerRights   Boolean  @default(false) // submitter confirmed they own/license the rights
+  approved      Boolean  @default(false)
+  playCount     Int      @default(0)
+  submittedById String?
+  submittedBy   User?    @relation(fields: [submittedById], references: [id])
+  createdAt     DateTime @default(now())
+
+  @@index([genre, approved])
+  @@index([country, approved])
+  @@index([submittedById])
 }
 
 // ─── News Archive ─────────────────────────────────────────────────────────────

@@ -256,4 +256,13 @@ export const promotionsApi = {
   remove: (id: string) => api.delete(`/promotions/${id}`),
 };
 
+// Seshaa Radio
+export const radioApi = {
+  tags:        () => api.get<{ id: string; label: string; emoji: string }[]>('/radio/tags'),
+  tracks:      (tag: string, limit = 50) => api.get<{ id: string; name: string; artist: string; album: string; image: string; audio: string; audioDownload: string; duration: number; tags: string[]; shareUrl: string; source: string }[]>('/radio/tracks', { params: { tag, limit } }),
+  community:   (params?: { genre?: string; country?: string; limit?: number; page?: number }) => api.get('/radio/community', { params }),
+  submit:      (data: { title: string; artist: string; audioUrl: string; imageUrl?: string; country?: string; genre?: string; album?: string; duration?: number; ownerRights: boolean }) => api.post('/radio/submit', data),
+  recordPlay:  (id: string) => api.post(`/radio/${id}/play`),
+};
+
 export default api;

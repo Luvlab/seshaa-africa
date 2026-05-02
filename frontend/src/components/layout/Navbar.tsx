@@ -5,7 +5,7 @@ import {
   Search, Menu, X, MessageCircle, Bell, User, ChevronDown, Sparkles, Globe,
   Home, Newspaper, Tag, BarChart2, Megaphone, PartyPopper,
   Star, Briefcase, Languages, Settings, Globe2, Archive,
-  ShoppingBag,
+  ShoppingBag, Radio,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/auth';
 import { useThemeStore } from '../../store/theme';
@@ -22,6 +22,7 @@ const PAGE_SUFFIX_MAP: [string, string][] = [
   ['/classifieds', 'classifieds'],
   ['/prices',      'prices'],
   ['/merch',       'merch'],
+  ['/radio',       'radio'],
   ['/events',      'events'],
   ['/advertise',   'advertise'],
   ['/ambassador',  'ambassador'],
@@ -61,6 +62,7 @@ const ALL_TABS: Tab[] = [
   { id: 'classifieds', path: '/classifieds',label: 'Classifieds', icon: <Tag          size={15} /> },
   { id: 'prices',      path: '/prices',     label: 'Prices',      icon: <BarChart2    size={15} /> },
   { id: 'merch',       path: '/merch',      label: 'Merch',       icon: <ShoppingBag  size={15} /> },
+  { id: 'radio',       path: '/radio',      label: 'Radio',       icon: <Radio        size={15} /> },
   { id: 'advertise',   path: '/advertise',  label: 'Advertise',   icon: <Megaphone    size={15} /> },
   { id: 'events',      path: '/events',     label: 'Events',      icon: <PartyPopper  size={15} /> },
   { id: 'ambassador',  path: '/ambassador', label: 'Ambassador',  icon: <Star         size={15} />, roles: ['AMBASSADOR', 'ADMIN'] },
