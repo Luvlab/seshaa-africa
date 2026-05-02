@@ -97,7 +97,7 @@ export default function SearchPage() {
   };
 
   return (
-    <div className="w-full px-4 sm:px-6 lg:px-10 py-4">
+    <div className="w-full max-w-full overflow-x-hidden px-4 sm:px-6 lg:px-10 py-4">
       {/* Search bar */}
       <div className="flex gap-2 mb-3">
         <div className="flex-1 flex items-center gap-2 bg-white rounded-xl border px-4 py-2.5 shadow-sm min-w-0">
@@ -133,7 +133,7 @@ export default function SearchPage() {
 
       {/* Category pills + actions row */}
       <div className="flex items-center gap-2 mb-3">
-        <div className="flex-1 flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+        <div className="flex-1 min-w-0 flex gap-2 overflow-x-auto pb-1 scrollbar-none">
           <button
             onClick={() => update({ category: '' })}
             className={clsx(
