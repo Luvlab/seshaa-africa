@@ -4,7 +4,7 @@ import {
   Send, CheckCircle, X, Users, Activity, Globe, Bell, ChevronRight,
   AlertTriangle, Tv, Database, Paintbrush, RefreshCw, Briefcase, BarChart2,
   Zap, ArrowUpRight, Plus, Edit2, Trash2, Eye, EyeOff, Play,
-  CreditCard, Phone, Mail, Calendar, Info,
+  CreditCard, Phone, Mail, Info,
 } from 'lucide-react';
 import { adminApi, adsApi } from '../../services/api';
 import { useAuthStore } from '../../store/auth';
@@ -106,10 +106,9 @@ export default function AdminPortal() {
   const [pressType, setPressType]         = useState('award_winner');
   const [pressCopied, setPressCopied]     = useState(false);
 
-  // Hero CMS state (legacy single slot)
+  // Hero CMS state (legacy single slot — kept for reference, no longer rendered)
   const [hero, setHero]                   = useState<HeroConfig>(DEFAULT_HERO);
-  const [heroSaving, setHeroSaving]       = useState(false);
-  const [heroSaved, setHeroSaved]         = useState(false);
+  void hero; void setHero; // suppress unused warnings — kept for future use
 
   // Hero slideshow state
   interface HeroSlide {
@@ -238,27 +237,8 @@ export default function AdminPortal() {
     setSalesReps(prev => prev.filter(r => r.id !== id));
   };
 
-  const saveHero = async () => {
-    setHeroSaving(true);
-    try {
-      await adminApi.setHero(hero);
-      setHeroSaved(true);
-      setTimeout(() => setHeroSaved(false), 3000);
-    } catch (err) {
-      console.error('Hero save error', err);
-      alert('Error saving hero config — check console');
-    }
-    finally { setHeroSaving(false); }
-  };
-
   // ── Hero slides CRUD ──
-  const loadHeroSlides = async () => {
-    try {
-      const r = await adminApi.getHeroSlides();
-      setHeroSlides(r.data || []);
-      setSlidesLoaded(true);
-    } catch { /* ignore */ }
-  };
+
 
   const saveSlide = async () => {
     setSlideSaving(true);
