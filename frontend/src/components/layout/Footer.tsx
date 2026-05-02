@@ -38,7 +38,7 @@ export default function Footer() {
     <footer className="w-full bg-gray-900 text-gray-300 mt-16">
 
       {/* ── Main link columns ─────────────────────────────────────────── */}
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 pt-10 pb-6
+      <div className="w-full px-4 sm:px-6 lg:px-10 pt-10 pb-6
                       grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-8">
 
         {/* Brand */}
@@ -93,7 +93,7 @@ export default function Footer() {
 
       {/* ── Accessibility: font-size slider ──────────────────────────── */}
       <div className="w-full border-t border-gray-800">
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-4
+        <div className="w-full px-4 sm:px-6 lg:px-10 py-4
                         flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
 
           {/* Label */}
@@ -140,7 +140,7 @@ export default function Footer() {
 
       {/* ── Bottom bar ───────────────────────────────────────────────── */}
       <div className="w-full border-t border-gray-800">
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-4
+        <div className="w-full px-4 sm:px-6 lg:px-10 py-4
                         flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-500">
           <span>{t('footer.copyright', { year: new Date().getFullYear() })}</span>
           <span className="text-base leading-none">
