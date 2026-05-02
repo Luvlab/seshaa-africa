@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Leaf, ShoppingBag, ExternalLink, RefreshCw } from 'lucide-react';
+import { Leaf, ExternalLink, RefreshCw } from 'lucide-react';
 import { merchApi } from '../services/api';
 import type { MerchProduct, MerchProvider, MerchService } from '../types';
 
@@ -33,14 +33,6 @@ export default function MerchStorePage() {
 
   return (
     <div className="w-full px-4 sm:px-6 lg:px-10 py-6 space-y-6">
-      <div className="bg-gradient-to-r from-emerald-700 to-teal-600 rounded-2xl p-5 text-white">
-        <div className="flex items-center gap-2 mb-2">
-          <ShoppingBag size={18} />
-          <h1 className="text-xl font-black">Seshaa Merch Store</h1>
-        </div>
-        <p className="text-sm text-emerald-100">Connected to popular Print-On-Demand services. Start with Printify and Printful, then expand to African providers.</p>
-      </div>
-
       <div className="bg-white border rounded-2xl p-4">
         <div className="flex flex-wrap gap-2">
           {providers.map(p => (

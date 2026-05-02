@@ -12,7 +12,7 @@ import { useTranslation } from 'react-i18next';
 import {
   Search, TrendingUp, Star, MapPin, Phone, RefreshCw,
   Plus, X, DollarSign, Globe, Building2,
-  BarChart2, ArrowUpDown, CheckCircle,
+  ArrowUpDown, CheckCircle,
 } from 'lucide-react';
 import { pricesApi, listingsApi } from '../services/api';
 import type { PriceEntry } from '../types';
@@ -131,22 +131,15 @@ export default function PriceComparePage() {
 
   return (
     <div className="w-full px-4 sm:px-6 lg:px-10 py-6">
-      {/* Header */}
-      <div className="flex items-start justify-between mb-6 gap-4 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-black text-gray-900 flex items-center gap-2">
-            <BarChart2 size={22} className="text-green-600" /> {t('priceCompare.title')}
-          </h1>
-          <p className="text-sm text-gray-500 mt-1">{t('priceCompare.subtitle')}</p>
-        </div>
-        {selectedItem && (
+      {selectedItem && (
+        <div className="flex justify-end mb-4">
           <button onClick={() => setShowSubmit(v => !v)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm text-white shrink-0"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm text-white"
             style={{ background: 'var(--cp, #008751)' }}>
             <Plus size={15} /> {t('priceCompare.submitPrice')}
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       <div className="flex gap-6 flex-col lg:flex-row">
         {/* ── Left: Category + Trending ── */}

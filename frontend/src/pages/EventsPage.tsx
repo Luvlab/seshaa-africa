@@ -148,26 +148,12 @@ export default function EventsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Hero */}
-      <div className="bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 text-white px-4 py-14 text-center">
-        <h1 className="text-4xl font-black mb-3">🎉 Events across Africa</h1>
-        <p className="text-white/80 text-lg mb-6">Discover concerts, markets, conferences & more</p>
-        {user && (
-          <button
-            onClick={() => setShowSubmitForm(s => !s)}
-            className="inline-flex items-center gap-2 bg-white text-purple-700 font-bold px-6 py-3 rounded-2xl hover:bg-white/90 transition-colors"
-          >
-            <Plus size={18} /> Submit an Event
-          </button>
-        )}
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-4">
         {submitSuccess && (
-          <p className="mt-4 text-sm bg-white/20 rounded-xl px-4 py-2 inline-block">
+          <p className="mb-3 text-sm bg-purple-50 border border-purple-200 text-purple-700 rounded-xl px-4 py-2 inline-block">
             Event submitted! It will appear after review.
           </p>
         )}
-      </div>
-
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-6">
         {/* Filter bar */}
         <div className="flex flex-col sm:flex-row flex-wrap gap-3 mb-6">
           {/* Search */}
@@ -193,7 +179,7 @@ export default function EventsPage() {
           </div>
 
           {/* Category chips */}
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 flex-1">
             <button
               onClick={() => setCategory('')}
               className={clsx(
@@ -216,6 +202,14 @@ export default function EventsPage() {
               </button>
             ))}
           </div>
+          {user && (
+            <button
+              onClick={() => setShowSubmitForm(s => !s)}
+              className="shrink-0 inline-flex items-center gap-1.5 bg-purple-600 text-white font-bold px-4 py-2 rounded-xl hover:bg-purple-700 text-sm transition-colors"
+            >
+              <Plus size={15} /> Submit Event
+            </button>
+          )}
         </div>
 
         {/* Events grid */}

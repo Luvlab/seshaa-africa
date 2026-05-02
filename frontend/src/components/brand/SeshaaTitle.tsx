@@ -92,10 +92,11 @@ export default function SeshaaTitle({ countryCode, size = 'sm', className = '', 
   const [fading, setFading]   = useState(false);
   const [settled, setSettled] = useState(isStatic);
 
-  const timerRef  = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const ivRef     = useRef<ReturnType<typeof setInterval> | null>(null);
-  const idxRef    = useRef(0);
-  const prevCode  = useRef(countryCode);
+  const timerRef      = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const ivRef         = useRef<ReturnType<typeof setInterval> | null>(null);
+  const idxRef        = useRef(0);
+  const prevCode      = useRef(countryCode);
+  const prevStatic    = useRef(staticSuffix);
 
   // CSS-var overrides let the Admin branding panel adjust sizes live
   const fallback = SIZE[size] ?? SIZE.sm;
@@ -157,9 +158,24 @@ export default function SeshaaTitle({ countryCode, size = 'sm', className = '', 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // ── React to staticSuffix changes (e.g. Navbar page-aware title) ───────────
+  useEffect(() => {
+    if (prevStatic.current === staticSuffix) return; // no change on mount
+    prevStatic.current = staticSuffix;
+
+    const target = staticSuffix !== undefined ? staticSuffix : slugFor(countryCode);
+    setFading(true);
+    timerRef.current = setTimeout(() => {
+      setSuffix(target);
+      setFading(false);
+      setSettled(true);
+    }, 220);
+    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+  }, [staticSuffix]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // ── React to country changes after settling ──────────────────────────────
   useEffect(() => {
-    if (!settled || isStatic) return;
+    if (!settled || staticSuffix !== undefined) return; // skip if page suffix active
     if (countryCode === prevCode.current) return;
     prevCode.current = countryCode;
 
@@ -173,7 +189,7 @@ export default function SeshaaTitle({ countryCode, size = 'sm', className = '', 
     }, 220);
 
     return () => { if (timerRef.current) clearTimeout(timerRef.current); };
-  }, [countryCode, settled, isStatic]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [countryCode, settled, staticSuffix]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className={`flex items-center gap-0 select-none leading-none ${className}`}>

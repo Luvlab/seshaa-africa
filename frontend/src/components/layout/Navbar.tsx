@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import {
   Search, Menu, X, MessageCircle, Bell, User, ChevronDown, Sparkles, Globe,
   Home, Newspaper, Tag, BarChart2, Megaphone, PartyPopper,
-  Star, Briefcase, Languages, Settings, Globe2, Plane, Archive,
+  Star, Briefcase, Languages, Settings, Globe2, Archive,
   ShoppingBag,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/auth';
@@ -14,6 +14,28 @@ import CountryPicker from './CountryPicker';
 import { LANGUAGES } from '../../i18n';
 import clsx from 'clsx';
 import type { PortalType } from '../../types';
+
+// Maps route prefixes → the suffix shown in the navbar title logo
+const PAGE_SUFFIX_MAP: [string, string][] = [
+  ['/news',        'news'],
+  ['/search',      'search'],
+  ['/classifieds', 'classifieds'],
+  ['/prices',      'prices'],
+  ['/merch',       'merch'],
+  ['/events',      'events'],
+  ['/advertise',   'advertise'],
+  ['/ambassador',  'ambassador'],
+  ['/salesrep',    'salesrep'],
+  ['/translate',   'translate'],
+  ['/diaspora',    'diaspora'],
+  ['/archive',     'archive'],
+  ['/admin',       'admin'],
+  ['/profile',     'profile'],
+  ['/auth',        'auth'],
+  ['/add-listing', 'add'],
+  ['/listings',    'directory'],
+  ['/bookings',    'bookings'],
+];
 
 const PORTAL_LABELS: Record<PortalType, string> = {
   consumer: 'Consumer',
@@ -46,7 +68,7 @@ const ALL_TABS: Tab[] = [
   { id: 'translate',   path: '/translate',  label: 'Translate',   icon: <Languages    size={15} /> },
   { id: 'admin',       path: '/admin',      label: 'Admin',       icon: <Settings     size={15} />, roles: ['ADMIN'] },
   { id: 'diaspora',    path: '/diaspora',   label: 'Diaspora',    icon: <Globe2       size={15} /> },
-  { id: 'travels',     path: '/travels',    label: 'Travels',     icon: <Plane        size={15} /> },
+  // Travels removed from nav — it's a category inside Search/Directory
   { id: 'archive',     path: '/archive',    label: 'Archive',     icon: <Archive      size={15} /> },
 ];
 
@@ -63,6 +85,14 @@ export default function Navbar() {
   const [countryPickerOpen, setCountryPickerOpen] = useState(false);
 
   const currentLang = LANGUAGES.find(l => l.code === i18n.language) || LANGUAGES[0];
+
+  // Derive page-specific suffix from current route
+  const pageSuffix = useMemo(() => {
+    const path = location.pathname;
+    if (path === '/') return undefined;
+    const match = PAGE_SUFFIX_MAP.find(([prefix]) => path === prefix || path.startsWith(prefix + '/'));
+    return match ? match[1] : undefined;
+  }, [location.pathname]);
 
   const changeLanguage = (code: string) => {
     i18n.changeLanguage(code);
@@ -118,7 +148,7 @@ export default function Navbar() {
           className="shrink-0 flex h-full items-center self-stretch origin-left scale-[0.84] -translate-y-[1px] sm:scale-100 sm:translate-y-0"
           style={{ minWidth: 112 }}
         >
-          <SeshaaTitle countryCode={countryCode} size="md" />
+          <SeshaaTitle countryCode={countryCode} size="md" staticSuffix={pageSuffix} />
         </Link>
 
         {/* Country flag badge */}
@@ -262,7 +292,7 @@ export default function Navbar() {
             const isActive = tab.path === '/'
               ? location.pathname === '/'
               : location.pathname.startsWith(tab.path);
-            const isDiaspora = tab.id === 'diaspora' || tab.id === 'travels';
+            const isDiaspora = tab.id === 'diaspora';
             return (
               <Link
                 key={tab.id}

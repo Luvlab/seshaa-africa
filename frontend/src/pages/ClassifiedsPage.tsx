@@ -236,32 +236,27 @@ export default function ClassifiedsPage() {
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-6">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h1 className="text-2xl font-black text-gray-900">Seshaa Classifieds</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Buy and sell safely across Africa</p>
-        </div>
-        <button
-          onClick={() => !!user ? setShowPost(true) : alert('Please sign in to post')}
-          className="flex items-center gap-2 px-5 py-2.5 text-white rounded-full font-semibold text-sm"
-          style={{ backgroundColor: 'var(--cp)' }}
-        >
-          <Plus size={16}/> Post Ad
-        </button>
-      </div>
-
       <SafetyBanner />
 
-      {/* Search */}
-      <form onSubmit={handleSearch} className="relative mb-4">
-        <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-        <input
-          className="w-full border rounded-xl pl-10 pr-4 py-3 text-sm outline-none focus:border-[var(--cp)]"
-          placeholder="Search classifieds..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-        />
+      {/* Search + Post Ad */}
+      <form onSubmit={handleSearch} className="flex gap-2 mb-4">
+        <div className="relative flex-1">
+          <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input
+            className="w-full border rounded-xl pl-10 pr-4 py-3 text-sm outline-none focus:border-[var(--cp)]"
+            placeholder="Search classifieds..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+        </div>
+        <button
+          type="button"
+          onClick={() => !!user ? setShowPost(true) : alert('Please sign in to post')}
+          className="shrink-0 flex items-center gap-1.5 px-4 py-2.5 text-white rounded-xl font-semibold text-sm"
+          style={{ backgroundColor: 'var(--cp)' }}
+        >
+          <Plus size={16}/> Post
+        </button>
       </form>
 
       {/* Category chips */}

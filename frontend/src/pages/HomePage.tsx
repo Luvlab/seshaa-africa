@@ -2,14 +2,12 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
-  Search, Zap, Users, Building2, Landmark, Heart, Sparkles, TrendingUp, Volume2, VolumeX,
+  Search, Zap, Users, Building2, Landmark, Heart, Sparkles, Volume2, VolumeX,
   Utensils, HeartPulse, GraduationCap, Banknote, Bus, BedDouble,
   Laptop, Scissors, Wrench, Wheat, Church, HardHat,
 } from 'lucide-react';
-import { listingsApi, adminApi } from '../services/api';
-import ListingCard from '../components/directory/ListingCard';
+import { adminApi } from '../services/api';
 import { useThemeStore } from '../store/theme';
-import type { Listing } from '../types';
 
 // ── Hero slide type ─────────────────────────────────────────────────────────
 interface HeroSlide {
@@ -177,7 +175,6 @@ export default function HomePage() {
   const { countryCode } = useThemeStore();
   const [query, setQuery]         = useState('');
   const [aiMode, setAiMode]       = useState(false);
-  const [featured, setFeatured]   = useState<Listing[]>([]);
   const [muted, setMuted]         = useState(true);
   const [slideIdx, setSlideIdx]   = useState(0);
   const [heroSlides, setHeroSlides] = useState<HeroSlide[]>(FALLBACK_SLIDES);
@@ -202,11 +199,6 @@ export default function HomePage() {
     const id = setInterval(() => setSlideIdx(i => (i + 1) % len), 12000);
     return () => clearInterval(id);
   }, [heroSlides.length]);
-
-  useEffect(() => {
-    const params = countryCode ? { limit: 6, country: countryCode } : { limit: 6 };
-    listingsApi.search(params).then(r => setFeatured(r.data.listings)).catch(() => {});
-  }, [countryCode]);
 
   const handleSearch = () => {
     if (!query.trim()) return;
@@ -378,17 +370,6 @@ export default function HomePage() {
               </div>
             </button>
           ))}
-        </div>
-      </div>
-
-      {/* ── FEATURED LISTINGS — full viewport width ── */}
-      <div className="w-full px-4 sm:px-6 lg:px-10 pb-8">
-        <div className="flex items-center gap-2 mb-4">
-          <TrendingUp size={20} className="text-green-600" />
-          <h2 className="text-xl font-bold text-gray-800">{t('home.featured')}</h2>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-          {featured.map(l => <ListingCard key={l.id} listing={l} />)}
         </div>
       </div>
 

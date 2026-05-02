@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Search, SlidersHorizontal, Sparkles, X, Plus } from 'lucide-react';
+import { SlidersHorizontal, Plus, Search } from 'lucide-react';
 import clsx from 'clsx';
 import { listingsApi, aiSearchApi } from '../services/api';
 import ListingCard from '../components/directory/ListingCard';
@@ -87,45 +87,10 @@ export default function SearchPage() {
   };
 
   return (
-    <div className="w-full px-4 sm:px-6 lg:px-10 py-6">
-      {/* Search bar */}
-      <div className="flex gap-2 mb-4">
-        <div className="flex-1 flex items-center gap-2 bg-white rounded-xl border px-4 py-3 shadow-sm">
-          {aiMode ? <Sparkles size={18} className="text-purple-500" /> : <Search size={18} className="text-gray-400" />}
-          <input
-            className="flex-1 outline-none text-gray-800 placeholder-gray-400"
-            placeholder={t('search.placeholder')}
-            value={filters.q}
-            onChange={e => setFilters(f => ({ ...f, q: e.target.value }))}
-            onKeyDown={e => e.key === 'Enter' && update({ q: filters.q })}
-          />
-          {filters.q && (
-            <button onClick={() => update({ q: '' })}><X size={16} className="text-gray-400" /></button>
-          )}
-        </div>
-        <button
-          className="bg-green-600 text-white px-5 rounded-xl font-semibold hover:bg-green-700"
-          onClick={() => update({ q: filters.q })}
-        >
-          {t('search.findBtn', { defaultValue: t('search.searchBtn') })}
-        </button>
-        <a
-          href="/add-listing"
-          className="flex items-center gap-1.5 text-sm font-bold px-4 rounded-xl text-white whitespace-nowrap"
-          style={{ background: 'var(--cp, #008751)' }}
-        >
-          <Plus size={15} /> {t('listing.addNew', { defaultValue: 'Add Listing' })}
-        </a>
-        <button
-          className="bg-white border px-4 rounded-xl hover:bg-gray-50 shrink-0"
-          onClick={() => setShowFilters(v => !v)}
-        >
-          <SlidersHorizontal size={18} />
-        </button>
-      </div>
-
-      <div className="mb-4 -mt-1">
-        <div className="flex gap-2 overflow-x-auto pb-1">
+    <div className="w-full px-4 sm:px-6 lg:px-10 py-4">
+      {/* Category pills + actions row */}
+      <div className="flex items-center gap-2 mb-3">
+        <div className="flex-1 flex gap-2 overflow-x-auto pb-1 scrollbar-none">
           <button
             onClick={() => update({ category: '' })}
             className={clsx(
@@ -157,6 +122,21 @@ export default function SearchPage() {
             );
           })}
         </div>
+        {/* Action buttons — always visible, fixed width */}
+        <a
+          href="/add-listing"
+          className="shrink-0 flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-full text-white whitespace-nowrap"
+          style={{ background: 'var(--cp, #008751)' }}
+        >
+          <Plus size={13} /> Add
+        </a>
+        <button
+          className="shrink-0 bg-white border px-2.5 py-1.5 rounded-full hover:bg-gray-50"
+          onClick={() => setShowFilters(v => !v)}
+          title="Filters"
+        >
+          <SlidersHorizontal size={14} />
+        </button>
       </div>
 
       {/* AI interpretation */}
@@ -214,11 +194,6 @@ export default function SearchPage() {
             <>
               <div className="flex items-center justify-between mb-3">
                 <p className="text-sm text-gray-500">{t('search.results', { count: total })}</p>
-                <a href="/add-listing"
-                  className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg text-white"
-                  style={{ background: 'var(--cp, #008751)' }}>
-                  <Plus size={13} /> Add a Place
-                </a>
               </div>
               <div className="grid sm:grid-cols-2 gap-4">
                 {listings.map((l, i) => (

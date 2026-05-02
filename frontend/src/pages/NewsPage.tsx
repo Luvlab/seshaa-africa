@@ -10,7 +10,6 @@ import { ExternalLink, RefreshCw, Clock, Newspaper, Search } from 'lucide-react'
 import { useTranslation } from 'react-i18next';
 import { useThemeStore } from '../store/theme';
 import { COUNTRIES } from '../components/layout/CountryPicker';
-import SeshaaTitle from '../components/brand/SeshaaTitle';
 import api from '../services/api';
 
 interface NewsItem {
@@ -278,16 +277,6 @@ export default function NewsPage() {
               <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />
               <span className="hidden sm:inline">{t('news.refresh')}</span>
             </button>
-          </div>
-
-          {/* Masthead title — left-aligned */}
-          <div className="flex items-end gap-3 mb-3 pb-3" style={{ borderBottom: '2px solid #111' }}>
-            <SeshaaTitle countryCode={countryCode} size="lg" />
-            <span className="text-3xl font-black tracking-tighter text-gray-900 hidden sm:block"
-              style={{ fontFamily: '"Georgia","Times New Roman",serif', lineHeight: 1 }}>NEWS</span>
-            <span className="text-xs text-gray-400 uppercase tracking-widest ml-auto hidden md:block self-center">
-              {t('news.subtitle')}
-            </span>
           </div>
 
           {/* Category tabs — no underlines between tabs, just active indicator */}
