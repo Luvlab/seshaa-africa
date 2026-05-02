@@ -597,6 +597,98 @@ router.get('/public/hero-slides', async (_req, res) => {
   }));
 });
 
+// GET /admin/seo-settings — fetch editable social sharing SEO settings
+router.get('/seo-settings', requireAuth, adminOnly, async (_req, res) => {
+  const record = await prisma.listing.findUnique({ where: { osmId: 'seshaa-seo-config' } });
+  if (!record?.description) {
+    return res.json({
+      title: 'Seshaa Africa — Directory for All 54 Countries',
+      description: 'Find businesses, services, and people across all 54 African countries on Seshaa.',
+      thumbnailUrl: 'https://www.seshaa.africa/og-image.svg',
+      url: 'https://www.seshaa.africa',
+    });
+  }
+
+  try {
+    const parsed = JSON.parse(record.description) as { title?: string; description?: string; thumbnailUrl?: string; url?: string };
+    return res.json({
+      title: parsed.title || 'Seshaa Africa — Directory for All 54 Countries',
+      description: parsed.description || 'Find businesses, services, and people across all 54 African countries on Seshaa.',
+      thumbnailUrl: parsed.thumbnailUrl || 'https://www.seshaa.africa/og-image.svg',
+      url: parsed.url || 'https://www.seshaa.africa',
+    });
+  } catch {
+    return res.json({
+      title: 'Seshaa Africa — Directory for All 54 Countries',
+      description: 'Find businesses, services, and people across all 54 African countries on Seshaa.',
+      thumbnailUrl: 'https://www.seshaa.africa/og-image.svg',
+      url: 'https://www.seshaa.africa',
+    });
+  }
+});
+
+// POST /admin/seo-settings — save social sharing SEO metadata
+router.post('/seo-settings', requireAuth, adminOnly, async (req, res) => {
+  const title = String(req.body?.title || '').trim() || 'Seshaa Africa — Directory for All 54 Countries';
+  const description = String(req.body?.description || '').trim() || 'Find businesses, services, and people across all 54 African countries on Seshaa.';
+  const thumbnailUrl = String(req.body?.thumbnailUrl || '').trim() || 'https://www.seshaa.africa/og-image.svg';
+  const url = String(req.body?.url || '').trim() || 'https://www.seshaa.africa';
+
+  const payload = JSON.stringify({ title, description, thumbnailUrl, url });
+
+  await prisma.listing.upsert({
+    where: { osmId: 'seshaa-seo-config' },
+    update: {
+      name: 'SEO Share Config',
+      description: payload,
+      active: true,
+      verified: true,
+    },
+    create: {
+      name: 'SEO Share Config',
+      description: payload,
+      osmId: 'seshaa-seo-config',
+      country: 'ZZ',
+      city: 'Global',
+      type: 'BUSINESS',
+      active: true,
+      verified: true,
+    },
+  });
+
+  res.json({ ok: true, title, description, thumbnailUrl, url });
+});
+
+// GET /admin/public/seo-settings — public SEO metadata for frontend head tags
+router.get('/public/seo-settings', async (_req, res) => {
+  const record = await prisma.listing.findUnique({ where: { osmId: 'seshaa-seo-config' } });
+  if (!record?.description) {
+    return res.json({
+      title: 'Seshaa Africa — Directory for All 54 Countries',
+      description: 'Find businesses, services, and people across all 54 African countries on Seshaa.',
+      thumbnailUrl: 'https://www.seshaa.africa/og-image.svg',
+      url: 'https://www.seshaa.africa',
+    });
+  }
+
+  try {
+    const parsed = JSON.parse(record.description) as { title?: string; description?: string; thumbnailUrl?: string; url?: string };
+    return res.json({
+      title: parsed.title || 'Seshaa Africa — Directory for All 54 Countries',
+      description: parsed.description || 'Find businesses, services, and people across all 54 African countries on Seshaa.',
+      thumbnailUrl: parsed.thumbnailUrl || 'https://www.seshaa.africa/og-image.svg',
+      url: parsed.url || 'https://www.seshaa.africa',
+    });
+  } catch {
+    return res.json({
+      title: 'Seshaa Africa — Directory for All 54 Countries',
+      description: 'Find businesses, services, and people across all 54 African countries on Seshaa.',
+      thumbnailUrl: 'https://www.seshaa.africa/og-image.svg',
+      url: 'https://www.seshaa.africa',
+    });
+  }
+});
+
 // GET /admin/ai-settings — fetch AI provider settings for admin UI
 router.get('/ai-settings', requireAuth, adminOnly, async (_req, res) => {
   const envKey = (process.env.OPENROUTER_API_KEY || '').trim();
@@ -663,6 +755,165 @@ router.post('/ai-settings', requireAuth, adminOnly, async (req, res) => {
   });
 
   res.json({ ok: true, hasOpenRouterKey: Boolean(merged.openRouterApiKey), openRouterModel: merged.openRouterModel });
+});
+
+// GET /admin/theme-settings — fetch per-country theme color overrides
+router.get('/theme-settings', requireAuth, adminOnly, async (_req, res) => {
+  const record = await prisma.listing.findUnique({ where: { osmId: 'seshaa-theme-config' } });
+  if (!record?.description) return res.json({ overrides: {} });
+  try {
+    const parsed = JSON.parse(record.description) as { overrides?: Record<string, { primary?: string; secondary?: string; accent?: string; text?: string }> };
+    return res.json({ overrides: parsed.overrides || {} });
+  } catch {
+    return res.json({ overrides: {} });
+  }
+});
+
+// POST /admin/theme-settings — save per-country theme color overrides
+router.post('/theme-settings', requireAuth, adminOnly, async (req, res) => {
+  const overrides = (req.body?.overrides || {}) as Record<string, { primary?: string; secondary?: string; accent?: string; text?: string }>;
+
+  await prisma.listing.upsert({
+    where: { osmId: 'seshaa-theme-config' },
+    update: {
+      name: 'Theme Config',
+      description: JSON.stringify({ overrides }),
+      active: true,
+      verified: true,
+    },
+    create: {
+      name: 'Theme Config',
+      description: JSON.stringify({ overrides }),
+      osmId: 'seshaa-theme-config',
+      country: 'ZZ',
+      city: 'Global',
+      type: 'BUSINESS',
+      active: true,
+      verified: true,
+    },
+  });
+
+  res.json({ ok: true, overrides });
+});
+
+// GET /admin/public/theme-settings — public theme color overrides for frontend runtime
+router.get('/public/theme-settings', async (_req, res) => {
+  const record = await prisma.listing.findUnique({ where: { osmId: 'seshaa-theme-config' } });
+  if (!record?.description) return res.json({ overrides: {} });
+  try {
+    const parsed = JSON.parse(record.description) as { overrides?: Record<string, { primary?: string; secondary?: string; accent?: string; text?: string }> };
+    return res.json({ overrides: parsed.overrides || {} });
+  } catch {
+    return res.json({ overrides: {} });
+  }
+});
+
+// GET /admin/pod-settings — retrieve POD API settings (without exposing full keys)
+router.get('/pod-settings', requireAuth, adminOnly, async (_req, res) => {
+  const record = await prisma.listing.findUnique({ where: { osmId: 'seshaa-pod-config' } });
+  let cfg: { printifyApiKey?: string; printfulApiKey?: string; services?: Array<{ name: string; website: string; region: string; eco?: string; description?: string }> } = {};
+  if (record?.description) {
+    try { cfg = JSON.parse(record.description) as typeof cfg; } catch { cfg = {}; }
+  }
+  res.json({
+    hasPrintifyApiKey: Boolean((cfg.printifyApiKey || '').trim()),
+    hasPrintfulApiKey: Boolean((cfg.printfulApiKey || '').trim()),
+    services: cfg.services || [],
+  });
+});
+
+// POST /admin/pod-settings — save POD API keys from admin panel
+router.post('/pod-settings', requireAuth, adminOnly, async (req, res) => {
+  const printifyApiKey = String(req.body?.printifyApiKey || '').trim();
+  const printfulApiKey = String(req.body?.printfulApiKey || '').trim();
+
+  const existing = await prisma.listing.findUnique({ where: { osmId: 'seshaa-pod-config' } });
+  let current: { printifyApiKey?: string; printfulApiKey?: string; services?: Array<{ name: string; website: string; region: string; eco?: string; description?: string }> } = {};
+  if (existing?.description) {
+    try { current = JSON.parse(existing.description) as typeof current; } catch { current = {}; }
+  }
+
+  const merged = {
+    ...current,
+    ...(printifyApiKey ? { printifyApiKey } : {}),
+    ...(printfulApiKey ? { printfulApiKey } : {}),
+  };
+
+  await prisma.listing.upsert({
+    where: { osmId: 'seshaa-pod-config' },
+    update: {
+      name: 'POD Config',
+      description: JSON.stringify(merged),
+      active: true,
+      verified: true,
+    },
+    create: {
+      name: 'POD Config',
+      description: JSON.stringify(merged),
+      osmId: 'seshaa-pod-config',
+      country: 'ZZ',
+      city: 'Global',
+      type: 'BUSINESS',
+      active: true,
+      verified: true,
+    },
+  });
+
+  res.json({ ok: true, hasPrintifyApiKey: Boolean(merged.printifyApiKey), hasPrintfulApiKey: Boolean(merged.printfulApiKey) });
+});
+
+// POST /admin/pod-services/scrape — scrape known African POD candidate services
+router.post('/pod-services/scrape', requireAuth, adminOnly, async (_req, res) => {
+  const candidates = [
+    { name: 'Printify', website: 'https://printify.com', region: 'Global', eco: 'On-demand production reduces waste' },
+    { name: 'Printful', website: 'https://www.printful.com', region: 'Global', eco: 'Eco product line and reduced packaging waste' },
+    { name: 'Gelato', website: 'https://www.gelato.com', region: 'Global', eco: 'Local production network lowers shipping footprint' },
+    { name: 'Merch42 Africa', website: 'https://merch42.com', region: 'Africa', eco: 'On-demand model avoids overproduction' },
+  ];
+
+  const scraped: Array<{ name: string; website: string; region: string; eco?: string; description?: string }> = [];
+
+  for (const item of candidates) {
+    try {
+      const html = await fetch(item.website, { signal: AbortSignal.timeout(8000) }).then(r => r.ok ? r.text() : '');
+      const title = html.match(/<title>([^<]+)<\/title>/i)?.[1]?.trim();
+      const desc = html.match(/<meta\s+name=["']description["']\s+content=["']([^"']+)["']/i)?.[1]?.trim();
+      scraped.push({
+        ...item,
+        description: desc || title || `${item.name} POD service`,
+      });
+    } catch {
+      scraped.push({ ...item, description: `${item.name} POD service` });
+    }
+  }
+
+  const existing = await prisma.listing.findUnique({ where: { osmId: 'seshaa-pod-config' } });
+  let current: { printifyApiKey?: string; printfulApiKey?: string; services?: Array<{ name: string; website: string; region: string; eco?: string; description?: string }> } = {};
+  if (existing?.description) {
+    try { current = JSON.parse(existing.description) as typeof current; } catch { current = {}; }
+  }
+
+  await prisma.listing.upsert({
+    where: { osmId: 'seshaa-pod-config' },
+    update: {
+      name: 'POD Config',
+      description: JSON.stringify({ ...current, services: scraped }),
+      active: true,
+      verified: true,
+    },
+    create: {
+      name: 'POD Config',
+      description: JSON.stringify({ ...current, services: scraped }),
+      osmId: 'seshaa-pod-config',
+      country: 'ZZ',
+      city: 'Global',
+      type: 'BUSINESS',
+      active: true,
+      verified: true,
+    },
+  });
+
+  res.json({ ok: true, services: scraped });
 });
 
 export default router;

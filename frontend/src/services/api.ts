@@ -172,6 +172,13 @@ export const aiSearchApi = {
     api.post('/ai/chat', { messages, context }),
 };
 
+// Merch / POD
+export const merchApi = {
+  providers: () => api.get<Array<{ id: string; name: string; connected: boolean; eco?: string }>>('/merch/providers'),
+  products: (provider: string, limit = 24) => api.get<{ provider: string; products: Array<{ id: string; name: string; description?: string; imageUrl?: string; provider: string; priceFrom?: number; currency?: string }>; fallback: boolean }>('/merch/products', { params: { provider, limit } }),
+  services: () => api.get<{ services: Array<{ name: string; website: string; region: string; eco?: string; description?: string }> }>('/merch/services'),
+};
+
 // Admin
 export const adminApi = {
   stats: () => api.get('/admin/stats'),
@@ -191,6 +198,12 @@ export const adminApi = {
   // Hero slideshow management
   getHeroSlides: () => api.get('/admin/hero-slides'),
   getPublicHeroSlides: () => api.get('/admin/public/hero-slides'),
+  getSeoSettings: () => api.get('/admin/seo-settings'),
+  saveSeoSettings: (data: { title?: string; description?: string; thumbnailUrl?: string; url?: string }) => api.post('/admin/seo-settings', data),
+  getPublicSeoSettings: () => api.get('/admin/public/seo-settings'),
+  getThemeSettings: () => api.get('/admin/theme-settings'),
+  saveThemeSettings: (data: { overrides: Record<string, { primary?: string; secondary?: string; accent?: string; text?: string }> }) => api.post('/admin/theme-settings', data),
+  getPublicThemeSettings: () => api.get('/admin/public/theme-settings'),
   createHeroSlide: (data: object) => api.post('/admin/hero-slides', data),
   updateHeroSlide: (id: string, data: object) => api.put(`/admin/hero-slides/${id}`, data),
   deleteHeroSlide: (id: string) => api.delete(`/admin/hero-slides/${id}`),
@@ -204,6 +217,9 @@ export const adminApi = {
   rejectSalesRep: (id: string) => api.delete(`/admin/salesreps/${id}`),
   getAiSettings: () => api.get('/admin/ai-settings'),
   saveAiSettings: (data: { openRouterApiKey?: string; openRouterModel?: string }) => api.post('/admin/ai-settings', data),
+  getPodSettings: () => api.get('/admin/pod-settings'),
+  savePodSettings: (data: { printifyApiKey?: string; printfulApiKey?: string }) => api.post('/admin/pod-settings', data),
+  scrapePodServices: () => api.post('/admin/pod-services/scrape'),
 };
 
 // Community Translations

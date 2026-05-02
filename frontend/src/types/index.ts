@@ -259,6 +259,31 @@ export interface AISearchResult {
   suggestions: string[];
 }
 
+export interface MerchProvider {
+  id: string;
+  name: string;
+  connected: boolean;
+  eco?: string;
+}
+
+export interface MerchProduct {
+  id: string;
+  name: string;
+  description?: string;
+  imageUrl?: string;
+  provider: string;
+  priceFrom?: number;
+  currency?: string;
+}
+
+export interface MerchService {
+  name: string;
+  website: string;
+  region: string;
+  eco?: string;
+  description?: string;
+}
+
 export type ClassifiedStatus = 'ACTIVE' | 'SOLD' | 'EXPIRED';
 export type ClassifiedCondition = 'NEW' | 'USED' | 'REFURBISHED';
 

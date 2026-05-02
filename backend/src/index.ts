@@ -25,6 +25,7 @@ import pricesRouter from './routes/prices';
 import translationsRouter from './routes/translations';
 import eventsRouter from './routes/events';
 import promotionsRouter from './routes/promotions';
+import merchRouter from './routes/merch';
 
 const app = express();
 
@@ -76,6 +77,7 @@ app.use('/api/prices', pricesRouter);
 app.use('/api/translations', translationsRouter);
 app.use('/api/events', eventsRouter);
 app.use('/api/promotions', promotionsRouter);
+app.use('/api/merch', merchRouter);
 
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error(err);

@@ -73,7 +73,7 @@ interface Props {
 
 const SIZE: Record<string, { main: string; dot: string }> = {
   sm: { main: '1.28rem', dot: '1.28rem' },
-  md: { main: 'clamp(1.26rem, 3.9vw, 1.95rem)', dot: 'clamp(1.12rem, 3.6vw, 1.95rem)' },
+  md: { main: 'clamp(1.26rem, 3.9vw, 1.95rem)', dot: 'clamp(1.26rem, 3.9vw, 1.95rem)' },
   lg: { main: '2.4rem',  dot: '2.4rem'  },
 };
 
@@ -100,7 +100,8 @@ export default function SeshaaTitle({ countryCode, size = 'sm', className = '', 
   // CSS-var overrides let the Admin branding panel adjust sizes live
   const fallback = SIZE[size] ?? SIZE.sm;
   const main = size === 'md' ? `var(--logo-main-size, ${fallback.main})` : fallback.main;
-  const dot  = size === 'md' ? `var(--logo-dot-size,  ${fallback.dot})`  : fallback.dot;
+  // Keep suffix exactly the same size as "seshaa" in the header title.
+  const dot = main;
 
   // ── Slot-machine on mount (skipped in static mode) ──────────────────────
   useEffect(() => {

@@ -5,9 +5,17 @@ export interface CountryTheme {
   primary: string;
   secondary: string;
   accent: string;
+  text?: string;
   name: string;
   code: string;
   lang: string;
+}
+
+export interface ThemeOverride {
+  primary?: string;
+  secondary?: string;
+  accent?: string;
+  text?: string;
 }
 
 // All 54 African countries — flag-derived colors
@@ -85,12 +93,24 @@ function lighten(hex: string, amount = 230): string {
   return `#${[r, g, b].map(v => v.toString(16).padStart(2, '0')).join('')}`;
 }
 
+function contrastText(hex: string): string {
+  const raw = hex.replace('#', '');
+  const full = raw.length === 3 ? raw.split('').map(c => c + c).join('') : raw;
+  const r = parseInt(full.slice(0, 2), 16);
+  const g = parseInt(full.slice(2, 4), 16);
+  const b = parseInt(full.slice(4, 6), 16);
+  const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+  return yiq >= 150 ? '#111827' : '#FFFFFF';
+}
+
 interface ThemeState {
   countryCode: string;
   theme: CountryTheme;
   detected: boolean;
+  overrides: Record<string, ThemeOverride>;
   applyTheme: (code: string) => void;
   detectFromIP: () => Promise<void>;
+  loadThemeOverrides: () => Promise<void>;
 }
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
@@ -101,9 +121,12 @@ export const useThemeStore = create<ThemeState>()(
       countryCode: 'NG',
       theme: { ...THEMES['NG'], code: 'NG' },
       detected: false,
+      overrides: {},
 
       applyTheme: (code: string) => {
-        const t = THEMES[code] || THEMES['DEFAULT'];
+        const base = THEMES[code] || THEMES['DEFAULT'];
+        const override = get().overrides[code] || {};
+        const t = { ...base, ...override };
         const theme: CountryTheme = { ...t, code };
         const root = document.documentElement;
         root.style.setProperty('--cp', t.primary);
@@ -111,7 +134,19 @@ export const useThemeStore = create<ThemeState>()(
         root.style.setProperty('--cp-light', lighten(t.primary, 220));
         root.style.setProperty('--cs', t.secondary);
         root.style.setProperty('--ca', t.accent);
+        root.style.setProperty('--ct', t.text || contrastText(t.primary));
         set({ countryCode: code, theme, detected: true });
+      },
+
+      loadThemeOverrides: async () => {
+        try {
+          const r = await fetch(`${BASE_URL}/admin/public/theme-settings`);
+          const data = await r.json() as { overrides?: Record<string, ThemeOverride> };
+          set({ overrides: data.overrides || {} });
+          get().applyTheme(get().countryCode);
+        } catch {
+          set({ overrides: {} });
+        }
       },
 
       detectFromIP: async () => {

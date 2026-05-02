@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Search, SlidersHorizontal, Sparkles, X, Plus } from 'lucide-react';
+import clsx from 'clsx';
 import { listingsApi, aiSearchApi } from '../services/api';
 import ListingCard from '../components/directory/ListingCard';
 import AdBanner from '../components/ads/AdBanner';
@@ -9,6 +10,7 @@ import { useThemeStore } from '../store/theme';
 import type { Listing, SearchFilters } from '../types';
 
 const TYPES = ['PERSONAL', 'BUSINESS', 'GOVERNMENT', 'NGO'] as const;
+const CATEGORY_TABS = ['restaurant', 'health', 'education', 'finance', 'transport', 'hotel', 'tech', 'beauty', 'auto', 'agriculture'] as const;
 
 export default function SearchPage() {
   const { t } = useTranslation();
@@ -105,7 +107,7 @@ export default function SearchPage() {
           className="bg-green-600 text-white px-5 rounded-xl font-semibold hover:bg-green-700"
           onClick={() => update({ q: filters.q })}
         >
-          {t('search.searchBtn')}
+          {t('search.findBtn', { defaultValue: t('search.searchBtn') })}
         </button>
         <button
           className="bg-white border px-4 rounded-xl hover:bg-gray-50"
@@ -113,6 +115,41 @@ export default function SearchPage() {
         >
           <SlidersHorizontal size={18} />
         </button>
+      </div>
+
+      <div className="mb-4 -mt-1">
+        <div className="flex gap-2 overflow-x-auto pb-1">
+          <button
+            onClick={() => update({ category: '' })}
+            className={clsx(
+              'shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors',
+              !filters.category
+                ? 'text-white border-transparent'
+                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+            )}
+            style={!filters.category ? { background: 'var(--cp, #008751)' } : {}}
+          >
+            {t('search.all')}
+          </button>
+          {CATEGORY_TABS.map(cat => {
+            const active = filters.category === cat;
+            return (
+              <button
+                key={cat}
+                onClick={() => update({ category: cat })}
+                className={clsx(
+                  'shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors',
+                  active
+                    ? 'text-white border-transparent'
+                    : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                )}
+                style={active ? { background: 'var(--cp, #008751)' } : {}}
+              >
+                {t(`categories.${cat}`)}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* AI interpretation */}

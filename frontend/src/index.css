@@ -10,8 +10,24 @@
   --cs: #ffffff;
   --ca: #FCD116;
   --ct: #ffffff;          /* text on primary — always contrast-safe */
+  --logo-main-size-mobile: 1.35rem;
+  --logo-main-size-tablet: 1.55rem;
+  --logo-main-size-desktop: 1.95rem;
+  --logo-main-size: var(--logo-main-size-mobile);
   --ct-dark: #1a1a1a;     /* text on light backgrounds */
   --focus-ring: var(--cp);
+}
+
+@media (min-width: 768px) {
+  :root {
+    --logo-main-size: var(--logo-main-size-tablet);
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --logo-main-size: var(--logo-main-size-desktop);
+  }
 }
 
 /* ── Reset: kill ALL outlines, browser-default rings, and box-shadows ─────── */

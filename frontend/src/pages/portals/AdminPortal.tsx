@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, List, Megaphone, TrendingUp, Shield, DollarSign, Award,
   Send, CheckCircle, X, Users, Activity, Globe, Bell, ChevronRight,
@@ -9,6 +10,18 @@ import {
 import { adminApi, adsApi } from '../../services/api';
 import { useAuthStore } from '../../store/auth';
 import { ALL_LOGOS, saveEnabled, type LogoId } from '../../components/brand/LogoRotator';
+import { COUNTRIES } from '../../components/layout/CountryPicker';
+import { getThemeForCode } from '../../store/theme';
+import type { PortalType } from '../../types';
+
+const PORTAL_LABELS: Record<PortalType, string> = {
+  consumer: 'Consumer',
+  business: 'Business',
+  advertiser: 'Advertiser',
+  salesrep: 'Sales Rep',
+  ambassador: 'Ambassador',
+  admin: 'Admin',
+};
 
 interface Stats {
   listings: number; users: number; ads: number; salesReps: number; pendingListings: number;
@@ -95,7 +108,9 @@ function StatSparkle({ value, label, color, icon }: { value: string | number; la
 
 // ── Main component ───────────────────────────────────────────────────────────
 export default function AdminPortal() {
-  const { user } = useAuthStore();
+  const navigate = useNavigate();
+  const { user, portal, setPortal } = useAuthStore();
+  const [portalOpen, setPortalOpen] = useState(false);
   const [stats, setStats]                 = useState<Stats>({ listings: 0, users: 0, ads: 0, salesReps: 0, pendingListings: 0 });
   const [financials, setFinancials]       = useState<Financials | null>(null);
   const [pendingListings, setPendingListings] = useState<PendingListing[]>([]);
@@ -163,14 +178,33 @@ export default function AdminPortal() {
     const v = parseFloat(localStorage.getItem(key) ?? '');
     return isNaN(v) ? def : v;
   };
-  const [logoMainSize,  setLogoMainSize]  = useState(() => readCss('seshaa-logo-main', 1.95));
-  const [logoDotSize,   setLogoDotSize]   = useState(() => readCss('seshaa-logo-dot',  1.65));
+  const [logoMainMobile, setLogoMainMobile] = useState(() => readCss('seshaa-logo-main-mobile', 1.35));
+  const [logoMainTablet, setLogoMainTablet] = useState(() => readCss('seshaa-logo-main-tablet', 1.55));
+  const [logoMainDesktop, setLogoMainDesktop] = useState(() => readCss('seshaa-logo-main-desktop', readCss('seshaa-logo-main', 1.95)));
   const [logoStroke,    setLogoStroke]    = useState(() => readCss('seshaa-logo-stroke', 1.5));
+  const [themeOverrides, setThemeOverrides] = useState<Record<string, { primary: string; secondary: string; accent: string; text: string }>>({});
+  const [themeCountryCode, setThemeCountryCode] = useState('NG');
+  const [themePrimary, setThemePrimary] = useState('#008751');
+  const [themeSecondary, setThemeSecondary] = useState('#FFFFFF');
+  const [themeAccent, setThemeAccent] = useState('#FCD116');
+  const [themeText, setThemeText] = useState('#FFFFFF');
+  const [themeMsg, setThemeMsg] = useState('');
   const [customCss,     setCustomCss]     = useState(() => localStorage.getItem('seshaa-custom-css') ?? '');
   const [cssSaved,      setCssSaved]      = useState(false);
   const [openRouterApiKey, setOpenRouterApiKey] = useState('');
   const [openRouterModel, setOpenRouterModel] = useState('openai/gpt-4o-mini');
   const [aiSettingsMsg, setAiSettingsMsg] = useState('');
+  const [seoTitle, setSeoTitle] = useState('Seshaa Africa — Directory for All 54 Countries');
+  const [seoDescription, setSeoDescription] = useState('Find businesses, services, and people across all 54 African countries on Seshaa.');
+  const [seoThumbnailUrl, setSeoThumbnailUrl] = useState('https://www.seshaa.africa/og-image.svg');
+  const [seoUrl, setSeoUrl] = useState('https://www.seshaa.africa');
+  const [seoSaved, setSeoSaved] = useState('');
+  const [printifyApiKey, setPrintifyApiKey] = useState('');
+  const [printfulApiKey, setPrintfulApiKey] = useState('');
+  const [podMsg, setPodMsg] = useState('');
+  const [podHasPrintify, setPodHasPrintify] = useState(false);
+  const [podHasPrintful, setPodHasPrintful] = useState(false);
+  const [podServices, setPodServices] = useState<Array<{ name: string; website: string; region: string; eco?: string; description?: string }>>([]);
 
   const applyCssVar = (varName: string, value: string, lsKey: string, raw: number) => {
     document.documentElement.style.setProperty(varName, value);
@@ -205,7 +239,43 @@ export default function AdminPortal() {
     adminApi.getAiSettings().then(r => {
       if (r.data?.openRouterModel) setOpenRouterModel(r.data.openRouterModel);
     }).catch(() => {});
+    adminApi.getSeoSettings().then(r => {
+      if (r.data?.title) setSeoTitle(r.data.title);
+      if (r.data?.description) setSeoDescription(r.data.description);
+      if (r.data?.thumbnailUrl) setSeoThumbnailUrl(r.data.thumbnailUrl);
+      if (r.data?.url) setSeoUrl(r.data.url);
+    }).catch(() => {});
+    adminApi.getThemeSettings().then(r => {
+      const overrides = (r.data?.overrides || {}) as Record<string, { primary?: string; secondary?: string; accent?: string; text?: string }>;
+      const normalized: Record<string, { primary: string; secondary: string; accent: string; text: string }> = {};
+      Object.entries(overrides).forEach(([code, v]) => {
+        const base = getThemeForCode(code);
+        normalized[code] = {
+          primary: v.primary || base.primary,
+          secondary: v.secondary || base.secondary,
+          accent: v.accent || base.accent,
+          text: v.text || '#FFFFFF',
+        };
+      });
+      setThemeOverrides(normalized);
+    }).catch(() => {});
+    adminApi.getPodSettings().then(r => {
+      setPodHasPrintify(Boolean(r.data?.hasPrintifyApiKey));
+      setPodHasPrintful(Boolean(r.data?.hasPrintfulApiKey));
+      setPodServices(r.data?.services || []);
+    }).catch(() => {});
   }, []);
+
+  useEffect(() => {
+    const base = getThemeForCode(themeCountryCode);
+    const v = themeOverrides[themeCountryCode];
+    setThemePrimary(v?.primary || base.primary);
+    setThemeSecondary(v?.secondary || base.secondary);
+    setThemeAccent(v?.accent || base.accent);
+    setThemeText(v?.text || '#FFFFFF');
+  }, [themeCountryCode, themeOverrides]);
+
+  const availablePortals: PortalType[] = ['consumer', 'business', 'advertiser', 'salesrep', 'ambassador', 'admin'];
 
   const verifyListing = async (id: string) => {
     await adminApi.verifyListing(id);
@@ -365,6 +435,69 @@ export default function AdminPortal() {
     }
   };
 
+  const saveSeoSettings = async () => {
+    try {
+      await adminApi.saveSeoSettings({
+        title: seoTitle,
+        description: seoDescription,
+        thumbnailUrl: seoThumbnailUrl,
+        url: seoUrl,
+      });
+      setSeoSaved('Saved social share SEO settings.');
+      setTimeout(() => setSeoSaved(''), 2500);
+    } catch {
+      setSeoSaved('Failed to save SEO settings.');
+    }
+  };
+
+  const saveThemeSettings = async () => {
+    try {
+      const next = {
+        ...themeOverrides,
+        [themeCountryCode]: {
+          primary: themePrimary,
+          secondary: themeSecondary,
+          accent: themeAccent,
+          text: themeText,
+        },
+      };
+      setThemeOverrides(next);
+      await adminApi.saveThemeSettings({ overrides: next });
+      setThemeMsg(`Saved ${themeCountryCode} color overrides.`);
+      setTimeout(() => setThemeMsg(''), 2500);
+    } catch {
+      setThemeMsg('Failed to save country colors.');
+    }
+  };
+
+  const savePodSettings = async () => {
+    try {
+      const r = await adminApi.savePodSettings({
+        printifyApiKey: printifyApiKey.trim() || undefined,
+        printfulApiKey: printfulApiKey.trim() || undefined,
+      });
+      setPodHasPrintify(Boolean(r.data?.hasPrintifyApiKey));
+      setPodHasPrintful(Boolean(r.data?.hasPrintfulApiKey));
+      setPrintifyApiKey('');
+      setPrintfulApiKey('');
+      setPodMsg('POD API keys saved. Merch Store can now pull live products.');
+      setTimeout(() => setPodMsg(''), 2600);
+    } catch {
+      setPodMsg('Failed to save POD API keys.');
+    }
+  };
+
+  const scrapePodServices = async () => {
+    try {
+      const r = await adminApi.scrapePodServices();
+      setPodServices(r.data?.services || []);
+      setPodMsg('African POD services refreshed.');
+      setTimeout(() => setPodMsg(''), 2400);
+    } catch {
+      setPodMsg('Failed to scrape POD services.');
+    }
+  };
+
   const generatePressRelease = () => {
     const templates: Record<string, string> = {
       award_winner:    `PRESS RELEASE — FOR IMMEDIATE RELEASE\n\nSeshaa Africa Announces 2026 Directory Excellence Awards\n\nNairobi — Seshaa (seshaa.africa), Africa's fastest-growing directory, today announced the winners of the inaugural Seshaa 2026 Awards, recognizing outstanding businesses across the continent.\n\n[INSERT WINNER NAMES AND CATEGORIES]\n\nAbout Seshaa\nSeshaa is Africa's comprehensive business directory covering all 54 countries in 14 local languages.\n\nPress: press@seshaa.africa | seshaa.africa`,
@@ -433,6 +566,32 @@ export default function AdminPortal() {
             <AlertTriangle size={12} /> {totalBadge} pending
           </div>
         )}
+        <div className="relative">
+          <button
+            className="flex items-center gap-1 text-gray-200 text-xs px-2.5 py-1.5 rounded-lg hover:bg-gray-800 border border-gray-700"
+            onClick={() => setPortalOpen(v => !v)}
+          >
+            {PORTAL_LABELS[portal]} <ChevronRight size={11} className="rotate-90" />
+          </button>
+          {portalOpen && (
+            <div className="absolute right-0 top-full mt-1 bg-white text-gray-800 rounded-xl shadow-2xl w-40 z-50">
+              {availablePortals.map(p => (
+                <button
+                  key={p}
+                  className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 ${p === portal ? 'font-bold' : ''}`}
+                  style={p === portal ? { color: 'var(--cp)' } : {}}
+                  onClick={() => {
+                    setPortal(p);
+                    setPortalOpen(false);
+                    navigate(p === 'consumer' ? '/' : `/${p}`);
+                  }}
+                >
+                  {PORTAL_LABELS[p]}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
         <a href="/" className="text-xs text-gray-500 hover:text-gray-300 flex items-center gap-1">
           <Globe size={12} /> Live site <ArrowUpRight size={10} />
         </a>
@@ -1395,20 +1554,21 @@ export default function AdminPortal() {
               <h3 className="font-bold text-white mb-1 flex items-center gap-2">
                 <Paintbrush size={16} className="text-pink-400" strokeWidth={1.5} /> CSS Settings
               </h3>
-              <p className="text-xs text-gray-500 mb-5">Adjust logo size, outline weight, and inject custom CSS. Changes apply instantly and persist across reloads.</p>
+              <p className="text-xs text-gray-500 mb-5">Adjust app title size separately for mobile, tablet, and desktop. &quot;seshaa&quot; and country suffix remain equal size.</p>
 
               <div className="flex items-center justify-center bg-gray-950 rounded-xl border border-gray-800 py-4 mb-6"
                 style={{ backgroundColor: 'var(--cp, #008751)' }}>
                 <div className="flex items-center gap-0 select-none leading-none">
-                  <span style={{ fontSize: `var(--logo-main-size, ${logoMainSize}rem)`, fontWeight: 900, fontStyle: 'italic', fontFamily: '"Arial Black","Arial Bold",Arial,sans-serif', color: '#008751', WebkitTextStroke: `var(--logo-stroke, ${logoStroke}px) white`, letterSpacing: '-0.02em', lineHeight: 1 }}>seshaa</span>
-                  <span style={{ fontSize: `var(--logo-dot-size, ${logoDotSize}rem)`, fontWeight: 700, fontStyle: 'italic', fontFamily: '"Arial Black","Arial Bold",Arial,sans-serif', color: 'white', letterSpacing: '-0.01em', lineHeight: 1 }}>.africa</span>
+                  <span style={{ fontSize: `var(--logo-main-size, ${logoMainDesktop}rem)`, fontWeight: 900, fontStyle: 'italic', fontFamily: '"Arial Black","Arial Bold",Arial,sans-serif', color: '#008751', WebkitTextStroke: `var(--logo-stroke, ${logoStroke}px) white`, letterSpacing: '-0.02em', lineHeight: 1 }}>seshaa</span>
+                  <span style={{ fontSize: `var(--logo-main-size, ${logoMainDesktop}rem)`, fontWeight: 700, fontStyle: 'italic', fontFamily: '"Arial Black","Arial Bold",Arial,sans-serif', color: 'white', letterSpacing: '-0.01em', lineHeight: 1 }}>.africa</span>
                 </div>
               </div>
 
               <div className="space-y-5">
                 {[
-                  { label: 'Logo size — "seshaa"', value: logoMainSize, min: 1.0, max: 3.5, step: 0.05, fmt: (v: number) => `${v.toFixed(2)}rem`, onChange: (v: number) => { setLogoMainSize(v); applyCssVar('--logo-main-size', v + 'rem', 'seshaa-logo-main', v); }, minL: '1rem', maxL: '3.5rem' },
-                  { label: 'Logo size — ".africa"', value: logoDotSize, min: 0.8, max: 3.0, step: 0.05, fmt: (v: number) => `${v.toFixed(2)}rem`, onChange: (v: number) => { setLogoDotSize(v); applyCssVar('--logo-dot-size', v + 'rem', 'seshaa-logo-dot', v); }, minL: '0.8rem', maxL: '3rem' },
+                  { label: 'App title size — mobile', value: logoMainMobile, min: 1.0, max: 2.4, step: 0.05, fmt: (v: number) => `${v.toFixed(2)}rem`, onChange: (v: number) => { setLogoMainMobile(v); applyCssVar('--logo-main-size-mobile', v + 'rem', 'seshaa-logo-main-mobile', v); }, minL: '1rem', maxL: '2.4rem' },
+                  { label: 'App title size — tablet', value: logoMainTablet, min: 1.1, max: 2.8, step: 0.05, fmt: (v: number) => `${v.toFixed(2)}rem`, onChange: (v: number) => { setLogoMainTablet(v); applyCssVar('--logo-main-size-tablet', v + 'rem', 'seshaa-logo-main-tablet', v); }, minL: '1.1rem', maxL: '2.8rem' },
+                  { label: 'App title size — desktop', value: logoMainDesktop, min: 1.2, max: 3.5, step: 0.05, fmt: (v: number) => `${v.toFixed(2)}rem`, onChange: (v: number) => { setLogoMainDesktop(v); applyCssVar('--logo-main-size-desktop', v + 'rem', 'seshaa-logo-main-desktop', v); }, minL: '1.2rem', maxL: '3.5rem' },
                   { label: 'Outline (stroke) thickness', value: logoStroke, min: 0, max: 5, step: 0.5, fmt: (v: number) => `${v.toFixed(1)}px`, onChange: (v: number) => { setLogoStroke(v); applyCssVar('--logo-stroke', v + 'px', 'seshaa-logo-stroke', v); }, minL: '0 (none)', maxL: '5px' },
                 ].map(s => (
                   <div key={s.label}>
@@ -1424,10 +1584,66 @@ export default function AdminPortal() {
                     </div>
                   </div>
                 ))}
-                <button onClick={() => { setLogoMainSize(1.95); setLogoDotSize(1.65); setLogoStroke(1.5); applyCssVar('--logo-main-size','1.95rem','seshaa-logo-main',1.95); applyCssVar('--logo-dot-size','1.65rem','seshaa-logo-dot',1.65); applyCssVar('--logo-stroke','1.5px','seshaa-logo-stroke',1.5); }}
+                <button onClick={() => { setLogoMainMobile(1.35); setLogoMainTablet(1.55); setLogoMainDesktop(1.95); setLogoStroke(1.5); applyCssVar('--logo-main-size-mobile','1.35rem','seshaa-logo-main-mobile',1.35); applyCssVar('--logo-main-size-tablet','1.55rem','seshaa-logo-main-tablet',1.55); applyCssVar('--logo-main-size-desktop','1.95rem','seshaa-logo-main-desktop',1.95); applyCssVar('--logo-stroke','1.5px','seshaa-logo-stroke',1.5); }}
                   className="text-xs text-gray-500 hover:text-gray-300 underline">
                   Reset logo to defaults
                 </button>
+              </div>
+            </div>
+
+            <div className="bg-gray-900 rounded-2xl border border-gray-800 p-5">
+              <h3 className="font-bold text-white mb-1 flex items-center gap-2">
+                <Globe size={16} className="text-emerald-400" strokeWidth={1.5} /> Country Color Settings
+              </h3>
+              <p className="text-xs text-gray-500 mb-4">Override country theme colors individually. Use text color to force better contrast on header/footer backgrounds.</p>
+
+              <div className="grid md:grid-cols-5 gap-3">
+                <label className="text-xs text-gray-400 md:col-span-2">
+                  Country
+                  <select
+                    value={themeCountryCode}
+                    onChange={e => setThemeCountryCode(e.target.value)}
+                    className="mt-1 w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-sm text-gray-100"
+                  >
+                    {COUNTRIES.filter(c => c.region !== 'Diaspora').map(c => (
+                      <option key={c.code} value={c.code}>{c.name} ({c.code})</option>
+                    ))}
+                  </select>
+                </label>
+
+                {[
+                  { label: 'Primary', value: themePrimary, set: setThemePrimary },
+                  { label: 'Secondary', value: themeSecondary, set: setThemeSecondary },
+                  { label: 'Accent', value: themeAccent, set: setThemeAccent },
+                ].map(f => (
+                  <label key={f.label} className="text-xs text-gray-400">
+                    {f.label}
+                    <div className="mt-1 flex items-center gap-2">
+                      <input type="color" value={f.value} onChange={e => f.set(e.target.value)} className="w-10 h-9 rounded border border-gray-700 bg-gray-950 p-1" />
+                      <input value={f.value} onChange={e => f.set(e.target.value)} className="w-full bg-gray-950 border border-gray-700 rounded-xl px-2 py-2 text-xs text-gray-100" />
+                    </div>
+                  </label>
+                ))}
+
+                <label className="text-xs text-gray-400 md:col-span-2">
+                  Text Color (on Primary)
+                  <div className="mt-1 flex items-center gap-2">
+                    <input type="color" value={themeText} onChange={e => setThemeText(e.target.value)} className="w-10 h-9 rounded border border-gray-700 bg-gray-950 p-1" />
+                    <input value={themeText} onChange={e => setThemeText(e.target.value)} className="w-full bg-gray-950 border border-gray-700 rounded-xl px-2 py-2 text-xs text-gray-100" />
+                  </div>
+                </label>
+              </div>
+
+              <div className="mt-4 p-3 rounded-xl border border-gray-800" style={{ backgroundColor: themePrimary, color: themeText }}>
+                <p className="text-xs font-bold">Preview: {themeCountryCode}</p>
+                <p className="text-[11px] opacity-90">Header/footer text will use this text color on the selected primary background.</p>
+              </div>
+
+              <div className="flex items-center gap-3 mt-4">
+                <button onClick={saveThemeSettings} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition-colors">
+                  Save Country Colors
+                </button>
+                {themeMsg && <span className="text-xs text-emerald-300">{themeMsg}</span>}
               </div>
             </div>
 
@@ -1481,6 +1697,131 @@ export default function AdminPortal() {
                   Save AI Settings
                 </button>
                 {aiSettingsMsg && <span className="text-xs text-cyan-300">{aiSettingsMsg}</span>}
+              </div>
+            </div>
+
+            <div className="bg-gray-900 rounded-2xl border border-gray-800 p-5">
+              <h3 className="font-bold text-white mb-1 flex items-center gap-2">
+                <Briefcase size={16} className="text-lime-400" strokeWidth={1.5} /> POD Integrations (Merch Store)
+              </h3>
+              <p className="text-xs text-gray-500 mb-4">Connect Printify and Printful, then refresh African POD service list. API keys are paste-ready.</p>
+
+              <div className="grid md:grid-cols-2 gap-3">
+                <label className="text-xs text-gray-400">
+                  Printify API Key
+                  <input
+                    type="password"
+                    value={printifyApiKey}
+                    onChange={e => setPrintifyApiKey(e.target.value)}
+                    placeholder="paste Printify key"
+                    className="mt-1 w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-sm text-gray-100"
+                  />
+                  <p className="text-[11px] mt-1 text-gray-500">Status: {podHasPrintify ? 'Connected' : 'Not connected'}</p>
+                </label>
+                <label className="text-xs text-gray-400">
+                  Printful API Key
+                  <input
+                    type="password"
+                    value={printfulApiKey}
+                    onChange={e => setPrintfulApiKey(e.target.value)}
+                    placeholder="paste Printful key"
+                    className="mt-1 w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-sm text-gray-100"
+                  />
+                  <p className="text-[11px] mt-1 text-gray-500">Status: {podHasPrintful ? 'Connected' : 'Not connected'}</p>
+                </label>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3 mt-4">
+                <button onClick={savePodSettings} className="px-4 py-2 bg-lime-600 hover:bg-lime-500 text-white text-xs font-bold rounded-xl transition-colors">
+                  Save POD Keys
+                </button>
+                <button onClick={scrapePodServices} className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white text-xs font-bold rounded-xl transition-colors">
+                  Search & Scrape African POD Services
+                </button>
+                {podMsg && <span className="text-xs text-lime-300">{podMsg}</span>}
+              </div>
+
+              {podServices.length > 0 && (
+                <div className="mt-4 grid md:grid-cols-2 gap-3">
+                  {podServices.map(s => (
+                    <a key={s.website} href={s.website} target="_blank" rel="noopener noreferrer" className="block p-3 rounded-xl border border-gray-800 bg-gray-950 hover:bg-gray-900">
+                      <p className="text-sm font-semibold text-white truncate">{s.name}</p>
+                      <p className="text-xs text-gray-500">{s.region}</p>
+                      {s.eco && <p className="text-xs text-lime-300 mt-1">{s.eco}</p>}
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="bg-gray-900 rounded-2xl border border-gray-800 p-5">
+              <h3 className="font-bold text-white mb-1 flex items-center gap-2">
+                <Info size={16} className="text-indigo-400" strokeWidth={1.5} /> Social Share SEO
+              </h3>
+              <p className="text-xs text-gray-500 mb-4">Control social preview title, description, and thumbnail used by WhatsApp, X, Facebook, and Telegram.</p>
+
+              <div className="grid md:grid-cols-2 gap-3">
+                <label className="text-xs text-gray-400 md:col-span-2">
+                  Share Title
+                  <input
+                    value={seoTitle}
+                    onChange={e => setSeoTitle(e.target.value)}
+                    className="mt-1 w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-sm text-gray-100"
+                    placeholder="Seshaa Africa — Directory for All 54 Countries"
+                  />
+                </label>
+
+                <label className="text-xs text-gray-400 md:col-span-2">
+                  Share Description
+                  <textarea
+                    value={seoDescription}
+                    onChange={e => setSeoDescription(e.target.value)}
+                    className="mt-1 w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-sm text-gray-100 resize-y"
+                    rows={3}
+                    placeholder="Find businesses, services, and people across all 54 African countries on Seshaa."
+                  />
+                </label>
+
+                <label className="text-xs text-gray-400">
+                  Thumbnail URL
+                  <input
+                    value={seoThumbnailUrl}
+                    onChange={e => setSeoThumbnailUrl(e.target.value)}
+                    className="mt-1 w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-sm text-gray-100"
+                    placeholder="https://www.seshaa.africa/og-image.svg"
+                  />
+                </label>
+
+                <label className="text-xs text-gray-400">
+                  Canonical URL
+                  <input
+                    value={seoUrl}
+                    onChange={e => setSeoUrl(e.target.value)}
+                    className="mt-1 w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-sm text-gray-100"
+                    placeholder="https://www.seshaa.africa"
+                  />
+                </label>
+              </div>
+
+              {seoThumbnailUrl && (
+                <div className="mt-4 p-3 rounded-xl border border-gray-800 bg-gray-950">
+                  <p className="text-[11px] text-gray-500 mb-2">Preview</p>
+                  <div className="flex gap-3 items-start">
+                    <img src={seoThumbnailUrl} alt="SEO thumbnail preview" className="w-28 h-16 object-cover rounded-md border border-gray-800 bg-black" />
+                    <div className="min-w-0">
+                      <p className="text-xs text-gray-300 font-semibold truncate">{seoTitle}</p>
+                      <p className="text-[11px] text-gray-500 line-clamp-2">{seoDescription}</p>
+                      <p className="text-[10px] text-gray-600 truncate mt-1">{seoUrl}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex items-center gap-3 mt-4">
+                <button onClick={saveSeoSettings} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl transition-colors">
+                  Save SEO Share Settings
+                </button>
+                {seoSaved && <span className="text-xs text-indigo-300">{seoSaved}</span>}
               </div>
             </div>
 

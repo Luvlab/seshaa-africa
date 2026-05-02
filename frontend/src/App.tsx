@@ -9,6 +9,7 @@ import ChatFAB from './components/layout/ChatFAB';
 import Footer, { initFontSize } from './components/layout/Footer';
 import { useThemeStore } from './store/theme';
 import InterestSurvey from './components/ads/InterestSurvey';
+import { adminApi } from './services/api';
 
 // Primary tabs — loaded eagerly once, kept alive in the background
 import HomePage from './pages/HomePage';
@@ -18,6 +19,7 @@ import BookingsPage from './pages/BookingsPage';
 import NewsPage from './pages/NewsPage';
 import ClassifiedsPage from './pages/ClassifiedsPage';
 import PriceComparePage from './pages/PriceComparePage';
+import MerchStorePage from './pages/MerchStorePage';
 import AdvertiserPortal from './pages/portals/AdvertiserPortal';
 import AmbassadorPortal from './pages/portals/AmbassadorPortal';
 import SalesRepPortal from './pages/portals/SalesRepPortal';
@@ -40,6 +42,7 @@ const CountryPage = lazy(() => import('./pages/CountryPage'));
 // Tab paths — all kept mounted simultaneously
 const TAB_PATHS = [
   '/', '/search', '/news', '/classifieds', '/prices',
+  '/merch',
   '/messages', '/bookings', '/advertise',
   '/ambassador', '/salesrep', '/admin',
   '/add-listing', '/translate', '/business', '/events', '/diaspora', '/travels', '/archive',
@@ -108,6 +111,7 @@ function TabContainer() {
     { path: '/news',        el: <ErrorBoundary key="news"><NewsPage /></ErrorBoundary> },
     { path: '/classifieds', el: <ErrorBoundary key="classifieds"><ClassifiedsPage /></ErrorBoundary> },
     { path: '/prices',      el: <ErrorBoundary key="prices"><PriceComparePage /></ErrorBoundary> },
+    { path: '/merch',       el: <ErrorBoundary key="merch"><MerchStorePage /></ErrorBoundary> },
     { path: '/messages',    el: <ErrorBoundary key="messages"><ChatPage /></ErrorBoundary> },
     { path: '/bookings',    el: <ErrorBoundary key="bookings"><BookingsPage /></ErrorBoundary> },
     { path: '/advertise',   el: <ErrorBoundary key="advertise"><AdvertiserPortal /></ErrorBoundary> },
@@ -161,19 +165,35 @@ function TabContainer() {
 
 // ── Root app ─────────────────────────────────────────────────────────────────
 export default function App() {
-  const { detectFromIP, applyTheme, countryCode } = useThemeStore();
+  const { detectFromIP, applyTheme, countryCode, loadThemeOverrides } = useThemeStore();
   const [showSurvey, setShowSurvey] = useState(false);
+
+  const upsertMeta = (selector: string, attr: 'name' | 'property', key: string, content: string) => {
+    let el = document.head.querySelector(selector) as HTMLMetaElement | null;
+    if (!el) {
+      el = document.createElement('meta');
+      el.setAttribute(attr, key);
+      document.head.appendChild(el);
+    }
+    el.setAttribute('content', content);
+  };
 
   useEffect(() => {
     initFontSize(); // restore user's saved text-size preference
     // Restore admin CSS settings
     const root = document.documentElement;
-    const logoMain   = localStorage.getItem('seshaa-logo-main');
-    const logoDot    = localStorage.getItem('seshaa-logo-dot');
+    const logoMainLegacy = localStorage.getItem('seshaa-logo-main');
+    const logoMainMobile = localStorage.getItem('seshaa-logo-main-mobile');
+    const logoMainTablet = localStorage.getItem('seshaa-logo-main-tablet');
+    const logoMainDesktop = localStorage.getItem('seshaa-logo-main-desktop');
     const logoStroke = localStorage.getItem('seshaa-logo-stroke');
     const customCss  = localStorage.getItem('seshaa-custom-css');
-    if (logoMain)   root.style.setProperty('--logo-main-size', logoMain + 'rem');
-    if (logoDot)    root.style.setProperty('--logo-dot-size',  logoDot  + 'rem');
+    if (logoMainMobile) root.style.setProperty('--logo-main-size-mobile', logoMainMobile + 'rem');
+    if (logoMainTablet) root.style.setProperty('--logo-main-size-tablet', logoMainTablet + 'rem');
+    if (logoMainDesktop) root.style.setProperty('--logo-main-size-desktop', logoMainDesktop + 'rem');
+    if (!logoMainMobile && !logoMainTablet && !logoMainDesktop && logoMainLegacy) {
+      root.style.setProperty('--logo-main-size-desktop', logoMainLegacy + 'rem');
+    }
     if (logoStroke) root.style.setProperty('--logo-stroke',    logoStroke + 'px');
     if (customCss) {
       const el = document.createElement('style');
@@ -185,6 +205,7 @@ export default function App() {
     const storedLang = localStorage.getItem('seshaa-lang') || 'en';
     const langDir = LANGUAGES.find(l => l.code === storedLang)?.dir || 'ltr';
     document.documentElement.dir = langDir;
+    loadThemeOverrides().catch(() => {});
     applyTheme(countryCode);
     detectFromIP();
     // Show personalisation survey only for brand-new signups (flag set by AuthPage after register)
@@ -192,6 +213,25 @@ export default function App() {
       sessionStorage.removeItem('seshaa-new-signup');
       setShowSurvey(true);
     }
+
+    adminApi.getPublicSeoSettings().then(r => {
+      const title = r.data?.title || 'Seshaa Africa — Directory for All 54 Countries';
+      const description = r.data?.description || 'Find businesses, services, and people across all 54 African countries on Seshaa.';
+      const image = r.data?.thumbnailUrl || 'https://www.seshaa.africa/og-image.svg';
+      const url = r.data?.url || 'https://www.seshaa.africa';
+
+      document.title = title;
+      upsertMeta('meta[name="description"]', 'name', 'description', description);
+
+      upsertMeta('meta[property="og:title"]', 'property', 'og:title', title);
+      upsertMeta('meta[property="og:description"]', 'property', 'og:description', description);
+      upsertMeta('meta[property="og:image"]', 'property', 'og:image', image);
+      upsertMeta('meta[property="og:url"]', 'property', 'og:url', url);
+
+      upsertMeta('meta[name="twitter:title"]', 'name', 'twitter:title', title);
+      upsertMeta('meta[name="twitter:description"]', 'name', 'twitter:description', description);
+      upsertMeta('meta[name="twitter:image"]', 'name', 'twitter:image', image);
+    }).catch(() => {});
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (

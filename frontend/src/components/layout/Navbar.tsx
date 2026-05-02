@@ -5,6 +5,7 @@ import {
   Search, Plus, Menu, X, MessageCircle, Bell, User, ChevronDown, Sparkles, Globe,
   Home, Newspaper, Tag, BarChart2, Megaphone, PartyPopper,
   Star, Briefcase, Languages, Settings, Globe2, Plane, Archive,
+  ShoppingBag,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/auth';
 import { useThemeStore } from '../../store/theme';
@@ -37,6 +38,7 @@ const ALL_TABS: Tab[] = [
   { id: 'news',        path: '/news',       label: 'News',        icon: <Newspaper    size={15} /> },
   { id: 'classifieds', path: '/classifieds',label: 'Classifieds', icon: <Tag          size={15} /> },
   { id: 'prices',      path: '/prices',     label: 'Prices',      icon: <BarChart2    size={15} /> },
+  { id: 'merch',       path: '/merch',      label: 'Merch',       icon: <ShoppingBag  size={15} /> },
   { id: 'advertise',   path: '/advertise',  label: 'Advertise',   icon: <Megaphone    size={15} /> },
   { id: 'events',      path: '/events',     label: 'Events',      icon: <PartyPopper  size={15} /> },
   { id: 'ambassador',  path: '/ambassador', label: 'Ambassador',  icon: <Star         size={15} />, roles: ['AMBASSADOR', 'ADMIN'] },
@@ -188,7 +190,7 @@ export default function Navbar() {
           </div>
 
           {/* Portal switcher */}
-          {user && availablePortals.length > 1 && (
+          {user && user.role !== 'ADMIN' && availablePortals.length > 1 && (
             <div className="relative">
               <button
                 className="flex items-center gap-1 text-white text-xs px-2 py-1 rounded-lg hover:bg-white/20 border border-white/30"

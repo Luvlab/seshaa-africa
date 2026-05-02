@@ -33,6 +33,7 @@
     "category": "Category",
     "type": "Type",
     "searchBtn": "Search",
+    "findBtn": "Find",
     "results": "{{count}} results found",
     "noResults": "No listings found. Be the first to add one!",
     "filters": "Filters",
