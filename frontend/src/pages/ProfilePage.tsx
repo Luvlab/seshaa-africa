@@ -13,7 +13,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
-  LogOut, Settings, Globe, Star, List, MessageCircle,
+  LogOut, Settings, Globe, Star, MessageCircle,
   ChevronRight, Lock, Eye, EyeOff, Check, X, Bell,
   CalendarDays, MapPin, Phone, ChevronDown, Building2,
   Clock, CheckCircle, XCircle, AlertCircle, ArrowRight,

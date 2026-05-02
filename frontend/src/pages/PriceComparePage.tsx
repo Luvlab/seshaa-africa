@@ -11,7 +11,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Search, TrendingUp, Star, MapPin, Phone, RefreshCw,
-  Plus, X, ChevronDown, ChevronUp, DollarSign, Globe,
+  Plus, X, DollarSign, Globe, Building2,
   BarChart2, ArrowUpDown, CheckCircle,
 } from 'lucide-react';
 import { pricesApi, listingsApi } from '../services/api';

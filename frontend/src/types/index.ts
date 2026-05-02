@@ -241,6 +241,8 @@ export interface SearchFilters {
   limit?: number;
   bookable?: boolean;
   minRating?: number;
+  submittedById?: string;
+  tier?: string;
 }
 
 export interface SearchResult {

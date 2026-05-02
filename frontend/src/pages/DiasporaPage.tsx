@@ -63,7 +63,8 @@ function AddPlaceDrawer({ onClose, isDiaspora = true }: { onClose: () => void; i
     if (!form.name.trim() || !form.city.trim() || !form.country.trim()) return;
     setSubmitting(true);
     try {
-      await listingsApi.create(form);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await listingsApi.create(form as any);
       setStep(4);
     } catch { /* ignore */ }
     setSubmitting(false);

@@ -35,7 +35,7 @@ function timeAgo(d: string, t: (k: string) => string) {
   return `${Math.floor(h / 24)}d`;
 }
 
-function HeroCard({ item, t }: { item: NewsItem; t: (k: string, opts?: object) => string }) {
+function HeroCard({ item, t }: { item: NewsItem; t: (k: string, opts?: Record<string, unknown>) => string }) {
   return (
     <a href={item.link} target="_blank" rel="noopener noreferrer"
       className="group block relative overflow-hidden bg-gray-900 h-full min-h-[340px]">
