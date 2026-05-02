@@ -174,10 +174,10 @@ export default function ProfilePage() {
         {/* Section tabs */}
         <div className="flex border-t border-white/20">
           {([
-            { id: 'overview',  label: 'Overview',  icon: <Bell size={13} /> },
-            { id: 'messages',  label: 'Messages',  icon: <MessageCircle size={13} />, badge: unread },
-            { id: 'bookings',  label: 'Bookings',  icon: <CalendarDays size={13} />, badge: upcomingCount },
-            { id: 'listings',  label: 'My Places', icon: <Building2 size={13} /> },
+            { id: 'overview',  label: t('profile.overview'),  icon: <Bell size={13} /> },
+            { id: 'messages',  label: t('profile.messages'),  icon: <MessageCircle size={13} />, badge: unread },
+            { id: 'bookings',  label: t('profile.bookings'),  icon: <CalendarDays size={13} />, badge: upcomingCount },
+            { id: 'listings',  label: t('profile.myPlaces'),  icon: <Building2 size={13} /> },
           ] as const).map(tab => (
             <button key={tab.id} onClick={() => setSection(tab.id)}
               className={`flex-1 flex items-center justify-center gap-1.5 py-3 text-xs font-bold relative transition-colors ${
@@ -202,9 +202,9 @@ export default function ProfilePage() {
           {/* Quick stats */}
           <div className="grid grid-cols-3 gap-3">
             {[
-              { label: 'Messages',  value: unread,           icon: <MessageCircle size={18} />,  color: '#008751', section: 'messages' as const },
-              { label: 'Bookings',  value: upcomingCount,    icon: <CalendarDays size={18} />,   color: '#3b82f6', section: 'bookings' as const },
-              { label: 'My Places', value: myListings.length, icon: <Building2 size={18} />,    color: '#f59e0b', section: 'listings' as const },
+              { label: t('profile.messages'),  value: unread,           icon: <MessageCircle size={18} />,  color: '#008751', section: 'messages' as const },
+              { label: t('profile.bookings'),  value: upcomingCount,    icon: <CalendarDays size={18} />,   color: '#3b82f6', section: 'bookings' as const },
+              { label: t('profile.myPlaces'),  value: myListings.length, icon: <Building2 size={18} />,    color: '#f59e0b', section: 'listings' as const },
             ].map(s => (
               <button key={s.label} onClick={() => setSection(s.section)}
                 className="bg-white rounded-2xl border p-4 text-center hover:shadow-md transition-shadow">
@@ -220,21 +220,21 @@ export default function ProfilePage() {
             <button onClick={() => setSection('messages')}
               className="w-full flex items-center gap-4 px-5 py-4 hover:bg-gray-50 transition-colors">
               <MessageCircle size={22} className="text-gray-400 shrink-0" strokeWidth={1.5} />
-              <span className="flex-1 text-left text-sm font-semibold text-gray-800">Messages</span>
+              <span className="flex-1 text-left text-sm font-semibold text-gray-800">{t('profile.messages')}</span>
               {unread > 0 && <span className="bg-red-500 text-white text-xs rounded-full px-2 py-0.5 font-bold">{unread}</span>}
               <ChevronRight size={18} className="text-gray-300" />
             </button>
             <button onClick={() => setSection('bookings')}
               className="w-full flex items-center gap-4 px-5 py-4 hover:bg-gray-50 transition-colors">
               <CalendarDays size={22} className="text-gray-400 shrink-0" strokeWidth={1.5} />
-              <span className="flex-1 text-left text-sm font-semibold text-gray-800">Bookings</span>
+              <span className="flex-1 text-left text-sm font-semibold text-gray-800">{t('profile.bookings')}</span>
               {upcomingCount > 0 && <span className="bg-blue-500 text-white text-xs rounded-full px-2 py-0.5 font-bold">{upcomingCount}</span>}
               <ChevronRight size={18} className="text-gray-300" />
             </button>
             <button onClick={() => setSection('listings')}
               className="w-full flex items-center gap-4 px-5 py-4 hover:bg-gray-50 transition-colors">
               <Building2 size={22} className="text-gray-400 shrink-0" strokeWidth={1.5} />
-              <span className="flex-1 text-left text-sm font-semibold text-gray-800">My Places</span>
+              <span className="flex-1 text-left text-sm font-semibold text-gray-800">{t('profile.myPlaces')}</span>
               <ChevronRight size={18} className="text-gray-300" />
             </button>
             <button onClick={() => navigate('/search')}
@@ -250,7 +250,7 @@ export default function ProfilePage() {
             <button onClick={() => setShowLangPicker(v => !v)}
               className="w-full flex items-center gap-4 px-5 py-4 hover:bg-gray-50 transition-colors">
               <Globe size={22} className="text-gray-400 shrink-0" strokeWidth={1.5} />
-              <span className="flex-1 text-left text-sm font-semibold text-gray-800">Language</span>
+              <span className="flex-1 text-left text-sm font-semibold text-gray-800">{t('profile.language')}</span>
               <span className="text-sm text-gray-500 mr-1">{currentLang.nativeName}</span>
               <ChevronDown size={18} className="text-gray-300" />
             </button>
@@ -274,7 +274,7 @@ export default function ProfilePage() {
             <button onClick={() => { setShowPwForm(v => !v); setPwMsg(null); }}
               className="w-full flex items-center gap-4 px-5 py-4 hover:bg-gray-50 transition-colors">
               <Lock size={22} className="text-gray-400 shrink-0" strokeWidth={1.5} />
-              <span className="flex-1 text-left text-sm font-semibold text-gray-800">Change Password</span>
+              <span className="flex-1 text-left text-sm font-semibold text-gray-800">{t('profile.changePassword')}</span>
               {showPwForm ? <X size={18} className="text-gray-300" /> : <ChevronRight size={18} className="text-gray-300" />}
             </button>
             {showPwForm && (
@@ -311,7 +311,7 @@ export default function ProfilePage() {
                 <button onClick={handleChangePassword} disabled={pwLoading}
                   className="w-full py-3 rounded-xl text-white text-sm font-bold disabled:opacity-60"
                   style={{ backgroundColor: 'var(--cp)' }}>
-                  {pwLoading ? 'Saving…' : 'Update Password'}
+                  {pwLoading ? t('profile.saving') : t('profile.savePassword')}
                 </button>
               </div>
             )}
@@ -338,7 +338,7 @@ export default function ProfilePage() {
           {/* Logout */}
           <button onClick={() => { logout(); navigate('/'); }}
             className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl bg-red-50 border-2 border-red-200 text-red-600 font-bold text-sm active:bg-red-100">
-            <LogOut size={20} strokeWidth={1.5} /> Sign Out
+            <LogOut size={20} strokeWidth={1.5} /> {t('profile.logout')}
           </button>
         </div>
       )}
@@ -347,16 +347,16 @@ export default function ProfilePage() {
       {activeSection === 'messages' && (
         <div className="px-4 py-5 space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="font-black text-gray-900">Messages</h2>
+            <h2 className="font-black text-gray-900">{t('profile.messages')}</h2>
             <Link to="/messages" className="text-xs font-semibold flex items-center gap-1" style={{ color: 'var(--cp)' }}>
-              Open full inbox <ArrowRight size={12} />
+              {t('profile.openMessages')} <ArrowRight size={12} />
             </Link>
           </div>
 
           {rooms.length === 0 ? (
             <div className="bg-white rounded-2xl border p-8 text-center text-gray-400">
               <MessageCircle size={36} className="mx-auto mb-3 opacity-30" />
-              <p className="font-medium text-gray-600">No conversations yet</p>
+              <p className="font-medium text-gray-600">{t('profile.noMessages')}</p>
               <p className="text-sm mt-1">Message a listing to start chatting</p>
             </div>
           ) : (
@@ -398,11 +398,11 @@ export default function ProfilePage() {
       {/* ── Section: Bookings ── */}
       {activeSection === 'bookings' && (
         <div className="px-4 py-5 space-y-4">
-          <h2 className="font-black text-gray-900">Bookings</h2>
+          <h2 className="font-black text-gray-900">{t('profile.bookings')}</h2>
 
           {upcoming.length > 0 && (
             <div>
-              <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Upcoming</p>
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{t('profile.upcoming')}</p>
               <div className="space-y-3">
                 {upcoming.map(b => {
                   const meta = STATUS_META[b.status] || STATUS_META.PENDING;
@@ -468,7 +468,7 @@ export default function ProfilePage() {
           {bookings.length === 0 && (
             <div className="bg-white rounded-2xl border p-8 text-center text-gray-400">
               <CalendarDays size={36} className="mx-auto mb-3 opacity-30" />
-              <p className="font-medium text-gray-600">No bookings yet</p>
+              <p className="font-medium text-gray-600">{t('profile.noBookings')}</p>
               <p className="text-sm mt-1">Book services from any listing on Seshaa</p>
               <Link to="/search"
                 className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-white text-sm"
@@ -484,23 +484,23 @@ export default function ProfilePage() {
       {activeSection === 'listings' && (
         <div className="px-4 py-5 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="font-black text-gray-900">My Places</h2>
+            <h2 className="font-black text-gray-900">{t('profile.myPlaces')}</h2>
             <Link to="/add-listing"
               className="flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-xl text-white"
               style={{ background: 'var(--cp)' }}>
-              <Plus size={13} /> Add a Place
+              <Plus size={13} /> {t('profile.addPlace')}
             </Link>
           </div>
 
           {myListings.length === 0 ? (
             <div className="bg-white rounded-2xl border p-8 text-center text-gray-400">
               <Building2 size={36} className="mx-auto mb-3 opacity-30" />
-              <p className="font-medium text-gray-600">No places added yet</p>
+              <p className="font-medium text-gray-600">{t('profile.noListings')}</p>
               <p className="text-sm mt-1 mb-5">Add your business, clinic, school or any African place</p>
               <Link to="/add-listing"
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-white text-sm"
                 style={{ background: 'var(--cp)' }}>
-                <Plus size={14} /> Add a Place
+                <Plus size={14} /> {t('profile.addPlace')}
               </Link>
             </div>
           ) : (
@@ -519,7 +519,7 @@ export default function ProfilePage() {
                     </p>
                     <div className="flex items-center gap-2 mt-1">
                       <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${l.verified ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
-                        {l.verified ? '✓ Verified' : 'Pending'}
+                        {l.verified ? `✓ ${t('profile.verified')}` : t('profile.pending')}
                       </span>
                       <span className="text-xs text-gray-400 capitalize">{l.category}</span>
                     </div>

@@ -129,15 +129,15 @@ export default function PriceComparePage() {
       <div className="flex items-start justify-between mb-6 gap-4 flex-wrap">
         <div>
           <h1 className="text-2xl font-black text-gray-900 flex items-center gap-2">
-            <BarChart2 size={22} className="text-green-600" /> Price Comparison
+            <BarChart2 size={22} className="text-green-600" /> {t('priceCompare.title')}
           </h1>
-          <p className="text-sm text-gray-500 mt-1">Compare real prices from businesses across Africa</p>
+          <p className="text-sm text-gray-500 mt-1">{t('priceCompare.subtitle')}</p>
         </div>
         {selectedItem && (
           <button onClick={() => setShowSubmit(v => !v)}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm text-white shrink-0"
             style={{ background: 'var(--cp, #008751)' }}>
-            <Plus size={15} /> Submit a Price
+            <Plus size={15} /> {t('priceCompare.submitPrice')}
           </button>
         )}
       </div>
@@ -147,7 +147,7 @@ export default function PriceComparePage() {
         <div className="lg:w-56 shrink-0 space-y-4">
           <div className="bg-white rounded-2xl border overflow-hidden">
             <div className="px-4 py-3 bg-gray-50 border-b">
-              <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">Categories</p>
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">{t('priceCompare.categories')}</p>
             </div>
             <div className="divide-y max-h-[45vh] lg:max-h-none overflow-y-auto">
               {CATEGORIES.map(c => (
@@ -165,7 +165,7 @@ export default function PriceComparePage() {
           {trending.length > 0 && (
             <div className="bg-white rounded-2xl border p-4">
               <div className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">
-                <TrendingUp size={12} /> Trending
+                <TrendingUp size={12} /> {t('priceCompare.trending')}
               </div>
               {trending.slice(0, 6).map(t => (
                 <button key={t.item}
@@ -184,7 +184,7 @@ export default function PriceComparePage() {
 
           {/* How data is collected */}
           <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 text-xs text-blue-800 space-y-1.5">
-            <p className="font-bold flex items-center gap-1"><Globe size={12} /> Where prices come from</p>
+            <p className="font-bold flex items-center gap-1"><Globe size={12} /> {t('priceCompare.whereFrom')}</p>
             <p>✓ Business self-reported prices</p>
             <p>✓ User submissions (you!)</p>
             <p>✓ Auto-extracted from business websites</p>
@@ -227,7 +227,7 @@ export default function PriceComparePage() {
             <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl p-5">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h3 className="font-black text-green-900">Submit a Price</h3>
+                  <h3 className="font-black text-green-900">{t('priceCompare.submitPrice')}</h3>
                   <p className="text-xs text-green-700 mt-0.5">For: <strong>{selectedItem}</strong></p>
                 </div>
                 <button onClick={() => setShowSubmit(false)} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
@@ -236,7 +236,7 @@ export default function PriceComparePage() {
               {submitDone ? (
                 <div className="text-center py-4">
                   <CheckCircle size={36} className="mx-auto mb-2 text-green-500" />
-                  <p className="font-bold text-green-800">Price submitted! Thank you 🙌</p>
+                  <p className="font-bold text-green-800">{t('priceCompare.submitted_done')}</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -294,7 +294,7 @@ export default function PriceComparePage() {
                     disabled={submitting || !form.listingId || !form.price}
                     className="w-full py-3 rounded-xl font-bold text-white text-sm disabled:opacity-50"
                     style={{ background: 'var(--cp, #008751)' }}>
-                    {submitting ? 'Submitting…' : '✓ Submit Price'}
+                    {submitting ? t('priceCompare.submitting') : `✓ ${t('priceCompare.submitPrice')}`}
                   </button>
                 </div>
               )}
@@ -332,12 +332,12 @@ export default function PriceComparePage() {
               ) : sorted.length === 0 ? (
                 <div className="bg-white rounded-2xl border p-8 text-center text-gray-400">
                   <Search size={32} className="mx-auto mb-2 opacity-30" />
-                  <p className="font-medium text-gray-600">No prices yet for "{selectedItem}"</p>
-                  <p className="text-sm mt-1 mb-4">Be the first to submit what you paid!</p>
+                  <p className="font-medium text-gray-600">{t('priceCompare.noResults')}</p>
+                  <p className="text-sm mt-1 mb-4">{t('priceCompare.noResultsHint')}</p>
                   <button onClick={() => setShowSubmit(true)}
                     className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-white text-sm"
                     style={{ background: 'var(--cp)' }}>
-                    <Plus size={14} /> Submit a Price
+                    <Plus size={14} /> {t('priceCompare.submitPrice')}
                   </button>
                 </div>
               ) : (
@@ -404,9 +404,7 @@ export default function PriceComparePage() {
                     })}
                   </div>
 
-                  <p className="text-xs text-gray-400 text-center mt-4">
-                    Prices are community-submitted and may not reflect real-time rates. Always confirm directly with the business.
-                  </p>
+                  <p className="text-xs text-gray-400 text-center mt-4">{t('priceCompare.disclaimer')}</p>
                 </>
               )}
             </div>
