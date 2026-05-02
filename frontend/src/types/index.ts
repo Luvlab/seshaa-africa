@@ -51,6 +51,7 @@ export interface Listing {
   reviewCount: number;
   certification?: SeshaaCertification;
   awards?: SeshaaAward[];
+  reviews?: Review[];
 }
 
 export interface Tag {

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Phone, MapPin, Globe, MessageCircle, BadgeCheck, Star, Calendar, Award, ArrowLeft, Share2 } from 'lucide-react';
 import { listingsApi, reviewsApi } from '../services/api';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../store/auth';
 import StarRating from '../components/ui/StarRating';
 import BookingModal from '../components/directory/BookingModal';
@@ -10,6 +11,7 @@ import type { Listing, Review } from '../types';
 export default function ListingDetail() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuthStore();
+  const { t } = useTranslation();
   const [listing, setListing] = useState<Listing | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
@@ -21,13 +23,15 @@ export default function ListingDetail() {
 
   useEffect(() => {
     if (!id) return;
-    Promise.all([
-      listingsApi.get(id),
-      reviewsApi.forListing(id),
-    ]).then(([lr, rr]) => {
-      setListing(lr.data);
-      setReviews(rr.data);
-    }).catch(() => {}).finally(() => setLoading(false));
+    // Reviews are now embedded in the listing response — single API call
+    listingsApi.get(id)
+      .then(lr => {
+        const data = lr.data as Listing & { reviews?: Review[] };
+        setListing(data);
+        setReviews(data.reviews ?? []);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, [id]);
 
   const submitReview = async () => {
@@ -164,7 +168,7 @@ export default function ListingDetail() {
             <a href={`tel:${listing.phone}`}
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-sm font-semibold"
               style={{ backgroundColor: 'var(--cp)' }}>
-              <Phone size={15} /> Call Now
+              <Phone size={15} /> {t('listing.callNow')}
             </a>
           )}
           {listing.whatsapp && (
@@ -173,10 +177,18 @@ export default function ListingDetail() {
               <MessageCircle size={15} /> WhatsApp
             </a>
           )}
+          {listing.latitude && listing.longitude && (
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${listing.latitude},${listing.longitude}`}
+              target="_blank" rel="noopener noreferrer"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold border-2"
+              style={{ borderColor: 'var(--cp)', color: 'var(--cp)' }}>
+              <MapPin size={15} /> {t('listing.directions')}
+            </a>
+          )}
           {listing.bookable && listing.isPro && (
             <button
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold border-2"
-              style={{ borderColor: 'var(--cp)', color: 'var(--cp)' }}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold border-2 border-blue-500 text-blue-600"
               onClick={() => setShowBooking(true)}>
               <Calendar size={15} /> Book Now
             </button>
