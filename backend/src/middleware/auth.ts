@@ -14,17 +14,6 @@ export function requireAuth(req: AuthRequest, res: Response, next: NextFunction)
   try {
     const decoded = jwt.verify(token, config.jwtSecret) as { id: string; role: string };
     req.user = decoded;
-    // Fire-and-forget: update lastSeen (max once per minute to avoid write spam)
-    prisma.user.updateMany({
-      where: {
-        id: decoded.id,
-        OR: [
-          { lastSeen: null },
-          { lastSeen: { lt: new Date(Date.now() - 60_000) } },
-        ],
-      },
-      data: { lastSeen: new Date() },
-    }).catch(() => {});
     next();
   } catch {
     res.status(401).json({ error: 'Invalid token' });

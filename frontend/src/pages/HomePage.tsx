@@ -7,6 +7,7 @@ import {
   Laptop, Scissors, Wrench, Wheat, Church, HardHat,
 } from 'lucide-react';
 import { adminApi } from '../services/api';
+import VisitorDashboard from '../components/home/VisitorDashboard';
 import { useThemeStore } from '../store/theme';
 
 // ── Hero slide type ─────────────────────────────────────────────────────────
@@ -499,6 +500,10 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ── VISITOR DASHBOARD — before footer ── */}
+      <VisitorDashboard />
+
     </div>
   );
 }

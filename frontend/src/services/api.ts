@@ -204,6 +204,7 @@ export const adminApi = {
   getThemeSettings: () => api.get('/admin/theme-settings'),
   saveThemeSettings: (data: { overrides: Record<string, { primary?: string; secondary?: string; accent?: string; text?: string }> }) => api.post('/admin/theme-settings', data),
   getPublicThemeSettings: () => api.get('/admin/public/theme-settings'),
+  getPublicStats: () => api.get<{ listings: number; users: number; countries: number; classifieds: number }>('/admin/public/stats'),
   createHeroSlide: (data: object) => api.post('/admin/hero-slides', data),
   updateHeroSlide: (id: string, data: object) => api.put(`/admin/hero-slides/${id}`, data),
   deleteHeroSlide: (id: string) => api.delete(`/admin/hero-slides/${id}`),
