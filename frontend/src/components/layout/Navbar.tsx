@@ -104,7 +104,7 @@ export default function Navbar() {
         <Link
           to="/"
           className="shrink-0 flex items-center self-center"
-          style={{ minWidth: 160 }}
+          style={{ minWidth: 160, transform: 'translateY(-4px)' }}
         >
           <SeshaaTitle countryCode={countryCode} size="md" />
         </Link>
