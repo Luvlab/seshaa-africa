@@ -36,33 +36,43 @@ const FALLBACK_SLIDES: HeroSlide[] = [
 ];
 
 function ytSrc(videoId: string, muted: boolean) {
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://www.seshaa.africa';
   return [
-    `https://www.youtube-nocookie.com/embed/${videoId}`,
+    `https://www.youtube.com/embed/${videoId}`,
     `?autoplay=1`,
     `&mute=${muted ? 1 : 0}`,
     `&playsinline=1`,
     `&loop=1`,
     `&playlist=${videoId}`,
     `&controls=0`,
+    `&fs=0`,
+    `&disablekb=1`,
     `&modestbranding=1`,
     `&rel=0`,
-    `&showinfo=0`,
     `&iv_load_policy=3`,
     `&enablejsapi=1`,
+    `&origin=${encodeURIComponent(origin)}`,
   ].join('');
 }
 
 // Extract YouTube video ID from a full URL or embed URL or bare ID
 function extractYoutubeId(url: string): string {
   if (!url) return '';
-  const embedMatch = url.match(/embed\/([^?&]+)/);
+  const cleaned = url.trim();
+  const embedMatch = cleaned.match(/embed\/([^?&"'>]+)/);
   if (embedMatch) return embedMatch[1];
-  const watchMatch = url.match(/[?&]v=([^&]+)/);
+  const watchMatch = cleaned.match(/[?&]v=([^&"'>]+)/);
   if (watchMatch) return watchMatch[1];
-  const shortMatch = url.match(/youtu\.be\/([^?]+)/);
+  const shortMatch = cleaned.match(/youtu\.be\/([^?&"'>]+)/);
   if (shortMatch) return shortMatch[1];
+  const shortsMatch = cleaned.match(/shorts\/([^?&"'>]+)/);
+  if (shortsMatch) return shortsMatch[1];
+  const liveMatch = cleaned.match(/live\/([^?&"'>]+)/);
+  if (liveMatch) return liveMatch[1];
   // If it looks like a bare video ID (11 chars, no slashes)
-  if (/^[\w-]{11}$/.test(url)) return url;
+  if (/^[\w-]{11}$/.test(cleaned)) return cleaned;
+  const genericMatch = cleaned.match(/([\w-]{11})/);
+  if (genericMatch) return genericMatch[1];
   return '';
 }
 
@@ -229,12 +239,14 @@ export default function HomePage() {
                 <div className="absolute inset-0 w-full h-full" style={{ background: 'linear-gradient(135deg, var(--cp,#008751) 0%, #1a1a2e 100%)' }} />
               ) : (
                 <iframe
-                  key={`${slideIdx}-${muted}`}
+                  key={`${slideIdx}-${ytId}-${muted}`}
                   src={ytSrc(ytId, muted)}
                   title={`Hero Ad - ${slide?.advertiser}`}
                   frameBorder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   allowFullScreen
+                  loading="eager"
+                  referrerPolicy="strict-origin-when-cross-origin"
                   style={{
                     position: 'absolute', top: '50%', left: '50%',
                     transform: 'translate(-50%, -50%)',

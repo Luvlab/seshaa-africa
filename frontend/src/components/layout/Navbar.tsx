@@ -109,8 +109,8 @@ export default function Navbar() {
         {/* Seshaa animated title — min-width holds stable settled width; no clipping */}
         <Link
           to="/"
-          className="shrink-0 flex items-center self-center origin-left scale-[0.88] sm:scale-100"
-          style={{ minWidth: 118, transform: 'translateY(6px)' }}
+          className="shrink-0 flex h-full items-center self-stretch origin-left scale-[0.84] -translate-y-[1px] sm:scale-100 sm:translate-y-0"
+          style={{ minWidth: 112 }}
         >
           <SeshaaTitle countryCode={countryCode} size="md" />
         </Link>
@@ -219,7 +219,7 @@ export default function Navbar() {
               <button onClick={openChatPanel} className="p-2 rounded-full hover:bg-white/20 text-white hidden sm:block" title="Messages">
                 <MessageCircle size={18} />
               </button>
-              <Link to="/profile" className="p-2 rounded-full hover:bg-white/20 text-white" title="Profile">
+              <Link to="/profile" className="hidden md:block p-2 rounded-full hover:bg-white/20 text-white" title="Profile">
                 <User size={18} />
               </Link>
             </>
