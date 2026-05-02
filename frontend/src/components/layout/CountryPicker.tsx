@@ -5,6 +5,7 @@
  */
 import { useState, useMemo } from 'react';
 import { Search, X } from 'lucide-react';
+import { useThemeStore } from '../../store/theme';
 
 // ── Country → languages map ─────────────────────────────────────────────────
 // Format: primary official first, then major spoken languages
@@ -172,19 +173,40 @@ interface Props {
 
 export default function CountryPicker({ onSelect, onClose, currentCode }: Props) {
   const [q, setQ] = useState('');
+  const { countryClicks } = useThemeStore();
+
+  // Countries sorted alphabetically within each region
+  const COUNTRIES_ALPHA = useMemo(() =>
+    [...COUNTRIES].sort((a, b) => a.name.localeCompare(b.name)),
+  []);
+
+  // Frequent countries: clicked 2+ times, sorted by click count desc, top 8
+  const frequentCodes = useMemo(() => {
+    return Object.entries(countryClicks)
+      .filter(([, n]) => n >= 2)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 8)
+      .map(([code]) => code);
+  }, [countryClicks]);
+
+  const frequentCountries = useMemo(() =>
+    frequentCodes
+      .map(code => COUNTRIES_ALPHA.find(c => c.code === code))
+      .filter(Boolean) as CountryEntry[],
+  [frequentCodes, COUNTRIES_ALPHA]);
 
   const filtered = useMemo(() => {
-    if (!q.trim()) return COUNTRIES;
+    if (!q.trim()) return COUNTRIES_ALPHA;
     const lc = q.toLowerCase();
-    return COUNTRIES.filter(c =>
+    return COUNTRIES_ALPHA.filter(c =>
       c.name.toLowerCase().includes(lc) ||
       c.region.toLowerCase().includes(lc) ||
       c.langs.some(l => l.toLowerCase().includes(lc)) ||
       c.code.toLowerCase().includes(lc)
     );
-  }, [q]);
+  }, [q, COUNTRIES_ALPHA]);
 
-  // Group by region
+  // Group by region (already alphabetically sorted within each)
   const regions = useMemo(() => {
     const map = new Map<string, CountryEntry[]>();
     for (const c of filtered) {
@@ -249,6 +271,45 @@ export default function CountryPicker({ onSelect, onClose, currentCode }: Props)
             </div>
             <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${currentCode === '' ? 'bg-green-100 text-green-700' : 'bg-green-50 text-green-600'}`}>ALL</span>
           </button>
+
+          {/* Frequent / recently used countries */}
+          {!q.trim() && frequentCountries.length > 0 && (
+            <div className="mb-4">
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 px-1">
+                ⭐ Your Countries
+              </p>
+              <div className="space-y-1">
+                {frequentCountries.map(c => {
+                  const isActive = c.code === currentCode;
+                  return (
+                    <button
+                      key={c.code}
+                      onClick={() => { onSelect(c.code); onClose(); }}
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-left transition-colors ${
+                        isActive
+                          ? 'bg-green-50 border-2 border-green-200'
+                          : 'hover:bg-gray-50 border-2 border-transparent'
+                      }`}
+                    >
+                      <span className="text-3xl leading-none shrink-0">{c.flag}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className={`font-bold text-sm ${isActive ? 'text-green-700' : 'text-gray-900'}`}>
+                          {c.name}
+                          {isActive && <span className="ml-2 text-xs text-green-500">✓ current</span>}
+                        </p>
+                        <p className="text-xs text-gray-400 truncate mt-0.5">
+                          {c.langs.slice(0, 3).join(' · ')}
+                        </p>
+                      </div>
+                      <span className={`text-xs font-bold px-2 py-0.5 rounded-full shrink-0 ${
+                        isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+                      }`}>{c.code}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {Array.from(regions.entries()).map(([region, countries]) => (
             <div key={region} className="mb-4">

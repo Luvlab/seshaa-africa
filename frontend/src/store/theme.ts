@@ -108,6 +108,7 @@ interface ThemeState {
   theme: CountryTheme;
   detected: boolean;
   overrides: Record<string, ThemeOverride>;
+  countryClicks: Record<string, number>; // frequency tracking
   applyTheme: (code: string) => void;
   detectFromIP: () => Promise<void>;
   loadThemeOverrides: () => Promise<void>;
@@ -122,10 +123,13 @@ export const useThemeStore = create<ThemeState>()(
       theme: { ...THEMES['NG'], code: 'NG' },
       detected: false,
       overrides: {},
+      countryClicks: {},
 
       applyTheme: (code: string) => {
-        const base = THEMES[code] || THEMES['DEFAULT'];
-        const override = get().overrides[code] || {};
+        // '' means "All Africa / DEFAULT"
+        const effectiveKey = code || 'DEFAULT';
+        const base = THEMES[effectiveKey] || THEMES['DEFAULT'];
+        const override = get().overrides[effectiveKey] || {};
         const t = { ...base, ...override };
         const theme: CountryTheme = { ...t, code };
         const root = document.documentElement;
@@ -135,7 +139,12 @@ export const useThemeStore = create<ThemeState>()(
         root.style.setProperty('--cs', t.secondary);
         root.style.setProperty('--ca', t.accent);
         root.style.setProperty('--ct', t.text || contrastText(t.primary));
-        set({ countryCode: code, theme, detected: true });
+        // Track frequency (only for real country codes, not empty/default)
+        const prev = get().countryClicks;
+        const countryClicks = code
+          ? { ...prev, [code]: (prev[code] || 0) + 1 }
+          : prev;
+        set({ countryCode: code, theme, detected: true, countryClicks });
       },
 
       loadThemeOverrides: async () => {
@@ -162,7 +171,7 @@ export const useThemeStore = create<ThemeState>()(
     }),
     {
       name: 'seshaa-theme',
-      partialize: (s) => ({ countryCode: s.countryCode, detected: false }), // don't persist detected flag
+      partialize: (s) => ({ countryCode: s.countryCode, detected: false, countryClicks: s.countryClicks }),
     }
   )
 );

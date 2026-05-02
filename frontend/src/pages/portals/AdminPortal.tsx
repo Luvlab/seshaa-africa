@@ -463,7 +463,7 @@ export default function AdminPortal() {
       };
       setThemeOverrides(next);
       await adminApi.saveThemeSettings({ overrides: next });
-      setThemeMsg(`Saved ${themeCountryCode} color overrides.`);
+      setThemeMsg(`Saved ${themeCountryCode === 'DEFAULT' ? 'seshaa.africa default' : themeCountryCode} color overrides.`);
       setTimeout(() => setThemeMsg(''), 2500);
     } catch {
       setThemeMsg('Failed to save country colors.');
@@ -1605,9 +1605,13 @@ export default function AdminPortal() {
                     onChange={e => setThemeCountryCode(e.target.value)}
                     className="mt-1 w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-sm text-gray-100"
                   >
-                    {COUNTRIES.filter(c => c.region !== 'Diaspora').map(c => (
-                      <option key={c.code} value={c.code}>{c.name} ({c.code})</option>
-                    ))}
+                    <option value="DEFAULT">🌍 seshaa.africa (Default / All Africa)</option>
+                    {[...COUNTRIES.filter(c => c.region !== 'Diaspora')]
+                      .sort((a, b) => a.name.localeCompare(b.name))
+                      .map(c => (
+                        <option key={c.code} value={c.code}>{c.name} ({c.code})</option>
+                      ))
+                    }
                   </select>
                 </label>
 
@@ -1635,7 +1639,7 @@ export default function AdminPortal() {
               </div>
 
               <div className="mt-4 p-3 rounded-xl border border-gray-800" style={{ backgroundColor: themePrimary, color: themeText }}>
-                <p className="text-xs font-bold">Preview: {themeCountryCode}</p>
+                <p className="text-xs font-bold">Preview: {themeCountryCode === 'DEFAULT' ? 'seshaa.africa (Default)' : themeCountryCode}</p>
                 <p className="text-[11px] opacity-90">Header/footer text will use this text color on the selected primary background.</p>
               </div>
 
