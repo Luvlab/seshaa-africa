@@ -89,10 +89,16 @@ export default function Navbar() {
 
   const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && searchQ.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchQ)}`);
+      const q = new URLSearchParams({ q: searchQ.trim() });
+      if (countryCode) q.set('country', countryCode);
+      navigate(`/search?${q.toString()}`);
       setSearchQ('');
       setMobileOpen(false);
     }
+  };
+
+  const openChatPanel = () => {
+    window.dispatchEvent(new CustomEvent('seshaa:chat-open', { detail: { tab: 'messages' } }));
   };
 
   return (
@@ -103,15 +109,15 @@ export default function Navbar() {
         {/* Seshaa animated title — min-width holds stable settled width; no clipping */}
         <Link
           to="/"
-          className="shrink-0 flex items-center self-center"
-          style={{ minWidth: 160, transform: 'translateY(-4px)' }}
+          className="shrink-0 flex items-center self-center origin-left scale-[0.88] sm:scale-100"
+          style={{ minWidth: 118, transform: 'translateY(6px)' }}
         >
           <SeshaaTitle countryCode={countryCode} size="md" />
         </Link>
 
         {/* Country flag badge */}
         <button
-          className="shrink-0 flex items-center gap-1.5 text-xs bg-white/20 hover:bg-white/30 text-white px-2.5 py-1.5 rounded-full transition-colors ml-3"
+          className="shrink-0 flex items-center gap-1.5 text-xs bg-white/20 hover:bg-white/30 text-white px-2 py-1.5 rounded-full transition-colors ml-1 sm:ml-3"
           onClick={() => setCountryPickerOpen(true)}
           title={`${theme.name} — tap to change`}
         >
@@ -136,7 +142,11 @@ export default function Navbar() {
           />
           <button
             className="text-white/60 hover:text-white shrink-0"
-            onClick={() => navigate('/search?ai=1&q=' + encodeURIComponent(searchQ))}
+            onClick={() => {
+              const q = new URLSearchParams({ ai: '1', q: searchQ.trim() });
+              if (countryCode) q.set('country', countryCode);
+              navigate('/search?' + q.toString());
+            }}
             title="AI Search"
           >
             <Sparkles size={14} />
@@ -206,9 +216,9 @@ export default function Navbar() {
 
           {user ? (
             <>
-              <Link to="/messages" className="p-2 rounded-full hover:bg-white/20 text-white hidden sm:block" title="Messages">
+              <button onClick={openChatPanel} className="p-2 rounded-full hover:bg-white/20 text-white hidden sm:block" title="Messages">
                 <MessageCircle size={18} />
-              </Link>
+              </button>
               <Link to="/profile" className="p-2 rounded-full hover:bg-white/20 text-white" title="Profile">
                 <User size={18} />
               </Link>
@@ -221,6 +231,16 @@ export default function Navbar() {
             >
               {t('auth.login')}
             </Link>
+          )}
+
+          {!user && (
+            <button
+              onClick={openChatPanel}
+              className="hidden md:flex items-center gap-1.5 p-2 rounded-full hover:bg-white/20 text-white"
+              title="Open chat"
+            >
+              <MessageCircle size={18} />
+            </button>
           )}
 
           <Link

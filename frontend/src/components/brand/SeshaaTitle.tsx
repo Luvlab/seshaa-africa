@@ -73,7 +73,7 @@ interface Props {
 
 const SIZE: Record<string, { main: string; dot: string }> = {
   sm: { main: '1.28rem', dot: '1.28rem' },
-  md: { main: '1.95rem', dot: '1.95rem' },
+  md: { main: 'clamp(1.26rem, 3.9vw, 1.95rem)', dot: 'clamp(1.12rem, 3.6vw, 1.95rem)' },
   lg: { main: '2.4rem',  dot: '2.4rem'  },
 };
 
@@ -185,7 +185,7 @@ export default function SeshaaTitle({ countryCode, size = 'sm', className = '', 
           fontStyle: 'italic',
           fontFamily: '"Arial Black","Arial Bold",Arial,sans-serif',
           color: 'var(--cs, white)',
-          WebkitTextStroke: 'var(--logo-stroke, 1.5px) var(--ca, #FCD116)',
+          WebkitTextStroke: '0px transparent',
           letterSpacing: '-0.02em',
           lineHeight: 1,
         }}

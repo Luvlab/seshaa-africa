@@ -141,9 +141,9 @@ export default function Footer() {
       {/* ── Bottom bar ───────────────────────────────────────────────── */}
       <div className="w-full border-t border-gray-800">
         <div className="w-full px-4 sm:px-6 lg:px-10 py-4
-                        flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-500">
-          <span>{t('footer.copyright', { year: new Date().getFullYear() })}</span>
-          <span className="text-base leading-none">
+                        flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-500 overflow-hidden">
+          <span className="text-center sm:text-left">{t('footer.copyright', { year: new Date().getFullYear() })}</span>
+          <span className="flex flex-wrap justify-center gap-x-1 gap-y-1 text-base leading-none max-w-full">
             🇳🇬 🇰🇪 🇿🇦 🇬🇭 🇪🇹 🇹🇿 🇸🇳 🇨🇮 🇨🇲 🇲🇱 🇬🇳 🇷🇼 🇺🇬 🇩🇿 🇲🇦 🇪🇬
           </span>
         </div>

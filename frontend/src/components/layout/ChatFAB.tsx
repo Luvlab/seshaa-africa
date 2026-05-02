@@ -1,9 +1,9 @@
 /**
- * ChatFAB — Floating Action Button for Seshaa Chat.
+ * ChatFAB — Global chat overlay for Seshaa.
  *
  * • Always-on Seshaa AI assistant (no login required)
  * • DM access (requires login) — full chat is at /messages
- * • Floating bottom-right; avoids the mobile tab bar
+ * • Opened from header (desktop) and footer menu (mobile)
  */
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -25,6 +25,16 @@ export default function ChatFAB() {
   const [rooms, setRooms]     = useState<ChatRoom[]>([]);
   const [unread, setUnread]   = useState(0);
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const onOpen = (event: Event) => {
+      const detail = (event as CustomEvent<{ tab?: 'ai' | 'messages' }>).detail;
+      if (detail?.tab) setTab(detail.tab);
+      setOpen(true);
+    };
+    window.addEventListener('seshaa:chat-open', onOpen as EventListener);
+    return () => window.removeEventListener('seshaa:chat-open', onOpen as EventListener);
+  }, []);
 
   // Poll unread count every 30 s when user is logged in
   useEffect(() => {
@@ -93,13 +103,7 @@ export default function ChatFAB() {
       {/* ── Panel ── */}
       {open && (
         <div
-          className="fixed z-40 flex flex-col overflow-hidden bg-white border border-gray-200 shadow-2xl rounded-2xl"
-          style={{
-            bottom: 'calc(env(safe-area-inset-bottom) + 88px)',
-            right: 16,
-            width: 'min(360px, calc(100vw - 32px))',
-            height: 'min(520px, calc(100dvh - 140px))',
-          }}
+          className="fixed chat-overlay z-40 flex flex-col overflow-hidden bg-white border border-gray-200 shadow-2xl md:rounded-2xl"
         >
           {/* Header */}
           <div className="flex items-center gap-2 px-4 py-3 shrink-0" style={{ background: 'var(--cp, #008751)' }}>
@@ -244,25 +248,6 @@ export default function ChatFAB() {
           )}
         </div>
       )}
-
-      {/* ── FAB button ── */}
-      <button
-        onClick={() => setOpen(v => !v)}
-        className="fixed z-40 w-14 h-14 rounded-full shadow-2xl flex items-center justify-center text-white transition-all active:scale-95 hover:scale-105"
-        style={{
-          bottom: 'calc(env(safe-area-inset-bottom) + 72px)',
-          right: 16,
-          background: open ? '#1f2937' : 'var(--cp, #008751)',
-        }}
-        aria-label={open ? 'Close chat' : 'Open Seshaa Chat'}
-      >
-        {open ? <X size={22} /> : <MessageCircle size={24} />}
-        {!open && unread > 0 && (
-          <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold pointer-events-none">
-            {unread > 9 ? '9+' : unread}
-          </span>
-        )}
-      </button>
     </>
   );
 }

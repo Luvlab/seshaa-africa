@@ -190,6 +190,7 @@ export const adminApi = {
   setHero: (data: object) => api.post('/admin/hero', data),
   // Hero slideshow management
   getHeroSlides: () => api.get('/admin/hero-slides'),
+  getPublicHeroSlides: () => api.get('/admin/public/hero-slides'),
   createHeroSlide: (data: object) => api.post('/admin/hero-slides', data),
   updateHeroSlide: (id: string, data: object) => api.put(`/admin/hero-slides/${id}`, data),
   deleteHeroSlide: (id: string) => api.delete(`/admin/hero-slides/${id}`),

@@ -8,14 +8,16 @@ import {
 } from 'lucide-react';
 import { listingsApi, adminApi } from '../services/api';
 import ListingCard from '../components/directory/ListingCard';
+import { useThemeStore } from '../store/theme';
 import type { Listing } from '../types';
 
 // ── Hero slide type ─────────────────────────────────────────────────────────
 interface HeroSlide {
   id?: string;
   youtubeId?: string;
-  mediaType?: 'youtube' | 'image' | 'video' | 'default';
+  mediaType?: 'youtube' | 'image' | 'video' | 'default' | string;
   mediaUrl?: string;
+  imageUrl?: string;
   advertiser: string;
   overlayTitle?: string;
   overlaySubtitle?: string;
@@ -35,9 +37,10 @@ const FALLBACK_SLIDES: HeroSlide[] = [
 
 function ytSrc(videoId: string, muted: boolean) {
   return [
-    `https://www.youtube.com/embed/${videoId}`,
+    `https://www.youtube-nocookie.com/embed/${videoId}`,
     `?autoplay=1`,
     `&mute=${muted ? 1 : 0}`,
+    `&playsinline=1`,
     `&loop=1`,
     `&playlist=${videoId}`,
     `&controls=0`,
@@ -60,7 +63,16 @@ function extractYoutubeId(url: string): string {
   if (shortMatch) return shortMatch[1];
   // If it looks like a bare video ID (11 chars, no slashes)
   if (/^[\w-]{11}$/.test(url)) return url;
-  return url;
+  return '';
+}
+
+function normalizeMediaType(raw: string | undefined, source: string): 'youtube' | 'image' | 'video' | 'default' {
+  const kind = (raw || '').trim().toLowerCase();
+  if (kind === 'youtube' || kind === 'image' || kind === 'video' || kind === 'default') return kind;
+  if (extractYoutubeId(source)) return 'youtube';
+  if (/\.(mp4|webm|ogg)(\?|$)/i.test(source)) return 'video';
+  if (/\.(png|jpg|jpeg|gif|webp|avif|svg)(\?|$)/i.test(source)) return 'image';
+  return 'default';
 }
 
 
@@ -152,6 +164,7 @@ const AFRICAN_COUNTRIES = [
 export default function HomePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { countryCode } = useThemeStore();
   const [query, setQuery]         = useState('');
   const [aiMode, setAiMode]       = useState(false);
   const [featured, setFeatured]   = useState<Listing[]>([]);
@@ -161,8 +174,13 @@ export default function HomePage() {
 
   // Load live hero slides from DB; fall back to hardcoded if empty
   useEffect(() => {
-    adminApi.getHeroSlides().then(r => {
-      const slides: HeroSlide[] = (r.data as HeroSlide[]) || [];
+    adminApi.getPublicHeroSlides().then(r => {
+      const slides: HeroSlide[] = ((r.data as HeroSlide[]) || []).map((s) => {
+        const source = s.mediaUrl || s.youtubeId || s.imageUrl || '';
+        const mediaType = normalizeMediaType(s.mediaType, source);
+        const youtubeId = mediaType === 'youtube' ? extractYoutubeId(source) : s.youtubeId;
+        return { ...s, mediaType, youtubeId, mediaUrl: source };
+      }).filter((s) => s.mediaType !== 'youtube' || Boolean(s.youtubeId));
       if (slides.length > 0) setHeroSlides(slides);
     }).catch(() => { /* keep fallback */ });
   }, []);
@@ -176,8 +194,9 @@ export default function HomePage() {
   }, [heroSlides.length]);
 
   useEffect(() => {
-    listingsApi.search({ limit: 6 }).then(r => setFeatured(r.data.listings)).catch(() => {});
-  }, []);
+    const params = countryCode ? { limit: 6, country: countryCode } : { limit: 6 };
+    listingsApi.search(params).then(r => setFeatured(r.data.listings)).catch(() => {});
+  }, [countryCode]);
 
   const handleSearch = () => {
     if (!query.trim()) return;
@@ -190,9 +209,9 @@ export default function HomePage() {
       {/* ── HERO ── */}
       {(() => {
         const slide = heroSlides[slideIdx] ?? heroSlides[0];
-        const mediaType = slide?.mediaType ?? 'youtube';
-        const rawUrl = slide?.mediaUrl ?? slide?.youtubeId ?? '';
-        const ytId = mediaType === 'youtube' ? extractYoutubeId(rawUrl) : '';
+        const rawUrl = slide?.mediaUrl ?? slide?.youtubeId ?? slide?.imageUrl ?? '';
+        const mediaType = normalizeMediaType(slide?.mediaType, rawUrl);
+        const ytId = mediaType === 'youtube' ? (slide?.youtubeId || extractYoutubeId(rawUrl)) : '';
         const ctaHref = slide?.targetUrl ?? slide?.ctaUrl ?? '/advertise';
         const ctaLabel = slide?.ctaText ?? t('home.ad.slot');
 
@@ -214,7 +233,7 @@ export default function HomePage() {
                   src={ytSrc(ytId, muted)}
                   title={`Hero Ad - ${slide?.advertiser}`}
                   frameBorder="0"
-                  allow="autoplay; encrypted-media; picture-in-picture"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   allowFullScreen
                   style={{
                     position: 'absolute', top: '50%', left: '50%',
@@ -235,7 +254,7 @@ export default function HomePage() {
                     {slide.overlayTitle}
                   </h1>
                 ) : (
-                  <h1 className="font-black mb-2 drop-shadow-lg whitespace-nowrap" style={{ fontSize: 'clamp(1.15rem, 4.5vw, 3.2rem)', lineHeight: 1.15 }}>
+                  <h1 className="font-black mb-2 drop-shadow-lg" style={{ fontSize: 'clamp(1.15rem, 4.5vw, 3.2rem)', lineHeight: 1.15 }}>
                     {t('app.tagline')}
                   </h1>
                 )}

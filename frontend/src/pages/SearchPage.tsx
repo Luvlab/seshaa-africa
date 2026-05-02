@@ -5,6 +5,7 @@ import { Search, SlidersHorizontal, Sparkles, X, Plus } from 'lucide-react';
 import { listingsApi, aiSearchApi } from '../services/api';
 import ListingCard from '../components/directory/ListingCard';
 import AdBanner from '../components/ads/AdBanner';
+import { useThemeStore } from '../store/theme';
 import type { Listing, SearchFilters } from '../types';
 
 const TYPES = ['PERSONAL', 'BUSINESS', 'GOVERNMENT', 'NGO'] as const;
@@ -12,10 +13,11 @@ const TYPES = ['PERSONAL', 'BUSINESS', 'GOVERNMENT', 'NGO'] as const;
 export default function SearchPage() {
   const { t } = useTranslation();
   const [params, setParams] = useSearchParams();
+  const { countryCode } = useThemeStore();
 
   const [filters, setFilters] = useState<SearchFilters>({
     q: params.get('q') || '',
-    country: params.get('country') || '',
+    country: params.get('country') || countryCode || '',
     city: params.get('city') || '',
     category: params.get('category') || '',
     type: (params.get('type') as SearchFilters['type']) || undefined,
@@ -55,6 +57,19 @@ export default function SearchPage() {
   }, [filters, aiMode]);
 
   useEffect(() => { doSearch(); }, [doSearch]);
+
+  useEffect(() => {
+    if (params.get('country')) return;
+    setFilters(prev => {
+      if ((prev.country || '') === (countryCode || '')) return prev;
+      const next = { ...prev, country: countryCode || '', page: 1 };
+      const p = new URLSearchParams(params);
+      if (countryCode) p.set('country', countryCode);
+      else p.delete('country');
+      setParams(p, { replace: true });
+      return next;
+    });
+  }, [countryCode, params, setParams]);
 
   const update = (patch: Partial<SearchFilters>) => {
     const next = { ...filters, ...patch, page: 1 };
