@@ -165,14 +165,6 @@ export default function SearchPage() {
             );
           })}
         </div>
-        {/* Add listing — always visible */}
-        <a
-          href="/add-listing"
-          className="shrink-0 flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-full text-white whitespace-nowrap"
-          style={{ background: 'var(--cp, #008751)' }}
-        >
-          <Plus size={13} /> Add
-        </a>
       </div>
 
       {/* AI interpretation */}
@@ -230,6 +222,13 @@ export default function SearchPage() {
             <>
               <div className="flex items-center justify-between mb-3">
                 <p className="text-sm text-gray-500">{t('search.results', { count: total })}</p>
+                <a
+                  href="/add-listing"
+                  className="flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-full text-white whitespace-nowrap"
+                  style={{ background: 'var(--cp, #008751)' }}
+                >
+                  <Plus size={13} /> Add a Place
+                </a>
               </div>
               <div className="grid sm:grid-cols-2 gap-4">
                 {listings.map((l, i) => (
