@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { SlidersHorizontal, Plus, Search } from 'lucide-react';
+import { SlidersHorizontal, Plus, Search, Sparkles, X } from 'lucide-react';
 import clsx from 'clsx';
 import { listingsApi, aiSearchApi } from '../services/api';
 import ListingCard from '../components/directory/ListingCard';
@@ -60,6 +60,16 @@ export default function SearchPage() {
 
   useEffect(() => { doSearch(); }, [doSearch]);
 
+  // Sync URL params → filters when navigating here from another page (e.g. hero search)
+  useEffect(() => {
+    const qParam    = params.get('q')    || '';
+    const cityParam = params.get('city') || '';
+    setFilters(prev => {
+      if (prev.q === qParam && prev.city === cityParam) return prev;
+      return { ...prev, q: qParam, city: cityParam, page: 1 };
+    });
+  }, [params]); // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     if (params.get('country')) return;
     setFilters(prev => {
@@ -88,6 +98,39 @@ export default function SearchPage() {
 
   return (
     <div className="w-full px-4 sm:px-6 lg:px-10 py-4">
+      {/* Search bar */}
+      <div className="flex gap-2 mb-3">
+        <div className="flex-1 flex items-center gap-2 bg-white rounded-xl border px-4 py-2.5 shadow-sm min-w-0">
+          {aiMode ? <Sparkles size={16} className="text-purple-500 shrink-0" /> : <Search size={16} className="text-gray-400 shrink-0" />}
+          <input
+            className="flex-1 min-w-0 outline-none text-sm text-gray-800 placeholder-gray-400"
+            placeholder={t('search.placeholder')}
+            value={filters.q}
+            onChange={e => setFilters(f => ({ ...f, q: e.target.value }))}
+            onKeyDown={e => e.key === 'Enter' && update({ q: filters.q })}
+          />
+          {filters.q && (
+            <button onClick={() => update({ q: '' })} className="shrink-0">
+              <X size={14} className="text-gray-400" />
+            </button>
+          )}
+        </div>
+        <button
+          className="shrink-0 px-5 rounded-xl font-semibold text-sm text-white hover:opacity-90"
+          style={{ background: 'var(--cp, #008751)' }}
+          onClick={() => update({ q: filters.q })}
+        >
+          {t('search.findBtn', { defaultValue: 'Find' })}
+        </button>
+        <button
+          className="shrink-0 bg-white border px-3 rounded-xl hover:bg-gray-50"
+          onClick={() => setShowFilters(v => !v)}
+          title="More filters"
+        >
+          <SlidersHorizontal size={16} />
+        </button>
+      </div>
+
       {/* Category pills + actions row */}
       <div className="flex items-center gap-2 mb-3">
         <div className="flex-1 flex gap-2 overflow-x-auto pb-1 scrollbar-none">
@@ -122,7 +165,7 @@ export default function SearchPage() {
             );
           })}
         </div>
-        {/* Action buttons — always visible, fixed width */}
+        {/* Add listing — always visible */}
         <a
           href="/add-listing"
           className="shrink-0 flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-full text-white whitespace-nowrap"
@@ -130,13 +173,6 @@ export default function SearchPage() {
         >
           <Plus size={13} /> Add
         </a>
-        <button
-          className="shrink-0 bg-white border px-2.5 py-1.5 rounded-full hover:bg-gray-50"
-          onClick={() => setShowFilters(v => !v)}
-          title="Filters"
-        >
-          <SlidersHorizontal size={14} />
-        </button>
       </div>
 
       {/* AI interpretation */}
