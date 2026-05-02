@@ -245,7 +245,28 @@ export const eventsApi = {
   attend:    (id: string) => api.post(`/events/${id}/attend`),
   attendees: (id: string) => api.get(`/events/${id}/attendees`),
   feature:   (id: string) => api.post(`/events/${id}/feature`),
+  // Scraped / discovered events from external sources
+  discover:  (p?: { country?: string; category?: string; q?: string; limit?: number; refresh?: string }) =>
+    api.get<{ total: number; events: DiscoveredEvent[] }>('/events/discover', { params: p }),
 };
+
+export interface DiscoveredEvent {
+  id: string;
+  title: string;
+  description?: string;
+  startDate: string;
+  endDate?: string;
+  venue?: string;
+  city: string;
+  country: string;
+  imageUrl?: string;
+  sourceUrl: string;
+  sourceName: string;
+  category?: string;
+  isFree: boolean;
+  price?: string;
+  ticketUrl?: string;
+}
 
 // Business Promotions
 export const promotionsApi = {

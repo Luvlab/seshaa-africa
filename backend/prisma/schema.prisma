@@ -541,6 +541,31 @@ enum PromotionType {
   NEW_PRODUCT  // new product or service launch
 }
 
+// ─── Discovered Events — scraped/API-pulled African events ──────────────────
+// Written by the /events/discover route on every cache refresh.
+model EventDiscovery {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  startDate   DateTime
+  endDate     DateTime?
+  venue       String?
+  city        String
+  country     String
+  imageUrl    String?
+  sourceUrl   String   @unique   // original link — credit to publisher
+  sourceName  String             // e.g. "Eventbrite", "TimeOut Lagos"
+  category    String?
+  isFree      Boolean  @default(false)
+  price       String?            // free-text e.g. "$20–50"
+  ticketUrl   String?
+  archivedAt  DateTime @default(now())
+
+  @@index([country, startDate(sort: Asc)])
+  @@index([category, startDate(sort: Asc)])
+  @@index([archivedAt(sort: Desc)])
+}
+
 // ─── Seshaa Radio — user-submitted tracks (no audio storage, just URLs) ──────
 model RadioTrack {
   id            String   @id @default(uuid())
