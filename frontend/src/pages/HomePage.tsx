@@ -376,8 +376,8 @@ export default function HomePage() {
             <button
               key={c.code}
               className="country-flag-btn flex flex-col items-center gap-1.5 py-3 px-1 bg-white rounded-2xl border border-gray-100 hover:border-gray-300 hover:shadow-md active:scale-95 transition-all"
-              onClick={() => navigate(`/search?country=${c.code}`)}>
-              <span className="flag-emoji text-3xl sm:text-4xl leading-none select-none">
+              onClick={() => navigate(`/search?country=${encodeURIComponent(c.name)}`)}>
+              <span className="flag-emoji text-4xl sm:text-5xl leading-none select-none">
                 {c.flag}
               </span>
               <span className="text-[11px] sm:text-xs font-semibold text-gray-900 text-center leading-tight w-full truncate px-0.5">

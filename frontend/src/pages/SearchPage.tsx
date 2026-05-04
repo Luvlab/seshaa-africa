@@ -12,6 +12,29 @@ import type { Listing, SearchFilters } from '../types';
 const TYPES = ['PERSONAL', 'BUSINESS', 'GOVERNMENT', 'NGO'] as const;
 const CATEGORY_TABS = ['restaurant', 'health', 'education', 'finance', 'transport', 'hotel', 'tech', 'beauty', 'auto', 'agriculture'] as const;
 
+// Map 2-letter country codes → full names stored in the DB (OSM Nominatim format)
+const CODE_TO_COUNTRY: Record<string, string> = {
+  DZ:'Algeria', AO:'Angola', BJ:'Benin', BW:'Botswana', BF:'Burkina Faso',
+  BI:'Burundi', CV:'Cape Verde', CM:'Cameroon', CF:'Central African Republic',
+  TD:'Chad', KM:'Comoros', CD:'DR Congo', CG:'Republic of Congo',
+  CI:"Côte d'Ivoire", DJ:'Djibouti', EG:'Egypt', GQ:'Equatorial Guinea',
+  ER:'Eritrea', ET:'Ethiopia', GA:'Gabon', GM:'Gambia', GH:'Ghana',
+  GN:'Guinea', GW:'Guinea-Bissau', KE:'Kenya', LS:'Lesotho', LR:'Liberia',
+  LY:'Libya', MG:'Madagascar', MW:'Malawi', ML:'Mali', MR:'Mauritania',
+  MU:'Mauritius', MA:'Morocco', MZ:'Mozambique', NA:'Namibia', NE:'Niger',
+  NG:'Nigeria', RW:'Rwanda', ST:'São Tomé and Príncipe', SN:'Senegal',
+  SC:'Seychelles', SL:'Sierra Leone', SO:'Somalia', ZA:'South Africa',
+  SS:'South Sudan', SD:'Sudan', SZ:'Eswatini', TZ:'Tanzania', TG:'Togo',
+  TN:'Tunisia', UG:'Uganda', ZM:'Zambia', ZW:'Zimbabwe',
+};
+
+/** Accept code ('NG') or full name ('Nigeria') — always returns a full name for DB matching */
+function resolveCountry(val: string): string {
+  if (!val) return '';
+  const upper = val.trim().toUpperCase();
+  return CODE_TO_COUNTRY[upper] ?? val.trim();
+}
+
 export default function SearchPage() {
   const { t } = useTranslation();
   const [params, setParams] = useSearchParams();
@@ -19,7 +42,7 @@ export default function SearchPage() {
 
   const [filters, setFilters] = useState<SearchFilters>({
     q: params.get('q') || '',
-    country: params.get('country') || countryCode || '',
+    country: resolveCountry(params.get('country') || countryCode || ''),
     city: params.get('city') || '',
     category: params.get('category') || '',
     type: (params.get('type') as SearchFilters['type']) || undefined,
@@ -60,30 +83,39 @@ export default function SearchPage() {
 
   useEffect(() => { doSearch(); }, [doSearch]);
 
-  // Sync URL params → filters when navigating here from another page (e.g. hero search)
+  // Sync URL params → filters when navigating here (e.g. hero search, country card)
   useEffect(() => {
-    const qParam    = params.get('q')    || '';
-    const cityParam = params.get('city') || '';
+    const qParam       = params.get('q')       || '';
+    const cityParam    = params.get('city')    || '';
+    const countryParam = resolveCountry(params.get('country') || '');
+    const categoryParam = params.get('category') || '';
     setFilters(prev => {
-      if (prev.q === qParam && prev.city === cityParam) return prev;
-      return { ...prev, q: qParam, city: cityParam, page: 1 };
+      const same =
+        prev.q        === qParam &&
+        prev.city     === cityParam &&
+        (prev.country || '') === countryParam &&
+        (prev.category || '') === categoryParam;
+      if (same) return prev;
+      return { ...prev, q: qParam, city: cityParam, country: countryParam, category: categoryParam, page: 1 };
     });
   }, [params]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Header country picker → always update search country
   useEffect(() => {
-    if (params.get('country')) return;
+    const name = resolveCountry(countryCode || '');
     setFilters(prev => {
-      if ((prev.country || '') === (countryCode || '')) return prev;
-      const next = { ...prev, country: countryCode || '', page: 1 };
+      if ((prev.country || '') === name) return prev;
+      const next = { ...prev, country: name, page: 1 };
       const p = new URLSearchParams(params);
-      if (countryCode) p.set('country', countryCode);
+      if (name) p.set('country', name);
       else p.delete('country');
       setParams(p, { replace: true });
       return next;
     });
-  }, [countryCode, params, setParams]);
+  }, [countryCode]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const update = (patch: Partial<SearchFilters>) => {
+    if (patch.country) patch.country = resolveCountry(patch.country);
     const next = { ...filters, ...patch, page: 1 };
     setFilters(next);
     const p = new URLSearchParams();
