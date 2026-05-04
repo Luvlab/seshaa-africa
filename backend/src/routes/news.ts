@@ -34,7 +34,9 @@ const ALL_SOURCES: Source[] = [
   { name: 'The Africa Report', url: 'https://www.theafricareport.com/feed/', country: 'Pan-Africa' },
   { name: 'Africa News', url: 'https://www.africanews.com/feed/rss', country: 'Pan-Africa' },
   { name: 'RFI Afrique', url: 'https://www.rfi.fr/fr/afrique/rss', country: 'Pan-Africa', lang: 'fr' },
+  { name: 'RFI Africa EN', url: 'https://www.rfi.fr/en/africa/rss', country: 'Pan-Africa' },
   { name: 'France 24 Afrique', url: 'https://www.france24.com/fr/afrique/rss', country: 'Pan-Africa', lang: 'fr' },
+  { name: 'France 24 Africa EN', url: 'https://www.france24.com/en/africa/rss', country: 'Pan-Africa' },
   { name: 'Quartz Africa', url: 'https://qz.com/africa/rss', country: 'Pan-Africa' },
   { name: 'African Arguments', url: 'https://africanarguments.org/feed/', country: 'Pan-Africa' },
   { name: 'How We Made It', url: 'https://howwemadeitinafrica.com/feed/', country: 'Pan-Africa', category: 'business' },
@@ -42,6 +44,20 @@ const ALL_SOURCES: Source[] = [
   { name: 'The Continent', url: 'https://thecontinent.org/feed/', country: 'Pan-Africa' },
   { name: 'Ventures Africa', url: 'https://venturesafrica.com/feed/', country: 'Pan-Africa', category: 'business' },
   { name: 'OkayAfrica', url: 'https://www.okayafrica.com/feed/', country: 'Pan-Africa', category: 'entertainment' },
+  { name: 'New African Magazine', url: 'https://newafricanmagazine.com/feed/', country: 'Pan-Africa' },
+  { name: 'Africa.com', url: 'https://africa.com/feed/', country: 'Pan-Africa' },
+  { name: 'Jeune Afrique', url: 'https://www.jeuneafrique.com/feed/', country: 'Pan-Africa', lang: 'fr' },
+  { name: 'IT News Africa', url: 'https://itnewsafrica.com/feed/', country: 'Pan-Africa', category: 'technology' },
+  { name: 'The African Mirror', url: 'https://theafricanmirror.africa/feed/', country: 'Pan-Africa' },
+  { name: 'Sahara Reporters', url: 'https://saharareporters.com/feeds/latest/feed', country: 'Pan-Africa' },
+  { name: 'Billionaires Africa', url: 'https://billionaires.africa/feed/', country: 'Pan-Africa', category: 'business' },
+  { name: 'AfricaBusiness.com', url: 'https://africabusiness.com/feed/', country: 'Pan-Africa', category: 'business' },
+  { name: 'Business Post NG', url: 'https://businesspost.ng/feed/', country: 'Nigeria', category: 'business' },
+  { name: 'The Exchange Africa', url: 'https://theexchange.africa/feed/', country: 'East Africa', category: 'business' },
+  { name: 'NYT Africa', url: 'https://www.nytimes.com/svc/collections/v1/publish/https://www.nytimes.com/section/world/africa/rss.xml', country: 'Pan-Africa' },
+  { name: 'Africa Science News', url: 'https://africasciencenews.org/feed/', country: 'Pan-Africa', category: 'health' },
+  { name: 'Business Daily Africa', url: 'https://businessdailyafrica.com/service/rss/bd/1939136/feed.rss', country: 'East Africa', category: 'business' },
+  { name: 'East African Business Times', url: 'https://eabusinesstimes.com/feed/', country: 'East Africa', category: 'business' },
 
   // ── NIGERIA ──────────────────────────────────────────────────────────────
   { name: 'Punch NG', url: 'https://punchng.com/feed/', country: 'Nigeria' },
@@ -62,21 +78,45 @@ const ALL_SOURCES: Source[] = [
   { name: 'Naija247News', url: 'https://naija247news.com/feed/', country: 'Nigeria' },
   { name: 'Leadership NG', url: 'https://leadership.ng/feed/', country: 'Nigeria' },
   { name: 'Sun News', url: 'https://www.sunnewsonline.com/feed/', country: 'Nigeria' },
+  { name: 'Daily Post Nigeria', url: 'https://dailypost.ng/feed/', country: 'Nigeria' },
+  { name: 'The Nation Nigeria', url: 'https://thenationonlineng.net/feed/', country: 'Nigeria' },
+  { name: 'Ripples Nigeria', url: 'https://ripplesnigeria.com/feed/', country: 'Nigeria' },
+  { name: 'Tribune Online NG', url: 'https://tribuneonlineng.com/feed/', country: 'Nigeria' },
+  { name: 'Legit NG', url: 'https://www.legit.ng/rss/all.rss', country: 'Nigeria' },
+  { name: 'PM News Nigeria', url: 'https://pmnewsnigeria.com/feed/', country: 'Nigeria' },
+  { name: 'Independent NG', url: 'https://independent.ng/feed/', country: 'Nigeria' },
+  { name: 'Information Nigeria', url: 'https://www.informationng.com/feed/', country: 'Nigeria' },
+  { name: 'Pointblank News', url: 'https://pointblanknews.com/pbn/feed/', country: 'Nigeria' },
+  { name: 'Business Hallmark', url: 'https://hallmarknews.com/feed/', country: 'Nigeria', category: 'business' },
+  { name: 'Herald Nigeria', url: 'https://herald.ng/feed/', country: 'Nigeria' },
+  { name: 'African Examiner', url: 'https://africanexaminer.com/feed/', country: 'Nigeria' },
+  { name: 'Daily Nigerian', url: 'https://dailynigerian.com/feed/', country: 'Nigeria' },
+  { name: 'Tori News NG', url: 'https://tori.ng/feed/rss.xml', country: 'Nigeria' },
 
   // ── KENYA ────────────────────────────────────────────────────────────────
   { name: 'Nation Africa', url: 'https://nation.africa/rss/feed.xml', country: 'Kenya' },
   { name: 'The Standard KE', url: 'https://www.standardmedia.co.ke/rss', country: 'Kenya' },
   { name: 'The Star KE', url: 'https://www.the-star.co.ke/rss/feed/', country: 'Kenya' },
-  { name: 'Business Daily KE', url: 'https://www.businessdailyafrica.com/rss/feed.xml', country: 'Kenya', category: 'business' },
+  { name: 'Business Daily KE', url: 'https://www.businessdailyafrica.com/service/rss/bd/1939132/feed.rss', country: 'Kenya', category: 'business' },
   { name: 'Tuko KE', url: 'https://www.tuko.co.ke/rss', country: 'Kenya' },
   { name: 'The East African', url: 'https://www.theeastafrican.co.ke/rss', country: 'East Africa', category: 'business' },
+  { name: 'Kenya News Agency', url: 'https://kenyanews.go.ke/feed/', country: 'Kenya' },
+  { name: 'Capital FM Kenya', url: 'https://capitalfm.co.ke/news/feed/', country: 'Kenya' },
+  { name: 'KBC Kenya', url: 'https://kbc.co.ke/feed/', country: 'Kenya' },
+  { name: 'K24 Kenya', url: 'https://k24.digital/feed/', country: 'Kenya' },
+  { name: 'Nairobi Wire', url: 'https://nairobiwire.com/feed/', country: 'Kenya' },
+  { name: 'AllAfrica Kenya', url: 'https://allafrica.com/tools/headlines/rdf/kenya/headlines.rdf', country: 'Kenya' },
+  { name: 'The East African TEA', url: 'https://www.theeastafrican.co.ke/service/rss/tea/1289142/feed.rss', country: 'East Africa' },
+  { name: 'Sharp Daily KE', url: 'https://thesharpdaily.com/feed/', country: 'Kenya', category: 'business' },
+  { name: 'Taifa Leo', url: 'https://taifaleo.nation.co.ke/feed/', country: 'Kenya' },
+  { name: 'People Daily KE', url: 'https://peopledaily.digital/feed/', country: 'Kenya' },
 
   // ── SOUTH AFRICA ─────────────────────────────────────────────────────────
-  { name: 'Daily Maverick', url: 'https://www.dailymaverick.co.za/feed/', country: 'South Africa' },
+  { name: 'Daily Maverick', url: 'https://www.dailymaverick.co.za/dmrss/', country: 'South Africa' },
   { name: 'Mail & Guardian', url: 'https://mg.co.za/feed/', country: 'South Africa' },
   { name: 'News24', url: 'https://feeds.news24.com/articles/news24/TopStories/rss', country: 'South Africa' },
   { name: 'TimesLive SA', url: 'https://www.timeslive.co.za/rss/', country: 'South Africa' },
-  { name: 'Eyewitness News', url: 'https://ewn.co.za/rssfeeds', country: 'South Africa' },
+  { name: 'Eyewitness News', url: 'https://ewn.co.za/RSS%20Feeds/Latest%20News', country: 'South Africa' },
   { name: 'SowetanLive', url: 'https://www.sowetanlive.co.za/rss/', country: 'South Africa' },
   { name: 'Business Day SA', url: 'https://www.businesslive.co.za/rss/bd/', country: 'South Africa', category: 'business' },
   { name: 'Fin24', url: 'https://www.news24.com/fin24/rss', country: 'South Africa', category: 'finance' },
@@ -84,30 +124,65 @@ const ALL_SOURCES: Source[] = [
   { name: 'IT Web Africa', url: 'https://itweb.africa/feed/rss', country: 'South Africa', category: 'technology' },
   { name: 'Health-e News', url: 'https://health-e.org.za/feed/', country: 'South Africa', category: 'health' },
   { name: 'Briefly SA', url: 'https://briefly.co.za/rss', country: 'South Africa', category: 'entertainment' },
+  { name: 'The Citizen SA', url: 'https://citizen.co.za/feed/', country: 'South Africa' },
+  { name: 'IOL SA', url: 'http://rss.iol.io/iol/news', country: 'South Africa' },
+  { name: 'Moneyweb SA', url: 'https://www.moneyweb.co.za/feed/', country: 'South Africa', category: 'finance' },
+  { name: 'BusinessTech SA', url: 'https://businesstech.co.za/news/feed/', country: 'South Africa', category: 'business' },
+  { name: 'MyBroadband', url: 'https://mybroadband.co.za/news/feed/', country: 'South Africa', category: 'technology' },
+  { name: 'The South African', url: 'https://www.thesouthafrican.com/feed/', country: 'South Africa' },
+  { name: 'African Reporter ZA', url: 'https://africanreporter.co.za/feed/', country: 'South Africa' },
+  { name: 'Cape Business News', url: 'https://cbn.co.za/feed/', country: 'South Africa', category: 'business' },
+  { name: 'SME South Africa', url: 'https://smesouthafrica.co.za/feed/', country: 'South Africa', category: 'business' },
+  { name: 'Biznews SA', url: 'https://biznews.com/feed/', country: 'South Africa', category: 'business' },
 
   // ── GHANA ────────────────────────────────────────────────────────────────
   { name: 'GhanaWeb', url: 'https://www.ghanaweb.com/GhanaHomePage/NewsArchive/rss.xml', country: 'Ghana' },
   { name: 'MyJoyOnline', url: 'https://www.myjoyonline.com/feed/', country: 'Ghana' },
-  { name: 'Graphic Online', url: 'https://www.graphic.com.gh/feed', country: 'Ghana' },
+  { name: 'Graphic Online', url: 'https://www.graphic.com.gh/feed/', country: 'Ghana' },
   { name: 'GNA Ghana', url: 'https://www.ghananewsagency.org/rss/', country: 'Ghana' },
   { name: 'Ghana Business News', url: 'https://www.ghanabusinessnews.com/feed/', country: 'Ghana', category: 'business' },
   { name: 'Pulse Ghana', url: 'https://www.pulse.com.gh/rss/feed.xml', country: 'Ghana', category: 'entertainment' },
+  { name: 'Citi Newsroom', url: 'https://www.citinewsroom.com/feed/', country: 'Ghana' },
+  { name: 'Adom Online', url: 'https://adomonline.com/feed/', country: 'Ghana' },
+  { name: 'Modern Ghana', url: 'https://www.modernghana.com/rssfeed/', country: 'Ghana' },
+  { name: 'Ghanaian Times', url: 'https://ghanaiantimes.com.gh/feed/', country: 'Ghana' },
+  { name: 'Ghana Summary', url: 'https://ghanasummary.com/feed/', country: 'Ghana' },
+  { name: 'Peace FM Online', url: 'https://peacefmonline.com/pages/news.xml', country: 'Ghana' },
 
   // ── ETHIOPIA & HORN OF AFRICA ─────────────────────────────────────────────
   { name: 'Ethiopian Reporter', url: 'https://www.thereporterethiopia.com/feed/', country: 'Ethiopia' },
   { name: 'Addis Fortune', url: 'https://addisfortune.news/feed/', country: 'Ethiopia', category: 'business' },
   { name: 'Addis Standard', url: 'https://addisstandard.com/feed/', country: 'Ethiopia' },
-  { name: 'Garowe Online', url: 'https://www.garoweonline.com/en/rss', country: 'Somalia/Horn' },
+  { name: 'Borkena', url: 'https://borkena.com/feed/', country: 'Ethiopia' },
+  { name: 'Capital Ethiopia', url: 'https://capitalethiopia.com/feed/', country: 'Ethiopia', category: 'business' },
+  { name: 'New Business Ethiopia', url: 'https://newbusinessethiopia.com/feed/', country: 'Ethiopia', category: 'business' },
+  { name: 'Ethiopia Insight', url: 'https://ethiopia-insight.com/feed/', country: 'Ethiopia' },
+  { name: 'Walta Info', url: 'https://waltainfo.com/feed/', country: 'Ethiopia' },
+  { name: 'AllAfrica Ethiopia', url: 'https://allafrica.com/tools/headlines/rdf/ethiopia/headlines.rdf', country: 'Ethiopia' },
+  { name: 'Garowe Online', url: 'https://www.garoweonline.com/en/rss', country: 'Somalia' },
   { name: 'Hiiraan Online', url: 'https://www.hiiraan.com/news4/rss.aspx', country: 'Somalia' },
 
   // ── EGYPT & NORTH AFRICA ──────────────────────────────────────────────────
   { name: 'Ahram Online', url: 'https://english.ahram.org.eg/rss.aspx', country: 'Egypt' },
   { name: 'Egypt Independent', url: 'https://egyptindependent.com/feed/', country: 'Egypt' },
+  { name: 'Daily News Egypt', url: 'https://www.dailynewsegypt.com/feed/', country: 'Egypt' },
+  { name: 'Mada Masr', url: 'https://www.madamasr.com/en/feed/', country: 'Egypt' },
+  { name: 'Egyptian Streets', url: 'https://egyptianstreets.com/feed/', country: 'Egypt' },
+  { name: 'Egyptian Gazette', url: 'https://egyptian-gazette.com/feed/', country: 'Egypt' },
+  { name: 'Egypt Oil & Gas', url: 'https://egyptoil-gas.com/news/feed/', country: 'Egypt', category: 'business' },
   { name: 'Morocco World News', url: 'https://www.moroccoworldnews.com/feed/', country: 'Morocco' },
   { name: 'Le360 Maroc', url: 'https://fr.le360.ma/rss.xml', country: 'Morocco', lang: 'fr' },
-  { name: 'Tap News TN', url: 'https://www.tap.info.tn/en/RSS-Feeds', country: 'Tunisia' },
+  { name: "Aujourd'hui le Maroc", url: 'https://aujourdhui.ma/feed/', country: 'Morocco', lang: 'fr' },
+  { name: 'La Vie éco Maroc', url: 'https://lavieeco.com/feed/', country: 'Morocco', lang: 'fr' },
+  { name: 'Hespress', url: 'https://hespress.com/feed/', country: 'Morocco', lang: 'ar' },
+  { name: 'MapNews MA', url: 'https://mapnews.ma/en/actualites/general/rss.xml', country: 'Morocco' },
+  { name: 'La Nouvelle Tribune MA', url: 'https://lnt.ma/feed/', country: 'Morocco', lang: 'fr' },
+  { name: 'TAP News TN', url: 'https://www.tap.info.tn/en/RSS-Feeds', country: 'Tunisia' },
+  { name: 'Kapitalis TN', url: 'https://kapitalis.com/tunisie/feed/', country: 'Tunisia', lang: 'fr' },
+  { name: 'Business News TN', url: 'https://businessnews.com.tn/feed/', country: 'Tunisia', lang: 'fr' },
   { name: 'Libya Herald', url: 'https://libyaherald.com/feed/', country: 'Libya' },
   { name: 'TSA Algérie', url: 'https://www.tsa-algerie.com/feed/', country: 'Algeria', lang: 'fr' },
+  { name: 'HuffPost Maghreb', url: 'https://www.huffpostmaghreb.com/feeds/index.xml', country: 'North Africa', lang: 'fr' },
 
   // ── TANZANIA & EAST AFRICA ───────────────────────────────────────────────
   { name: 'The Citizen TZ', url: 'https://www.thecitizen.co.tz/tanzania/rss', country: 'Tanzania' },
@@ -118,74 +193,149 @@ const ALL_SOURCES: Source[] = [
   { name: 'Daily Monitor UG', url: 'https://www.monitor.co.ug/uganda/rss', country: 'Uganda' },
   { name: 'New Vision UG', url: 'https://www.newvision.co.ug/rss', country: 'Uganda' },
   { name: 'Nile Post', url: 'https://nilepost.co.ug/feed/', country: 'Uganda' },
+  { name: 'Chimp Reports', url: 'https://chimpreports.com/feed/', country: 'Uganda' },
 
   // ── RWANDA ───────────────────────────────────────────────────────────────
   { name: 'The New Times RW', url: 'https://www.newtimes.co.rw/rss', country: 'Rwanda' },
   { name: 'KT Press', url: 'https://ktpress.rw/feed/', country: 'Rwanda' },
+  { name: 'Taarifa Rwanda', url: 'https://taarifa.rw/feed/', country: 'Rwanda' },
+  { name: 'The Rwandan', url: 'https://therwandan.com/feed/', country: 'Rwanda' },
+  { name: 'Rwanda Today', url: 'https://rwandatoday.africa/service/rss/rwanda/2464348/feed.rss', country: 'Rwanda' },
+  { name: 'Imvaho Nshya', url: 'https://imvahonshya.co.rw/feed/', country: 'Rwanda' },
 
   // ── SENEGAL & WEST AFRICA ─────────────────────────────────────────────────
   { name: 'Seneweb', url: 'https://www.seneweb.com/news/rss.php', country: 'Senegal', lang: 'fr' },
   { name: 'DakarActu', url: 'https://www.dakaractu.com/rss.php', country: 'Senegal', lang: 'fr' },
-  { name: 'Fratmat CI', url: 'https://www.fratmat.info/rss.xml', country: "Côte d'Ivoire", lang: 'fr' },
+  { name: 'SeneNews', url: 'https://www.senenews.com/feed/', country: 'Senegal', lang: 'fr' },
+  { name: 'Senego', url: 'https://senego.com/feed/', country: 'Senegal', lang: 'fr' },
+  { name: 'PressAfrik', url: 'https://www.pressafrik.com/feed/', country: 'Senegal', lang: 'fr' },
+
+  // ── CÔTE D'IVOIRE ─────────────────────────────────────────────────────────
+  { name: "Fratmat CI", url: 'https://www.fratmat.info/rss.xml', country: "Côte d'Ivoire", lang: 'fr' },
   { name: 'Koaci CI', url: 'https://koaci.com/rss.xml', country: "Côte d'Ivoire", lang: 'fr' },
+  { name: 'Connection Ivoirienne', url: 'https://connectionivoirienne.net/feed/', country: "Côte d'Ivoire", lang: 'fr' },
+  { name: 'Ivorian.net', url: 'https://www.ivorian.net/feed/', country: "Côte d'Ivoire", lang: 'fr' },
+
+  // ── CAMEROON ─────────────────────────────────────────────────────────────
   { name: 'Journal du Cameroun', url: 'https://www.journalducameroun.com/feed/', country: 'Cameroon', lang: 'fr' },
   { name: 'Cameroon Tribune', url: 'https://www.cameroon-tribune.cm/rss.xml', country: 'Cameroon', lang: 'fr' },
-  { name: 'Aujourd\'hui Burkina', url: 'https://www.aoujourdhuiaufaso.net/rss.xml', country: 'Burkina Faso', lang: 'fr' },
+  { name: '237online Cameroun', url: 'https://www.237online.com/feed/', country: 'Cameroon', lang: 'fr' },
+  { name: 'Camer.be', url: 'https://www.camer.be/rss/', country: 'Cameroon', lang: 'fr' },
+  { name: 'CRTV Cameroon', url: 'https://crtv.cm/feed/', country: 'Cameroon', lang: 'fr' },
+  { name: 'Cameroon Concord', url: 'https://www.cameroonconcordnews.com/feed/', country: 'Cameroon' },
+  { name: 'CameroonOnline', url: 'https://www.cameroononline.org/feed/', country: 'Cameroon' },
+  { name: '237ACTU', url: 'https://237actu.com/content/feed/', country: 'Cameroon', lang: 'fr' },
+  { name: 'Cameroon News Agency', url: 'https://cameroonnewsagency.com/feed/', country: 'Cameroon' },
+  { name: 'Cameroon Voice', url: 'https://cameroonvoice.com/feed/', country: 'Cameroon' },
+
+  // ── BURKINA FASO ─────────────────────────────────────────────────────────
+  { name: "Aujourd'hui Burkina", url: 'https://www.aoujourdhuiaufaso.net/rss.xml', country: 'Burkina Faso', lang: 'fr' },
+  { name: 'Sidwaya', url: 'https://www.sidwaya.info/feed/', country: 'Burkina Faso', lang: 'fr' },
+  { name: 'Le Pays BF', url: 'https://lepays.bf/feed/', country: 'Burkina Faso', lang: 'fr' },
+  { name: 'Burkina24', url: 'https://burkina24.com/feed/', country: 'Burkina Faso', lang: 'fr' },
+  { name: 'AIB Burkina', url: 'https://www.aib.media/feed/', country: 'Burkina Faso', lang: 'fr' },
+  { name: "L'Express du Faso", url: 'https://www.lexpressdufaso-bf.com/feed/', country: 'Burkina Faso', lang: 'fr' },
+  { name: 'BurkinaInfo', url: 'https://burkinainfo.com/feed/', country: 'Burkina Faso', lang: 'fr' },
+
+  // ── MALI ─────────────────────────────────────────────────────────────────
   { name: 'Mali Actu', url: 'https://maliactu.net/feed/', country: 'Mali', lang: 'fr' },
+  { name: 'Maliweb', url: 'https://www.maliweb.net/feed/', country: 'Mali', lang: 'fr' },
+  { name: 'Bamada.net', url: 'https://bamada.net/feed/', country: 'Mali', lang: 'fr' },
+  { name: 'Journal du Mali', url: 'https://www.journaldumali.com/feed/', country: 'Mali', lang: 'fr' },
+
+  // ── BENIN & TOGO ─────────────────────────────────────────────────────────
   { name: 'Bénin Web TV', url: 'https://www.beninwebtv.com/feed/', country: 'Benin', lang: 'fr' },
+  { name: "L'Agora Bénin", url: 'https://lagora.bj/feed/', country: 'Benin', lang: 'fr' },
   { name: 'Togo Actu', url: 'https://togoactu.net/feed/', country: 'Togo', lang: 'fr' },
+  { name: 'Togo First', url: 'https://www.togofirst.com/en/rss/', country: 'Togo' },
+
+  // ── NIGER & GUINEA ────────────────────────────────────────────────────────
+  { name: 'Niger Diaspora', url: 'https://nigerdiaspora.net/feed/', country: 'Niger', lang: 'fr' },
+  { name: 'Guinée News', url: 'https://www.guineenews.org/feed/', country: 'Guinea', lang: 'fr' },
+
+  // ── GABON & CENTRAL AFRICA ────────────────────────────────────────────────
+  { name: 'Gabon Actu', url: 'https://gabonactu.com/feed/', country: 'Gabon', lang: 'fr' },
+
+  // ── SIERRA LEONE & LIBERIA ────────────────────────────────────────────────
+  { name: 'Sierra Leone Telegraph', url: 'https://www.thesierraleonetelegraph.com/feed/', country: 'Sierra Leone' },
+  { name: 'Liberian Observer', url: 'https://www.liberianobserver.com/feed/', country: 'Liberia' },
+  { name: 'FrontPage Africa', url: 'https://frontpageafricaonline.com/feed/', country: 'Liberia' },
 
   // ── ZIMBABWE ─────────────────────────────────────────────────────────────
   { name: 'NewsDay ZW', url: 'https://www.newsday.co.zw/feed/', country: 'Zimbabwe' },
   { name: 'Zimbabwe Situation', url: 'https://www.zimbabwesituation.com/feed/', country: 'Zimbabwe' },
   { name: 'Herald ZW', url: 'https://www.herald.co.zw/feed/', country: 'Zimbabwe' },
+  { name: 'The Chronicle ZW', url: 'https://chronicle.co.zw/feed/', country: 'Zimbabwe' },
+  { name: 'The Sunday Mail ZW', url: 'https://sundaymail.co.zw/feed/', country: 'Zimbabwe' },
+  { name: 'iHarare', url: 'https://iharare.com/feed/', country: 'Zimbabwe' },
+  { name: 'ZimLive', url: 'https://zimlive.com/feed/', country: 'Zimbabwe' },
+  { name: 'New Zimbabwe', url: 'https://newzimbabwe.com/feed/', country: 'Zimbabwe' },
+  { name: 'Bulawayo24', url: 'https://bulawayo24.com/feeds-rss-rss.rss', country: 'Zimbabwe' },
+  { name: 'The Financial Gazette ZW', url: 'https://fingaz.co.zw/feed/', country: 'Zimbabwe', category: 'business' },
+  { name: 'DailyNews ZW', url: 'https://dailynews.co.zw/feed/', country: 'Zimbabwe' },
+  { name: '263Chat', url: 'https://263chat.com/feed/', country: 'Zimbabwe' },
 
-  // ── ZAMBIA & SOUTHERN AFRICA ─────────────────────────────────────────────
+  // ── ZAMBIA ────────────────────────────────────────────────────────────────
   { name: 'Zambian Observer', url: 'https://www.zambianobserver.com/feed/', country: 'Zambia' },
   { name: 'Lusaka Times', url: 'https://www.lusakatimes.com/feed/', country: 'Zambia' },
-  { name: 'Daily Nation ZM', url: 'https://www.daily-mail.co.zm/feed/', country: 'Zambia' },
+  { name: 'Zambia Daily Mail', url: 'https://www.daily-mail.co.zm/feed/', country: 'Zambia' },
+  { name: 'Times of Zambia', url: 'https://times.co.zm/?feed=rss2', country: 'Zambia' },
+  { name: 'News Diggers ZM', url: 'https://diggers.news/feed/', country: 'Zambia' },
+  { name: 'Lusaka Voice', url: 'https://lusakavoice.com/feed/', country: 'Zambia' },
+  { name: 'Zambia News365', url: 'https://zambianews365.com/feed/', country: 'Zambia' },
+  { name: 'Daily Nation Zambia', url: 'https://dailynationzambia.com/feed/', country: 'Zambia' },
+
+  // ── MALAWI ────────────────────────────────────────────────────────────────
   { name: 'Malawi24', url: 'https://malawi24.com/feed/', country: 'Malawi' },
   { name: 'Malawi Nyasa Times', url: 'https://www.nyasatimes.com/feed/', country: 'Malawi' },
-  { name: 'The Namibian', url: 'https://www.namibian.com.na/rss/index.php', country: 'Namibia' },
+
+  // ── NAMIBIA ───────────────────────────────────────────────────────────────
+  { name: 'The Namibian', url: 'https://www.namibian.com.na/rssfeed.php', country: 'Namibia' },
+  { name: 'Namibia Economist', url: 'https://economist.com.na/feed/', country: 'Namibia', category: 'business' },
+  { name: 'Windhoek Observer', url: 'https://observer24.com.na/feed/', country: 'Namibia' },
+  { name: 'Informanté NA', url: 'https://informante.web.na/?feed=rss2', country: 'Namibia' },
+  { name: 'Namibia Daily News', url: 'https://namibiadailynews.info/feed/', country: 'Namibia' },
+
+  // ── BOTSWANA / LESOTHO / ESWATINI ─────────────────────────────────────────
   { name: 'Botswana Daily News', url: 'https://www.dailynews.gov.bw/rss.php', country: 'Botswana' },
   { name: 'Observer Lesotho', url: 'https://www.lesothotimes.co.ls/feed/', country: 'Lesotho' },
   { name: 'Observer Eswatini', url: 'https://www.observer.org.sz/feed/', country: 'Eswatini' },
 
   // ── DR CONGO ─────────────────────────────────────────────────────────────
-  { name: 'Radio Okapi DRC', url: 'https://www.radiookapi.net/rss.xml', country: 'DR Congo', lang: 'fr' },
-  { name: 'Actualité CD', url: 'https://actualite.cd/feed', country: 'DR Congo', lang: 'fr' },
-  { name: 'Congo Planet', url: 'https://congoplanet.com/feed/', country: 'DR Congo', lang: 'fr' },
+  { name: 'Radio Okapi DRC', url: 'https://feeds.feedburner.com/radiookapi/actu', country: 'DR Congo', lang: 'fr' },
+  { name: 'Actualité CD', url: 'https://actualite.cd/feed/', country: 'DR Congo', lang: 'fr' },
+  { name: 'Actu RDC', url: 'https://acturdc.com/feed/', country: 'DR Congo', lang: 'fr' },
+  { name: 'Journal de Kinshasa', url: 'https://www.journaldekinshasa.com/feed/', country: 'DR Congo', lang: 'fr' },
+  { name: 'Congo Independent', url: 'http://www.congoindependant.com/feed/', country: 'DR Congo', lang: 'fr' },
+  { name: 'ACP Congo', url: 'https://acpcongo.com/feed/', country: 'DR Congo', lang: 'fr' },
+  { name: 'Dépêche CD', url: 'https://depeche.cd/feed/', country: 'DR Congo', lang: 'fr' },
 
   // ── ANGOLA & MOZAMBIQUE ───────────────────────────────────────────────────
   { name: 'Angola Press', url: 'https://www.angop.ao/rss/', country: 'Angola', lang: 'pt' },
   { name: 'O País MZ', url: 'https://opais.co.mz/feed/', country: 'Mozambique', lang: 'pt' },
   { name: 'Club of Mozambique', url: 'https://clubofmozambique.com/feed/', country: 'Mozambique' },
 
-  // ── EAST AFRICA ───────────────────────────────────────────────────────────
-  { name: 'The EastAfrican', url: 'https://www.theeastafrican.co.ke/tea/rss', country: 'East Africa' },
+  // ── BURUNDI ───────────────────────────────────────────────────────────────
   { name: 'Burundi Eco', url: 'https://burundi-eco.com/feed/', country: 'Burundi', lang: 'fr' },
+  { name: 'IWACU Burundi', url: 'https://www.iwacu-burundi.org/englishnews/feed/', country: 'Burundi' },
+  { name: 'Yaga Burundi', url: 'https://www.yaga-burundi.com/feed/', country: 'Burundi', lang: 'fr' },
+  { name: 'Radio Isanganiro', url: 'https://isanganiro.org/feed/', country: 'Burundi', lang: 'fr' },
+  { name: 'Burundi Forum', url: 'https://burundi-forum.org/feed/', country: 'Burundi', lang: 'fr' },
 
-  // ── HORN OF AFRICA ───────────────────────────────────────────────────────
-  { name: 'Sudan Tribune', url: 'https://www.sudantribune.com/IMG/rss/rss.xml', country: 'Sudan' },
+  // ── EAST AFRICA (regional) ────────────────────────────────────────────────
+  { name: 'The EastAfrican', url: 'https://www.theeastafrican.co.ke/tea/rss', country: 'East Africa' },
+  { name: 'AllAfrica East Africa', url: 'https://allafrica.com/tools/headlines/rdf/eastafrica/headlines.rdf', country: 'East Africa' },
+
+  // ── HORN OF AFRICA & SUDAN ───────────────────────────────────────────────
+  { name: 'Sudan Tribune', url: 'https://sudantribune.net/feed/', country: 'Sudan' },
+  { name: 'Dabanga Sudan', url: 'https://www.dabangasudan.org/en/feed/', country: 'Sudan' },
+  { name: 'Radio Tamazuj', url: 'https://radiotamazuj.org/en/rss/news.xml', country: 'Sudan' },
+  { name: 'AllAfrica Sudan', url: 'https://allafrica.com/tools/headlines/rdf/sudan/headlines.rdf', country: 'Sudan' },
   { name: 'Eritrea Profile', url: 'https://www.shabait.com/feed/', country: 'Eritrea' },
-  { name: 'Capital Ethiopia', url: 'https://capitalethiopia.com/feed/', country: 'Ethiopia', category: 'business' },
-
-  // ── NORTH AFRICA (additional) ─────────────────────────────────────────────
-  { name: 'Mada Masr', url: 'https://www.madamasr.com/en/feed/', country: 'Egypt' },
-  { name: 'HuffPost Maghreb', url: 'https://www.huffpostmaghreb.com/feeds/index.xml', country: 'North Africa', lang: 'fr' },
-
-  // ── WEST AFRICA (additional) ─────────────────────────────────────────────
-  { name: 'Sierra Leone Telegraph', url: 'https://www.thesierraleonetelegraph.com/feed/', country: 'Sierra Leone' },
-  { name: 'Liberian Observer', url: 'https://www.liberianobserver.com/feed/', country: 'Liberia' },
-  { name: 'Guinée Conakry', url: 'https://www.guineenews.org/feed/', country: 'Guinea', lang: 'fr' },
-  { name: 'L\'Agora Bénin', url: 'https://lagora.bj/feed/', country: 'Benin', lang: 'fr' },
-  { name: 'Togo First', url: 'https://www.togofirst.com/en/rss', country: 'Togo' },
-  { name: 'Niger Diaspora', url: 'https://nigerdiaspora.net/feed/', country: 'Niger', lang: 'fr' },
-  { name: 'Gabon Actu', url: 'https://gabonactu.com/feed/', country: 'Gabon', lang: 'fr' },
 
   // ── INDIAN OCEAN & ISLANDS ────────────────────────────────────────────────
-  { name: 'L\'Express Madagascar', url: 'https://lexpress.mg/feed/', country: 'Madagascar', lang: 'fr' },
-  { name: 'L\'Express Mauritius', url: 'https://www.lexpress.mu/feed', country: 'Mauritius' },
+  { name: "L'Express Madagascar", url: 'https://lexpress.mg/feed/', country: 'Madagascar', lang: 'fr' },
+  { name: "L'Express Mauritius", url: 'https://www.lexpress.mu/feed/', country: 'Mauritius' },
   { name: 'Seychelles News Agency', url: 'https://www.seychellesnewsagency.com/feed/', country: 'Seychelles' },
 
   // ── TRAVEL ───────────────────────────────────────────────────────────────
@@ -194,7 +344,7 @@ const ALL_SOURCES: Source[] = [
   { name: 'Nomadic Matt Africa', url: 'https://www.nomadicmatt.com/category/africa/feed/', country: 'Pan-Africa', category: 'travel' },
   { name: 'Lonely Planet Africa', url: 'https://www.lonelyplanet.com/africa.rss', country: 'Pan-Africa', category: 'travel' },
   { name: 'Afar Africa', url: 'https://www.afar.com/magazine/africa/rss', country: 'Pan-Africa', category: 'travel' },
-  { name: 'Safaris Africa', url: 'https://blog.safaribookings.com/feed', country: 'Pan-Africa', category: 'travel' },
+  { name: 'Safaris Africa', url: 'https://blog.safaribookings.com/feed/', country: 'Pan-Africa', category: 'travel' },
 ];
 
 // Category → source filter logic
