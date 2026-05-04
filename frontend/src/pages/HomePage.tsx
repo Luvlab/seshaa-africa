@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -179,6 +179,7 @@ export default function HomePage() {
   const [muted, setMuted]         = useState(true);
   const [slideIdx, setSlideIdx]   = useState(0);
   const [heroSlides, setHeroSlides] = useState<HeroSlide[]>(FALLBACK_SLIDES);
+  const searchBoxRef = useRef<HTMLDivElement>(null);
 
   // Load live hero slides from DB; fall back to hardcoded if empty
   useEffect(() => {
@@ -253,23 +254,38 @@ export default function HomePage() {
                 />
               )}
             </div>
-            <div className="absolute inset-0" style={{ zIndex: 3, background: 'linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.72) 100%)' }} />
+            <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 3, background: 'linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.72) 100%)' }} />
 
-            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center px-4 pb-20 text-center text-white">
+            {/* ── Hero content overlay ─────────────────────────────────────
+                Mobile: search sits at the VERY TOP of the hero (pt-2) so it
+                  (a) appears immediately below the navbar — no scroll needed
+                  (b) keyboard push-up doesn't hide it
+                Desktop (md+): centred vertically with pb-20 offset.
+            ─────────────────────────────────────────────────────────────── */}
+            <div
+              className="absolute inset-0 z-10 flex flex-col items-center justify-start pt-2 md:justify-center md:pt-0 md:pb-20 px-4 text-center text-white"
+            >
               <div className="w-full">
-                {slide?.overlayTitle ? (
-                  <h1 className="font-black mb-2 drop-shadow-lg" style={{ fontSize: 'clamp(1.15rem, 4.5vw, 3.2rem)', lineHeight: 1.15 }}>
-                    {slide.overlayTitle}
-                  </h1>
-                ) : (
-                  <h1 className="font-black mb-2 drop-shadow-lg" style={{ fontSize: 'clamp(1.15rem, 4.5vw, 3.2rem)', lineHeight: 1.15 }}>
-                    {t('app.tagline')}
-                  </h1>
-                )}
-                <p className="text-white/85 text-base md:text-lg mb-6 leading-relaxed drop-shadow">
-                  {slide?.overlaySubtitle || t('app.description')}
+                {/* Title — hidden on mobile (navbar has the brand already) */}
+                <div className="hidden md:block">
+                  {slide?.overlayTitle ? (
+                    <h1 className="font-black mb-2 drop-shadow-lg" style={{ fontSize: 'clamp(1.15rem, 4.5vw, 3.2rem)', lineHeight: 1.15 }}>
+                      {slide.overlayTitle}
+                    </h1>
+                  ) : (
+                    <h1 className="font-black mb-2 drop-shadow-lg" style={{ fontSize: 'clamp(1.15rem, 4.5vw, 3.2rem)', lineHeight: 1.15 }}>
+                      {t('app.tagline')}
+                    </h1>
+                  )}
+                  <p className="text-white/85 text-base md:text-lg mb-6 leading-relaxed drop-shadow">
+                    {slide?.overlaySubtitle || t('app.description')}
+                  </p>
+                </div>
+                {/* Mobile title — compact, single line */}
+                <p className="md:hidden text-white/90 text-sm font-semibold mb-3 drop-shadow tracking-wide">
+                  {slide?.overlayTitle || t('app.tagline')}
                 </p>
-                <div className="bg-white rounded-2xl shadow-2xl overflow-hidden max-w-2xl mx-auto">
+                <div ref={searchBoxRef} className="bg-white rounded-2xl shadow-2xl overflow-hidden max-w-2xl mx-auto">
                   <div className="flex items-center gap-2 px-4 py-1">
                     {aiMode ? <Sparkles size={22} className="text-purple-500 shrink-0" /> : <Search size={22} className="text-gray-400 shrink-0" />}
                     <input className="flex-1 outline-none text-gray-800 text-lg py-3 placeholder-gray-400 min-w-0"
@@ -335,16 +351,16 @@ export default function HomePage() {
       {/* ── CATEGORIES — full viewport width ── */}
       <div className="w-full px-4 sm:px-6 lg:px-10 py-6">
         <h2 className="text-xl font-black text-gray-800 mb-3">📂 {t('home.browseCategory')}</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-6 xl:grid-cols-12 gap-3">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-6 xl:grid-cols-12 gap-3">
           {CATEGORY_KEYS.map(key => (
             <button key={key}
-              className="flex flex-col items-center gap-3 py-5 px-2 bg-white rounded-2xl border border-gray-100 hover:shadow-lg active:scale-95 transition-all group"
+              className="flex flex-col items-center gap-2 py-4 px-2 bg-white rounded-2xl border border-gray-100 hover:shadow-lg active:scale-95 transition-all group"
               onClick={() => navigate(`/search?category=${key}`)}>
-              <div className="w-[72px] h-[72px] rounded-2xl flex items-center justify-center shadow-md group-hover:scale-105 transition-transform"
+              <div className="w-14 h-14 sm:w-[72px] sm:h-[72px] rounded-2xl flex items-center justify-center shadow-md group-hover:scale-105 transition-transform"
                 style={{ backgroundColor: CATEGORY_COLORS[key] }}>
-                <span className="text-white">{CATEGORY_ICONS[key]}</span>
+                <span className="text-white [&>svg]:w-8 [&>svg]:h-8 sm:[&>svg]:w-11 sm:[&>svg]:h-11">{CATEGORY_ICONS[key]}</span>
               </div>
-              <span className="text-xs font-bold text-gray-700 text-center leading-tight">
+              <span className="text-xs sm:text-sm font-bold text-gray-700 text-center leading-tight">
                 {t(`categories.${key}`)}
               </span>
             </button>
@@ -355,20 +371,18 @@ export default function HomePage() {
       {/* ── COUNTRIES — full viewport width ── */}
       <div className="w-full px-4 sm:px-6 lg:px-10 pb-6">
         <h2 className="text-xl font-black text-gray-800 mb-3">🌍 {t('home.browseCountry')}</h2>
-        <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-9 lg:grid-cols-11 xl:grid-cols-14 gap-2 sm:gap-3">
+        <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-9 lg:grid-cols-11 gap-2 sm:gap-3">
           {AFRICAN_COUNTRIES.map(c => (
-            <button key={c.code}
-              className="relative overflow-hidden rounded-2xl hover:ring-2 hover:ring-[var(--cp)] hover:shadow-lg active:scale-95 transition-all aspect-square"
+            <button
+              key={c.code}
+              className="country-flag-btn flex flex-col items-center gap-1.5 py-3 px-1 bg-white rounded-2xl border border-gray-100 hover:border-gray-300 hover:shadow-md active:scale-95 transition-all"
               onClick={() => navigate(`/search?country=${c.code}`)}>
-              <span className="absolute inset-0 flex items-center justify-center select-none pointer-events-none"
-                style={{ fontSize: 'clamp(60px, 12vw, 96px)', lineHeight: 1 }}>
+              <span className="flag-emoji text-3xl sm:text-4xl leading-none select-none">
                 {c.flag}
               </span>
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent pb-1.5 pt-6 px-1 text-center">
-                <span className="text-[10px] sm:text-[11px] font-bold text-white drop-shadow-sm leading-tight block truncate">
-                  {t(`countries.${c.code}`, c.name)}
-                </span>
-              </div>
+              <span className="text-[11px] sm:text-xs font-semibold text-gray-900 text-center leading-tight w-full truncate px-0.5">
+                {t(`countries.${c.code}`, c.name)}
+              </span>
             </button>
           ))}
         </div>

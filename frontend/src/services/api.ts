@@ -278,12 +278,89 @@ export const promotionsApi = {
 };
 
 // Seshaa Radio
+export interface LiveStation {
+  id: string; name: string; country: string; countryName: string;
+  streamUrl: string; favicon?: string; tags: string; codec: string;
+  bitrate: number; language?: string; homepage?: string; votes?: number;
+}
+export interface ArchiveTrack {
+  id: string; name: string; artist: string; album?: string;
+  image: string; audio: string; audioDownload?: string; duration?: number;
+  year?: number; shareUrl: string; source: 'archive'; tags?: string[]; subjects?: string[];
+}
+
 export const radioApi = {
   tags:        () => api.get<{ id: string; label: string; emoji: string }[]>('/radio/tags'),
-  tracks:      (tag: string, limit = 50) => api.get<{ id: string; name: string; artist: string; album: string; image: string; audio: string; audioDownload: string; duration: number; tags: string[]; shareUrl: string; source: string }[]>('/radio/tracks', { params: { tag, limit } }),
+  tracks:      (tag: string, limit = 50) => api.get<{ id: string; name: string; artist: string; album: string; image: string; audio: string; audioDownload: string; duration: number; tags: string[]; shareUrl: string; source: string; year?: number }[]>('/radio/tracks', { params: { tag, limit } }),
+  stations:    () => api.get<LiveStation[]>('/radio/stations'),
+  archive:     (params?: { genre?: string; year_from?: number; year_to?: number; page?: number; limit?: number }) =>
+    api.get<{ total: number; tracks: ArchiveTrack[] }>('/radio/archive', { params }),
   community:   (params?: { genre?: string; country?: string; limit?: number; page?: number }) => api.get('/radio/community', { params }),
   submit:      (data: { title: string; artist: string; audioUrl: string; imageUrl?: string; country?: string; genre?: string; album?: string; duration?: number; ownerRights: boolean }) => api.post('/radio/submit', data),
   recordPlay:  (id: string) => api.post(`/radio/${id}/play`),
+};
+
+// Messages / Chat channels
+export const messagesApi = {
+  list:     (channelId: string, after?: string, limit = 50) =>
+    api.get<unknown[]>(`/messages/${channelId}`, { params: { after, limit } }),
+  send:     (channelId: string, content: string, messageType = 'text', metadata?: unknown) =>
+    api.post(`/messages/${channelId}`, { content, messageType, metadata }),
+  read:     (channelId: string) => api.post(`/messages/${channelId}/read`),
+  dmStart:  (recipientId: string) =>
+    api.post<{ channelId: string }>('/messages/dm/start', { recipientId }),
+  channels: () => api.get<{
+    fixed: { channelId: string; channelType: string; label: string }[];
+    dms:   { channelId: string; lastMsg: string; lastAt: string; unread: number }[];
+  }>('/messages/channels/list'),
+};
+
+// Rides / Delivery / Transport
+export const ridesApi = {
+  // Driver
+  registerDriver: (data: {
+    vehicleType: string; services: string[]; plateNumber?: string; licenseNo?: string;
+    city: string; country: string; bio?: string; photoUrl?: string;
+  }) => api.post('/rides/driver/register', data),
+  myDriver:           () => api.get('/rides/driver/me'),
+  setAvailability:    (available: boolean) => api.patch('/rides/driver/availability', { available }),
+  drivers:            (params?: { type?: string; city?: string; country?: string }) =>
+    api.get<unknown[]>('/rides/drivers', { params }),
+  // Requests
+  create: (data: {
+    type?: string; pickupAddress: string; dropoffAddress?: string;
+    pickupLat?: number; pickupLng?: number; dropoffLat?: number; dropoffLng?: number;
+    notes?: string; packageDesc?: string; weight?: number; currency?: string;
+    country?: string; city?: string; scheduledAt?: string;
+  }) => api.post('/rides', data),
+  myRides:   (type?: string) => api.get<unknown[]>('/rides/my', { params: { type } }),
+  available: (params?: { type?: string; city?: string; country?: string }) =>
+    api.get<unknown[]>('/rides/available', { params }),
+  accept:    (id: string) => api.post(`/rides/${id}/accept`),
+  setStatus: (id: string, status: string, finalPrice?: number) =>
+    api.patch(`/rides/${id}/status`, { status, finalPrice }),
+  get:       (id: string) => api.get(`/rides/${id}`),
+  // Admin
+  adminAll:         (params?: { type?: string; status?: string; page?: number }) =>
+    api.get('/rides/admin/all', { params }),
+  adminDrivers:     () => api.get('/rides/admin/drivers'),
+  verifyDriver:     (id: string) => api.patch(`/rides/admin/drivers/${id}/verify`),
+};
+
+// Analytics / Behaviour tracking
+export const analyticsApi = {
+  event: (eventType: string, fields?: Record<string, unknown>) =>
+    api.post('/analytics/event', { eventType, ...fields }),
+  batch: (events: { eventType: string; path?: string; target?: string; value?: string; metadata?: unknown; sessionId?: string; device?: string }[]) =>
+    api.post('/analytics/batch', { events }),
+  admin:    () => api.get('/analytics/admin'),
+  sessions: () => api.get('/analytics/admin/sessions'),
+  prognosis: () => api.get<{
+    daily:    { day: string; count: string }[];
+    forecast: { day: number; predicted: number }[];
+    trend:    'growing' | 'declining' | 'stable';
+    slope:    number;
+  }>('/analytics/admin/prognosis'),
 };
 
 export default api;

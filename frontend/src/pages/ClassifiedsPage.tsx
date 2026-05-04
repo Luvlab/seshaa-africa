@@ -5,6 +5,7 @@ import { useAuthStore } from '../store/auth';
 import { useThemeStore } from '../store/theme';
 import { COUNTRIES } from '../components/layout/CountryPicker';
 import type { Classified } from '../types';
+import FavoriteButton from '../components/ui/FavoriteButton';
 
 const CATEGORIES = [
   { id: 'Electronics',        emoji: '📱', sub: ['Phones', 'Tablets', 'Laptops', 'TV & Audio', 'Cameras', 'Gaming', 'Accessories'] },
@@ -171,7 +172,10 @@ function ClassifiedCard({ item }: { item: Classified }) {
   const ageLabel = ageHours < 1 ? 'Just now' : ageHours < 24 ? `${Math.floor(ageHours)}h ago` : `${Math.floor(ageHours / 24)}d ago`;
 
   return (
-    <div className="bg-white rounded-2xl border hover:shadow-md transition-shadow p-4 flex gap-3">
+    <div className="relative bg-white rounded-2xl border hover:shadow-md transition-shadow p-4 flex gap-3">
+      <div className="absolute top-2.5 right-2.5 z-10">
+        <FavoriteButton id={item.id} type="classified" name={item.title} size={14} />
+      </div>
       {item.images?.[0] ? (
         <img src={item.images[0]} alt={item.title} className="w-20 h-20 object-cover rounded-xl shrink-0" />
       ) : (
@@ -179,7 +183,7 @@ function ClassifiedCard({ item }: { item: Classified }) {
           {CATEGORIES.find(c => c.sub.includes(item.category))?.emoji || '📦'}
         </div>
       )}
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 pr-7">
         <div className="flex items-start justify-between gap-2">
           <p className="font-semibold text-gray-800 text-sm truncate">{item.title}</p>
           {item.status === 'SOLD' && (

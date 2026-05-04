@@ -1,333 +1,514 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Send, Plus, Users, Share2, MapPin, Calendar, X, Search, Sparkles } from 'lucide-react';
+import {
+  Send, Sparkles, MessageCircle, Lock, Users, Globe,
+  ChevronDown, Hash, Bot, RefreshCw, Plus,
+} from 'lucide-react';
 import { useAuthStore } from '../store/auth';
-import api from '../services/api';
-import type { ChatRoom, Message } from '../types';
+import api, { aiSearchApi } from '../services/api';
+import SeshaaTitle from '../components/brand/SeshaaTitle';
 
-const SHARE_PLATFORMS = [
-  { name: 'WhatsApp', color: 'bg-green-500', url: (text: string) => `https://wa.me/?text=${encodeURIComponent(text)}` },
-  { name: 'Telegram', color: 'bg-blue-500', url: (text: string) => `https://t.me/share/url?text=${encodeURIComponent(text)}` },
-  { name: 'Facebook', color: 'bg-blue-700', url: (text: string) => `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(text)}` },
-  { name: 'X / Twitter', color: 'bg-gray-800', url: (text: string) => `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}` },
-  { name: 'SMS', color: 'bg-gray-500', url: (text: string) => `sms:?body=${encodeURIComponent(text)}` },
-];
+// ── Types ─────────────────────────────────────────────────────────────────────
+interface ChatMsg {
+  id: string;
+  channelId: string;
+  senderId: string;
+  senderName: string;
+  senderRole?: string;
+  content: string;
+  messageType: string;
+  createdAt: string;
+}
+interface FixedChannel { channelId: string; channelType: string; label: string }
+interface DmChannel    { channelId: string; lastMsg: string; lastAt: string; unread: number }
+type Tab = 'ai' | 'messages' | 'admin';
 
-export default function ChatPage() {
-  useTranslation();
-  const { user } = useAuthStore();
-  const [rooms, setRooms] = useState<ChatRoom[]>([]);
-  const [activeRoom, setActiveRoom] = useState<string | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState('');
-  const [aiInput, setAiInput] = useState('');
-  const [showAI, setShowAI] = useState(false);
-  const [aiMessages, setAiMessages] = useState<{ role: string; content: string }[]>([]);
-  const [aiLoading, setAiLoading] = useState(false);
-  const [shareModal, setShareModal] = useState<{ text: string } | null>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+const ROLE_COLOR: Record<string, string> = {
+  ADMIN:          'bg-red-100 text-red-700',
+  SALES_REP:      'bg-blue-100 text-blue-700',
+  AMBASSADOR:     'bg-purple-100 text-purple-700',
+  BUSINESS_OWNER: 'bg-green-100 text-green-700',
+  USER:           'bg-gray-100 text-gray-600',
+};
 
-  useEffect(() => {
-    if (!user) return;
-    api.get('/chat/rooms').then(r => setRooms(r.data)).catch(() => {});
-  }, [user]);
-
-  useEffect(() => {
-    if (!activeRoom) return;
-    api.get(`/chat/rooms/${activeRoom}/messages`).then(r => setMessages(r.data)).catch(() => {});
-  }, [activeRoom]);
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  const sendMessage = async () => {
-    if (!input.trim() || !activeRoom) return;
-    const msg = input;
-    setInput('');
-    try {
-      const r = await api.post(`/chat/rooms/${activeRoom}/messages`, { content: msg, type: 'text' });
-      setMessages(m => [...m, r.data]);
-    } catch {}
-  };
-
-  const sendAI = async () => {
-    if (!aiInput.trim()) return;
-    const userMsg = { role: 'user' as const, content: aiInput };
-    setAiMessages(m => [...m, userMsg]);
-    setAiInput('');
-    setAiLoading(true);
-
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001/api'}/ai/chat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: [...aiMessages, userMsg] }),
-      });
-
-      const reader = response.body?.getReader();
-      if (!reader) return;
-      let assistantText = '';
-      setAiMessages(m => [...m, { role: 'assistant', content: '' }]);
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        const chunk = new TextDecoder().decode(value);
-        const lines = chunk.split('\n').filter(l => l.startsWith('data: '));
-        for (const line of lines) {
-          const data = line.slice(6);
-          if (data === '[DONE]') break;
-          try {
-            const { text } = JSON.parse(data);
-            assistantText += text;
-            setAiMessages(m => [...m.slice(0, -1), { role: 'assistant', content: assistantText }]);
-          } catch {}
-        }
-      }
-    } catch {
-      setAiMessages(m => [...m, { role: 'assistant', content: 'Sorry, I encountered an error. Please try again.' }]);
-    } finally {
-      setAiLoading(false);
-    }
-  };
-
-  const shareToChat = (text: string) => setShareModal({ text });
-
-  const externalShare = (platformUrl: (t: string) => string) => {
-    if (shareModal) window.open(platformUrl(shareModal.text), '_blank', 'noopener,noreferrer');
-  };
-
-  if (!user) return (
-    <div className="flex items-center justify-center h-96 text-gray-500">
-      <div className="text-center">
-        <p className="text-lg mb-4">Please log in to access messages</p>
-        <a href="/auth" className="bg-green-600 text-white px-6 py-2 rounded-full">Login</a>
+// ── Message bubble ────────────────────────────────────────────────────────────
+function MsgBubble({ msg, myId }: { msg: ChatMsg; myId: string }) {
+  const isMine = msg.senderId === myId;
+  return (
+    <div className={`flex gap-2 ${isMine ? 'flex-row-reverse' : ''} mb-3`}>
+      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+        isMine ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-700'
+      }`}>
+        {msg.senderName.charAt(0).toUpperCase()}
+      </div>
+      <div className="max-w-[78%] min-w-0">
+        {!isMine && (
+          <div className="flex items-center gap-1.5 mb-0.5">
+            <span className="text-[11px] font-semibold text-gray-700">{msg.senderName}</span>
+            {msg.senderRole && (
+              <span className={`text-[9px] px-1 py-0.5 rounded font-bold ${ROLE_COLOR[msg.senderRole] ?? ROLE_COLOR.USER}`}>
+                {msg.senderRole.replace('_', ' ')}
+              </span>
+            )}
+          </div>
+        )}
+        <div className={`rounded-2xl px-3 py-2 text-sm break-words whitespace-pre-wrap ${
+          isMine ? 'text-white rounded-tr-none' : 'bg-white border border-gray-200 text-gray-800 rounded-tl-none'
+        }`}
+          style={isMine ? { backgroundColor: 'var(--cp,#008751)' } : {}}>
+          {msg.content}
+        </div>
+        <span className="text-[10px] text-gray-400 mt-0.5 block px-1">
+          {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+        </span>
       </div>
     </div>
   );
+}
+
+// ── Channel pane (3-second poll) ──────────────────────────────────────────────
+function ChannelPane({ channelId, myId }: { channelId: string; myId: string }) {
+  const [msgs, setMsgs]       = useState<ChatMsg[]>([]);
+  const [input, setInput]     = useState('');
+  const [sending, setSending] = useState(false);
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const lastAt    = useRef<string>('');
+
+  const fetchMsgs = useCallback(async () => {
+    try {
+      const r = await api.get<ChatMsg[]>(`/messages/${channelId}`, {
+        params: lastAt.current ? { after: lastAt.current } : {},
+      });
+      if (r.data.length) {
+        setMsgs(prev => {
+          const fresh = r.data.filter(m => !prev.some(p => p.id === m.id));
+          if (!fresh.length) return prev;
+          lastAt.current = fresh[fresh.length - 1].createdAt;
+          return [...prev, ...fresh];
+        });
+      }
+    } catch {}
+  }, [channelId]);
+
+  useEffect(() => {
+    lastAt.current = '';
+    setMsgs([]);
+    fetchMsgs();
+    const iv = setInterval(fetchMsgs, 3000);
+    return () => clearInterval(iv);
+  }, [channelId, fetchMsgs]);
+
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [msgs]);
+
+  const send = async () => {
+    if (!input.trim() || sending) return;
+    const text = input.trim();
+    setSending(true); setInput('');
+    try {
+      const r = await api.post<ChatMsg>(`/messages/${channelId}`, { content: text });
+      setMsgs(p => [...p, r.data]);
+      lastAt.current = r.data.createdAt;
+    } catch {}
+    setSending(false);
+  };
 
   return (
-    <div className="px-0 sm:px-4 py-0 sm:py-6 h-[calc(100dvh-112px)] sm:h-[calc(100vh-80px)] flex gap-4">
-      {/* Rooms sidebar — full screen on mobile when no room selected, hidden when chat open */}
-      <div className={`${activeRoom || showAI ? 'hidden sm:flex' : 'flex'} w-full sm:w-72 sm:shrink-0 bg-white sm:rounded-xl border flex-col`}>
-        <div className="p-4 border-b flex items-center justify-between">
-          <h2 className="font-bold text-gray-800">Messages</h2>
-          <div className="flex gap-2">
-            <button
-              className="p-2 rounded-lg bg-purple-50 text-purple-600 hover:bg-purple-100"
-              onClick={() => setShowAI(true)}
-              title="AI Assistant"
-            >
-              <Sparkles size={16} />
-            </button>
-            <button className="p-2 rounded-lg bg-green-50 text-green-600 hover:bg-green-100">
-              <Plus size={16} />
-            </button>
+    <div className="flex flex-col h-full">
+      <div className="flex-1 overflow-y-auto px-4 py-3">
+        {msgs.length === 0 && (
+          <div className="flex flex-col items-center justify-center h-full py-12 text-gray-400 gap-2">
+            <MessageCircle size={32} strokeWidth={1} />
+            <p className="text-sm">No messages yet — say hello!</p>
           </div>
+        )}
+        {msgs.map(m => <MsgBubble key={m.id} msg={m} myId={myId} />)}
+        <div ref={bottomRef} />
+      </div>
+      <div className="px-3 py-3 border-t bg-white shrink-0">
+        <div className="flex gap-2 items-center bg-gray-50 rounded-2xl border px-3 py-1">
+          <input className="flex-1 outline-none bg-transparent text-sm py-2 placeholder-gray-400"
+            placeholder="Type a message…" value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && !e.shiftKey && send()} />
+          <button disabled={!input.trim() || sending} onClick={send}
+            className="w-8 h-8 rounded-full flex items-center justify-center text-white disabled:opacity-40 shrink-0"
+            style={{ backgroundColor: 'var(--cp,#008751)' }}>
+            <Send size={14} />
+          </button>
         </div>
-        <div className="p-2 border-b">
-          <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2">
-            <Search size={14} className="text-gray-400" />
-            <input className="flex-1 bg-transparent text-sm outline-none placeholder-gray-400" placeholder="Search conversations..." />
-          </div>
-        </div>
-        <div className="flex-1 overflow-y-auto">
-          {rooms.length === 0 && (
-            <div className="text-center text-gray-400 p-6 text-sm">
-              No conversations yet.<br />Start by searching for a listing!
-            </div>
-          )}
-          {rooms.map(room => (
-            <button
-              key={room.id}
-              className={`w-full text-left p-4 hover:bg-gray-50 border-b transition-colors ${activeRoom === room.id ? 'bg-green-50 border-l-4 border-l-green-500' : ''}`}
-              onClick={() => setActiveRoom(room.id)}
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-700 font-semibold">
-                  {room.type === 'group' ? <Users size={16} /> : (room.name || 'U').charAt(0)}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-800 truncate">{room.name || 'Direct Message'}</p>
-                  {room.lastMessage && (
-                    <p className="text-xs text-gray-400 truncate">{room.lastMessage.content}</p>
-                  )}
-                </div>
-                {room.unreadCount > 0 && (
-                  <span className="bg-green-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center shrink-0">
-                    {room.unreadCount}
-                  </span>
-                )}
+      </div>
+    </div>
+  );
+}
+
+// ── AI pane ───────────────────────────────────────────────────────────────────
+function AiPane({ isAdmin, stats }: { isAdmin: boolean; stats: Record<string, unknown> | null }) {
+  const [msgs, setMsgs]   = useState<{ role: string; content: string }[]>([]);
+  const [input, setInput] = useState('');
+  const [loading, setLoad] = useState(false);
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [msgs]);
+
+  const PROMPTS = isAdmin ? [
+    '📊 Write a marketing plan for next month based on our stats',
+    '💰 Summarise financial performance and suggest improvements',
+    '📣 Create a country-specific promotional strategy',
+    '📈 What growth levers should we focus on this quarter?',
+    '🤝 Draft a sales-rep recruitment announcement',
+    '📋 Summarise all app features for an investor pitch',
+  ] : [
+    '🏪 Find me the best restaurants in Kampala',
+    '🌍 What countries does Seshaa cover?',
+    '📱 How do I list my business on Seshaa?',
+    '💡 Tell me about business opportunities in Africa',
+  ];
+
+  const send = async (text?: string) => {
+    const content = (text ?? input).trim();
+    if (!content || loading) return;
+    const userMsg = { role: 'user', content };
+    setMsgs(p => [...p, userMsg]);
+    setInput('');
+    setLoad(true);
+    try {
+      const ctx: Record<string, unknown> = {};
+      if (isAdmin && stats) ctx.appStats = stats;
+      const r = await aiSearchApi.chat([...msgs, userMsg], ctx);
+      const reply = (r.data as Record<string, string>)?.reply
+        ?? (r.data as Record<string, string>)?.content
+        ?? (r.data as Record<string, string>)?.message
+        ?? '(no response)';
+      setMsgs(p => [...p, { role: 'assistant', content: reply }]);
+    } catch {
+      setMsgs(p => [...p, { role: 'assistant', content: '⚠️ Could not reach AI. Please try again.' }]);
+    }
+    setLoad(false);
+  };
+
+  return (
+    <div className="flex flex-col h-full">
+      <div className="flex-1 overflow-y-auto px-4 py-3">
+        {msgs.length === 0 && (
+          <div className="py-6">
+            <div className="flex flex-col items-center gap-3 mb-6 text-center">
+              <div className="w-14 h-14 rounded-2xl bg-purple-600 flex items-center justify-center shadow-lg">
+                <Sparkles size={26} className="text-white" />
               </div>
+              {/* Dynamic title: seshaa.ai */}
+              <SeshaaTitle staticSuffix="ai" size="lg" />
+              <p className="text-xs text-gray-500 max-w-xs">
+                {isAdmin
+                  ? 'I have access to your live app stats. Ask me to write plans, analyse performance, or generate content.'
+                  : 'Ask me anything about African businesses, listings, or Seshaa.'}
+              </p>
+            </div>
+            <div className="space-y-2">
+              {PROMPTS.map(p => (
+                <button key={p} onClick={() => send(p)}
+                  className="w-full text-left px-4 py-2.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-sm text-purple-800 transition-colors border border-purple-100">
+                  {p}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        {msgs.map((m, i) => (
+          <div key={i} className={`flex gap-2 mb-3 ${m.role === 'user' ? 'flex-row-reverse' : ''}`}>
+            <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+              m.role === 'user' ? 'bg-green-500 text-white' : 'bg-purple-600 text-white'
+            }`}>
+              {m.role === 'user' ? 'U' : <Bot size={14} />}
+            </div>
+            <div className={`max-w-[80%] min-w-0 rounded-2xl px-3 py-2 text-sm break-words whitespace-pre-wrap ${
+              m.role === 'user'
+                ? 'text-white rounded-tr-none'
+                : 'bg-purple-50 text-purple-900 rounded-tl-none border border-purple-100'
+            }`}
+              style={m.role === 'user' ? { backgroundColor: 'var(--cp,#008751)' } : {}}>
+              {m.content}
+            </div>
+          </div>
+        ))}
+        {loading && (
+          <div className="flex gap-2 mb-3">
+            <div className="w-7 h-7 rounded-full bg-purple-600 flex items-center justify-center shrink-0">
+              <Bot size={14} className="text-white" />
+            </div>
+            <div className="bg-purple-50 border border-purple-100 rounded-2xl rounded-tl-none px-4 py-3">
+              <div className="flex gap-1">
+                {[0,1,2].map(i => (
+                  <div key={i} className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: `${i*0.15}s` }} />
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+        <div ref={bottomRef} />
+      </div>
+      <div className="px-3 py-3 border-t bg-white shrink-0">
+        <div className="flex gap-2 items-center bg-gray-50 rounded-2xl border px-3 py-1">
+          <Sparkles size={15} className="text-purple-400 shrink-0" />
+          <input className="flex-1 outline-none bg-transparent text-sm py-2 placeholder-gray-400"
+            placeholder="Ask the AI…" value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && !e.shiftKey && send()} />
+          <button disabled={!input.trim() || loading} onClick={() => send()}
+            className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center text-white disabled:opacity-40 shrink-0">
+            <Send size={14} />
+          </button>
+        </div>
+        {msgs.length > 0 && (
+          <button onClick={() => setMsgs([])} className="text-[10px] text-gray-400 hover:text-gray-600 mt-1 ml-1">
+            Clear conversation
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Main ──────────────────────────────────────────────────────────────────────
+export default function ChatPage() {
+  useTranslation();
+  const { user } = useAuthStore();
+  const isAdmin      = user?.role === 'ADMIN';
+  const isSalesRep   = user?.role === 'SALES_REP';
+  const isAmbassador = user?.role === 'AMBASSADOR';
+  const hasHub = isAdmin || isSalesRep || isAmbassador;
+
+  const [tab, setTab]             = useState<Tab>('ai');
+  const [fixedChs, setFixed]      = useState<FixedChannel[]>([]);
+  const [dmChs, setDms]           = useState<DmChannel[]>([]);
+  const [active, setActive]       = useState<string | null>(null);
+  const [newDmId, setNewDmId]     = useState('');
+  const [showNewDm, setShowNewDm] = useState(false);
+  const [stats, setStats]         = useState<Record<string, unknown> | null>(null);
+  const [loaded, setLoaded]       = useState(false);
+  const [dmOpen, setDmOpen]       = useState(true);
+
+  useEffect(() => {
+    if (!user) return;
+    api.get('/messages/channels/list')
+      .then(r => { setFixed(r.data.fixed || []); setDms(r.data.dms || []); setLoaded(true); })
+      .catch(() => setLoaded(true));
+    if (isAdmin) api.get('/admin/stats').then(r => setStats(r.data)).catch(() => {});
+  }, [user, isAdmin]);
+
+  const refreshDms = () => {
+    api.get('/messages/channels/list').then(r => { setFixed(r.data.fixed || []); setDms(r.data.dms || []); }).catch(() => {});
+  };
+
+  const startDm = async () => {
+    if (!newDmId.trim()) return;
+    try {
+      const r = await api.post('/messages/dm/start', { recipientId: newDmId.trim() });
+      setActive(r.data.channelId); setTab('messages');
+      setShowNewDm(false); setNewDmId('');
+    } catch {}
+  };
+
+  if (!user) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center px-6">
+        <MessageCircle size={48} className="text-gray-300 mb-4" strokeWidth={1} />
+        <h2 className="text-xl font-bold text-gray-700 mb-2">Sign in to chat</h2>
+        <p className="text-sm text-gray-500 mb-5">Chat with sellers, listing owners, and Seshaa AI.</p>
+        <a href="/auth" className="px-5 py-2.5 rounded-xl text-white font-semibold text-sm" style={{ backgroundColor: 'var(--cp,#008751)' }}>Sign In</a>
+      </div>
+    );
+  }
+
+  // Tab metadata — dynamic title changes the SeshaaTitle suffix in Navbar
+  const TABS = [
+    { id: 'ai' as Tab,       icon: <Sparkles size={13} />,      label: 'AI',        suffix: 'ai'   },
+    { id: 'messages' as Tab, icon: <MessageCircle size={13} />, label: 'Chat',      suffix: 'chat' },
+    ...(hasHub ? [{ id: 'admin' as Tab, icon: <Lock size={13} />, label: 'Staff Hub', suffix: 'staff' }] : []),
+  ];
+
+  return (
+    <div className="flex h-[calc(100svh-86px-var(--player-bar-h,0px))] overflow-hidden bg-gray-50">
+
+      {/* ── Desktop sidebar ───────────────────────────────────────────────── */}
+      <div className="hidden md:flex w-60 shrink-0 flex-col bg-white border-r border-gray-200">
+        {/* Tab strip */}
+        <div className="flex border-b border-gray-200 shrink-0">
+          {TABS.map(t => (
+            <button key={t.id} onClick={() => setTab(t.id)}
+              className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2.5 text-[11px] font-semibold transition-colors ${
+                tab === t.id ? 'border-b-2' : 'text-gray-400 hover:text-gray-600'
+              }`}
+              style={tab === t.id ? { borderBottomColor: 'var(--cp,#008751)', color: 'var(--cp,#008751)' } : {}}>
+              {t.icon}
+              {/* Dynamic SeshaaTitle per tab */}
+              <SeshaaTitle staticSuffix={t.suffix} size="sm" />
             </button>
           ))}
         </div>
-      </div>
 
-      {/* Chat area — full screen on mobile */}
-      {showAI ? (
-        <div className="flex-1 bg-white sm:rounded-xl border flex flex-col">
-          <div className="p-4 border-b flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Sparkles size={20} className="text-purple-500" />
-              <h3 className="font-bold text-gray-800">AI Assistant</h3>
+        {/* Channel list */}
+        <div className="flex-1 overflow-y-auto py-2">
+          {tab === 'ai' && (
+            <div className="px-4 py-8 text-center">
+              <Bot size={28} className="mx-auto mb-2 text-purple-300" />
+              <p className="text-xs text-gray-500 mt-1">Powered by OpenRouter</p>
             </div>
-            <button onClick={() => setShowAI(false)}><X size={18} className="text-gray-400" /></button>
-          </div>
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            {aiMessages.length === 0 && (
-              <div className="text-center text-gray-400 py-8">
-                <Sparkles size={32} className="mx-auto mb-3 opacity-30" />
-                <p>Ask me anything — find businesses, get directions, discover events across Africa!</p>
-                <div className="flex flex-wrap gap-2 justify-center mt-4">
-                  {['Find a hospital in Nairobi', 'Restaurants in Dakar', 'Best hotels in Accra', 'Dentist in Lagos'].map(s => (
-                    <button key={s} className="text-xs bg-purple-50 text-purple-700 px-3 py-1.5 rounded-full border border-purple-200 hover:bg-purple-100"
-                      onClick={() => { setAiInput(s); }}>
-                      {s}
-                    </button>
-                  ))}
+          )}
+          {tab === 'messages' && (
+            <>
+              <div className="px-3 py-1.5 flex items-center justify-between">
+                <button onClick={() => setDmOpen(v => !v)}
+                  className="flex items-center gap-1 text-[10px] font-bold text-gray-400 hover:text-gray-600 uppercase tracking-wider">
+                  <ChevronDown size={11} className={`transition-transform ${dmOpen ? '' : '-rotate-90'}`} />
+                  Direct Messages
+                </button>
+                <div className="flex gap-0.5">
+                  <button onClick={refreshDms} className="p-1 text-gray-400 hover:text-gray-600"><RefreshCw size={11} /></button>
+                  <button onClick={() => setShowNewDm(v => !v)} className="p-1 text-gray-400 hover:text-gray-600"><Plus size={13} /></button>
                 </div>
               </div>
-            )}
-            {aiMessages.map((m, i) => (
-              <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm ${m.role === 'user' ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-800'}`}>
-                  {m.content}
+              {showNewDm && (
+                <div className="px-3 pb-2 flex gap-1">
+                  <input className="flex-1 text-xs border rounded-lg px-2 py-1.5 outline-none min-w-0"
+                    placeholder="User ID…" value={newDmId}
+                    onChange={e => setNewDmId(e.target.value)} onKeyDown={e => e.key === 'Enter' && startDm()} />
+                  <button onClick={startDm} className="px-2 py-1.5 rounded-lg text-white text-xs font-bold shrink-0" style={{ backgroundColor: 'var(--cp,#008751)' }}>Go</button>
                 </div>
-              </div>
-            ))}
-            {aiLoading && (
-              <div className="flex justify-start">
-                <div className="bg-gray-100 rounded-2xl px-4 py-3 text-sm text-gray-500 animate-pulse">...</div>
-              </div>
-            )}
-          </div>
-          <div className="p-4 border-t flex gap-2">
-            <input
-              className="flex-1 border rounded-xl px-4 py-2.5 text-sm outline-none focus:border-purple-400"
-              value={aiInput}
-              onChange={e => setAiInput(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && sendAI()}
-              placeholder="Ask anything about Africa..."
-            />
-            <button className="bg-purple-600 text-white px-4 py-2.5 rounded-xl hover:bg-purple-700" onClick={sendAI}>
-              <Send size={18} />
-            </button>
-          </div>
-        </div>
-      ) : activeRoom ? (
-        <div className="flex-1 bg-white sm:rounded-xl border flex flex-col">
-          <div className="p-4 border-b flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              {/* Back button on mobile */}
-              <button className="sm:hidden p-1 -ml-1 text-gray-500" onClick={() => setActiveRoom(null)}>
-                <X size={20} />
-              </button>
-              <div className="w-9 h-9 rounded-full bg-green-100 flex items-center justify-center text-green-700 font-semibold shrink-0">
-                {(rooms.find(r => r.id === activeRoom)?.name || 'U').charAt(0)}
-              </div>
-              <span className="font-bold text-gray-800 truncate">{rooms.find(r => r.id === activeRoom)?.name || 'Direct Message'}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <button className="p-2 hover:bg-gray-100 rounded-lg text-gray-500" onClick={() => shareToChat('Check out this listing on Seshaa!')} title="Share">
-                <Share2 size={18} />
-              </button>
-            </div>
-          </div>
-
-          <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            {messages.map(m => {
-              const isMe = m.senderId === user.id;
-              return (
-                <div key={m.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'} gap-2`}>
-                  {!isMe && (
-                    <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-semibold shrink-0">
-                      {m.senderName.charAt(0)}
-                    </div>
-                  )}
-                  <div className={`max-w-[70%] ${isMe ? 'items-end' : 'items-start'} flex flex-col`}>
-                    {!isMe && <p className="text-xs text-gray-400 mb-1">{m.senderName}</p>}
-                    <div className={`rounded-2xl px-4 py-2.5 text-sm ${
-                      isMe ? 'bg-green-600 text-white rounded-br-sm' : 'bg-gray-100 text-gray-800 rounded-bl-sm'
-                    } ${m.type !== 'text' ? 'border-l-4 border-blue-400 bg-blue-50 text-blue-800' : ''}`}>
-                      {m.type === 'listing' && <MapPin size={12} className="inline mr-1" />}
-                      {m.type === 'event' && <Calendar size={12} className="inline mr-1" />}
-                      {m.content}
-                      {m.type !== 'text' && (
-                        <button
-                          className="block text-xs mt-1 text-blue-600 hover:underline"
-                          onClick={() => setShareModal({ text: m.content })}
-                        >
-                          Share externally ↗
-                        </button>
-                      )}
-                    </div>
-                    <p className="text-xs text-gray-400 mt-0.5">{new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+              )}
+              {dmOpen && dmChs.map(dm => (
+                <button key={dm.channelId} onClick={() => setActive(dm.channelId)}
+                  className={`w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 transition-colors ${active === dm.channelId ? 'bg-gray-100' : ''}`}>
+                  <div className="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-600 shrink-0">
+                    {dm.channelId.replace('dm:', '').replace(user.id, '').replace(':', '').charAt(0).toUpperCase() || '?'}
                   </div>
-                </div>
-              );
-            })}
-            <div ref={messagesEndRef} />
-          </div>
-
-          <div className="p-4 border-t flex gap-2">
-            <input
-              className="flex-1 border rounded-xl px-4 py-2.5 text-sm outline-none focus:border-green-400"
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && sendMessage()}
-              placeholder="Type a message..."
-            />
-            <button className="bg-green-600 text-white px-4 py-2.5 rounded-xl hover:bg-green-700" onClick={sendMessage}>
-              <Send size={18} />
-            </button>
-          </div>
-        </div>
-      ) : (
-        <div className="hidden sm:flex flex-1 bg-white rounded-xl border items-center justify-center text-gray-400">
-          <div className="text-center">
-            <Users size={48} className="mx-auto mb-4 opacity-30" />
-            <p>Select a conversation or start a new one</p>
-            <button
-              className="mt-4 flex items-center gap-2 bg-purple-50 text-purple-700 px-4 py-2 rounded-full text-sm mx-auto hover:bg-purple-100"
-              onClick={() => setShowAI(true)}
-            >
-              <Sparkles size={16} /> Open AI Assistant
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* External share modal */}
-      {shareModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-sm w-full">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-gray-800">Share to</h3>
-              <button onClick={() => setShareModal(null)}><X size={20} /></button>
-            </div>
-            <p className="text-sm text-gray-500 bg-gray-50 rounded-lg p-3 mb-4">{shareModal.text}</p>
-            <div className="grid grid-cols-2 gap-2">
-              {SHARE_PLATFORMS.map(p => (
-                <button
-                  key={p.name}
-                  className={`${p.color} text-white rounded-xl py-2.5 text-sm font-medium hover:opacity-90`}
-                  onClick={() => { externalShare(p.url); setShareModal(null); }}
-                >
-                  {p.name}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-gray-800 truncate">{dm.channelId.replace('dm:', '').replace(user.id, '').replace(/^:/, '')}</p>
+                    <p className="text-[10px] text-gray-400 truncate">{dm.lastMsg}</p>
+                  </div>
+                  {dm.unread > 0 && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full text-white shrink-0" style={{ backgroundColor: 'var(--cp,#008751)' }}>{dm.unread}</span>}
                 </button>
               ))}
-              <button
-                className="bg-gray-100 text-gray-700 rounded-xl py-2.5 text-sm font-medium hover:bg-gray-200"
-                onClick={() => { navigator.clipboard.writeText(shareModal.text); setShareModal(null); }}
-              >
-                Copy Link
-              </button>
-            </div>
-          </div>
+              {dmOpen && loaded && dmChs.length === 0 && <p className="px-4 py-2 text-xs text-gray-400">No conversations yet</p>}
+            </>
+          )}
+          {tab === 'admin' && hasHub && (
+            <>
+              <p className="px-3 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Staff Channels</p>
+              {fixedChs.map(ch => (
+                <button key={ch.channelId} onClick={() => setActive(ch.channelId)}
+                  className={`w-full flex items-center gap-2 px-3 py-2.5 hover:bg-gray-50 transition-colors ${active === ch.channelId ? 'bg-gray-100' : ''}`}>
+                  <Hash size={13} className="text-gray-400 shrink-0" />
+                  <span className="text-sm font-medium text-gray-700">{ch.label}</span>
+                </button>
+              ))}
+              {fixedChs.length === 0 && <p className="px-4 py-2 text-xs text-gray-400">No channels for your role</p>}
+            </>
+          )}
         </div>
-      )}
+      </div>
+
+      {/* ── Main pane ──────────────────────────────────────────────────────── */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* Mobile tab bar */}
+        <div className="md:hidden flex border-b border-gray-200 bg-white shrink-0">
+          {TABS.map(t => (
+            <button key={t.id} onClick={() => setTab(t.id)}
+              className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2 text-[11px] font-semibold transition-colors ${tab === t.id ? 'border-b-2' : 'text-gray-400'}`}
+              style={tab === t.id ? { borderBottomColor: 'var(--cp,#008751)', color: 'var(--cp,#008751)' } : {}}>
+              {t.icon}
+              <SeshaaTitle staticSuffix={t.suffix} size="sm" />
+            </button>
+          ))}
+        </div>
+
+        <div className="flex-1 min-h-0 overflow-hidden">
+          {/* AI tab */}
+          {tab === 'ai' && <AiPane isAdmin={isAdmin} stats={stats} />}
+
+          {/* Messages tab */}
+          {tab === 'messages' && (
+            active ? (
+              <div className="flex flex-col h-full">
+                <div className="px-4 py-3 bg-white border-b flex items-center gap-2 shrink-0">
+                  <button onClick={() => setActive(null)} className="md:hidden text-gray-400 mr-1 text-lg">‹</button>
+                  <SeshaaTitle staticSuffix="chat" size="sm" />
+                  <span className="text-xs text-gray-400 ml-1">/ {active.replace('dm:', '').replace(user.id, '').replace(/^:/, '') || 'Chat'}</span>
+                  <span className="ml-auto text-[10px] text-gray-400 shrink-0">3 s poll</span>
+                </div>
+                <div className="flex-1 overflow-hidden"><ChannelPane channelId={active} myId={user.id} /></div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full text-center px-6 py-12">
+                <MessageCircle size={40} className="text-gray-300 mb-3" strokeWidth={1} />
+                <SeshaaTitle staticSuffix="chat" size="md" className="mb-1" />
+                <p className="text-sm text-gray-500 mb-4">Direct-message listing owners or other users</p>
+                {dmChs.length > 0 && (
+                  <div className="w-full max-w-xs space-y-1 text-left mb-4">
+                    {dmChs.slice(0, 5).map(dm => (
+                      <button key={dm.channelId} onClick={() => setActive(dm.channelId)}
+                        className="w-full flex items-center gap-2 px-3 py-2 rounded-xl bg-white border hover:bg-gray-50 transition-colors">
+                        <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center font-bold text-sm text-gray-500 shrink-0">
+                          {dm.channelId.replace('dm:', '').replace(user.id, '').replace(':', '').charAt(0).toUpperCase()}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-medium text-gray-800 truncate">{dm.channelId.replace('dm:', '').replace(user.id, '').replace(/^:/, '')}</p>
+                          <p className="text-[10px] text-gray-400 truncate">{dm.lastMsg}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <button onClick={() => setShowNewDm(v => !v)}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-semibold"
+                  style={{ backgroundColor: 'var(--cp,#008751)' }}>
+                  <Plus size={15} /> New Message
+                </button>
+                {showNewDm && (
+                  <div className="mt-3 flex gap-2 w-full max-w-xs">
+                    <input className="flex-1 border rounded-xl px-3 py-2 text-sm outline-none min-w-0"
+                      placeholder="User ID…" value={newDmId}
+                      onChange={e => setNewDmId(e.target.value)} onKeyDown={e => e.key === 'Enter' && startDm()} />
+                    <button onClick={startDm} className="px-3 py-2 rounded-xl text-white text-sm font-bold shrink-0" style={{ backgroundColor: 'var(--cp,#008751)' }}>Go</button>
+                  </div>
+                )}
+              </div>
+            )
+          )}
+
+          {/* Admin Hub */}
+          {tab === 'admin' && hasHub && (
+            active ? (
+              <div className="flex flex-col h-full">
+                <div className="px-4 py-3 bg-white border-b flex items-center gap-2 shrink-0">
+                  <button onClick={() => setActive(null)} className="md:hidden text-gray-400 mr-1 text-lg">‹</button>
+                  <Lock size={14} className="text-gray-400" />
+                  <span className="font-semibold text-sm text-gray-800">{fixedChs.find(c => c.channelId === active)?.label ?? active}</span>
+                  <span className="ml-auto text-[10px] text-gray-400 shrink-0">Staff only</span>
+                </div>
+                <div className="flex-1 overflow-hidden"><ChannelPane channelId={active} myId={user.id} /></div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full text-center px-6 py-12">
+                <Lock size={40} className="text-gray-300 mb-3" strokeWidth={1} />
+                <p className="font-semibold text-gray-700 mb-1">Staff Hub</p>
+                <p className="text-sm text-gray-500 mb-5">Dedicated channels for coordination</p>
+                <div className="w-full max-w-xs space-y-2">
+                  {fixedChs.map(ch => (
+                    <button key={ch.channelId} onClick={() => setActive(ch.channelId)}
+                      className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-white border hover:bg-gray-50 transition-colors">
+                      {ch.channelType === 'admin'       && <Lock  size={15} className="text-red-400" />}
+                      {ch.channelType === 'salesreps'   && <Users size={15} className="text-blue-400" />}
+                      {ch.channelType === 'ambassadors' && <Globe size={15} className="text-purple-400" />}
+                      <span className="font-medium text-gray-800 text-sm">{ch.label}</span>
+                    </button>
+                  ))}
+                  {fixedChs.length === 0 && <p className="text-sm text-gray-400">No channels for your role</p>}
+                </div>
+              </div>
+            )
+          )}
+        </div>
+      </div>
     </div>
   );
 }

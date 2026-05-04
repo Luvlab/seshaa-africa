@@ -3,6 +3,7 @@ import { Router, Response } from 'express';
 
 import { z } from 'zod';
 import { requireAuth, optionalAuth, AuthRequest } from '../middleware/auth';
+import { expandQuery } from '../utils/searchExpand';
 
 const router = Router();
 
@@ -45,12 +46,21 @@ router.get('/', optionalAuth, async (req: AuthRequest, res: Response) => {
   if (tier) where.tier = tier;
   if (submittedById) where.submittedById = submittedById;
   if (q) {
-    where.OR = [
-      { name: { contains: q, mode: 'insensitive' } },
-      { description: { contains: q, mode: 'insensitive' } },
-      { phone: { contains: q } },
-      { address: { contains: q, mode: 'insensitive' } },
-    ];
+    const { terms, categoryHint } = expandQuery(q);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const textClauses: any[] = terms.flatMap(term => [
+      { name:        { contains: term, mode: 'insensitive' } },
+      { description: { contains: term, mode: 'insensitive' } },
+      { address:     { contains: term, mode: 'insensitive' } },
+      { subcategory: { contains: term, mode: 'insensitive' } },
+      { tags: { some: { name: { contains: term, mode: 'insensitive' } } } },
+    ]);
+    textClauses.push({ phone: { contains: q } });
+    if (categoryHint && !category) {
+      // categoryHint matches actual DB category values (e.g. 'auto', 'retail', 'beauty')
+      textClauses.push({ category: { equals: categoryHint, mode: 'insensitive' } });
+    }
+    where.OR = textClauses;
   }
 
   const [listings, total] = await Promise.all([

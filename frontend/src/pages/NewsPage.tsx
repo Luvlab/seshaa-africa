@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next';
 import { useThemeStore } from '../store/theme';
 import { COUNTRIES } from '../components/layout/CountryPicker';
 import api from '../services/api';
+import FavoriteButton from '../components/ui/FavoriteButton';
 
 interface NewsItem {
   id: string; title: string; link: string; summary?: string;
@@ -98,6 +99,10 @@ function SecondaryCard({ item }: { item: NewsItem }) {
 /* ── Grid card — compact ────────────────────────────────────────────────── */
 function GridCard({ item, size = 'md' }: { item: NewsItem; size?: 'sm' | 'md' | 'lg' }) {
   return (
+    <div className="relative">
+      <div className="absolute top-2 right-2 z-10">
+        <FavoriteButton id={item.id} type="news" name={item.title} size={13} />
+      </div>
     <a href={item.link} target="_blank" rel="noopener noreferrer"
       className="group block bg-white hover:bg-gray-50 overflow-hidden transition-colors rounded">
       {item.image && (
@@ -123,6 +128,7 @@ function GridCard({ item, size = 'md' }: { item: NewsItem; size?: 'sm' | 'md' | 
         </span>
       </div>
     </a>
+    </div>
   );
 }
 

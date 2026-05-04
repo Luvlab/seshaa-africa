@@ -7,7 +7,7 @@ import {
   Zap, ArrowUpRight, Plus, Edit2, Trash2, Eye, EyeOff, Play,
   CreditCard, Phone, Mail, Info,
 } from 'lucide-react';
-import { adminApi, adsApi } from '../../services/api';
+import { adminApi, adsApi, analyticsApi } from '../../services/api';
 import { useAuthStore } from '../../store/auth';
 import { ALL_LOGOS, saveEnabled, type LogoId } from '../../components/brand/LogoRotator';
 import { COUNTRIES } from '../../components/layout/CountryPicker';
@@ -37,7 +37,7 @@ interface PendingListing { id: string; name: string; city: string; country: stri
 interface PendingPayout  { id: string; amount: number; method: string; ambassador: { user: { name: string; phone: string; country: string } } }
 interface LoanApp        { id: string; amount: number; purpose: string; status: string; createdAt: string; user: { name: string; phone: string; country: string } }
 
-type Tab = 'overview' | 'listings' | 'payouts' | 'loans' | 'finance' | 'adcms' | 'promote' | 'scraper' | 'branding' | 'salesreps';
+type Tab = 'overview' | 'listings' | 'payouts' | 'loans' | 'finance' | 'adcms' | 'promote' | 'scraper' | 'branding' | 'salesreps' | 'analytics' | 'banking';
 
 interface HeroConfig {
   mediaType: 'youtube' | 'image' | 'video' | 'default';
@@ -58,6 +58,18 @@ const DEFAULT_HERO: HeroConfig = {
   ctaUrl: '/advertise',
   advertiser: 'Demo — Uganda Coffee Company',
 };
+
+// ── Font presets for the title branding picker ───────────────────────────────
+const FONT_PRESETS = [
+  { id: 'default',     label: 'Default — Arial Black',              family: '"Arial Black","Arial Bold",Arial,sans-serif',   googleUrl: null },
+  { id: 'playfair',    label: 'Playfair Display Black Italic',       family: '"Playfair Display",serif',                       googleUrl: 'https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,900&display=swap' },
+  { id: 'fraunces',    label: 'Fraunces Black Italic',               family: '"Fraunces",serif',                               googleUrl: 'https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,900&display=swap' },
+  { id: 'barlow',      label: 'Barlow Condensed ExtraBold Italic',   family: '"Barlow Condensed",sans-serif',                  googleUrl: 'https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@1,800&display=swap' },
+  { id: 'montserrat',  label: 'Montserrat Black Italic',             family: '"Montserrat",sans-serif',                        googleUrl: 'https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@1,900&display=swap' },
+  { id: 'raleway',     label: 'Raleway Black Italic',                family: '"Raleway",sans-serif',                           googleUrl: 'https://fonts.googleapis.com/css2?family=Raleway:ital,wght@1,900&display=swap' },
+  { id: 'josefin',     label: 'Josefin Sans Bold Italic',            family: '"Josefin Sans",sans-serif',                      googleUrl: 'https://fonts.googleapis.com/css2?family=Josefin+Sans:ital,wght@1,700&display=swap' },
+  { id: 'custom',      label: 'Custom uploaded font…',              family: 'SeshaaCustomFont,sans-serif',                    googleUrl: null },
+];
 
 // ── Chart helpers ────────────────────────────────────────────────────────────
 function HBar({ label, value, max, color = 'bg-green-500', suffix }: {
@@ -163,6 +175,31 @@ export default function AdminPortal() {
   }
   const [userAnalytics, setUserAnalytics] = useState<UserAnalytics | null>(null);
 
+  // Behaviour analytics (UserEvent) state
+  interface BehaviourStats {
+    totals: { allTime: number; pageviews7d: number; searches7d: number };
+    topPages:        { path: string; count: string }[];
+    topSearches:     { value: string; count: string }[];
+    deviceBreakdown: { device: string; count: string }[];
+    countryBreakdown:{ country: string; count: string }[];
+    eventsPerDay:    { day: string; count: string }[];
+    activeHours:     { hour: number; count: string }[];
+  }
+  interface PrognosisData {
+    daily:    { day: string; count: string }[];
+    forecast: { day: number; predicted: number }[];
+    trend:    'growing' | 'declining' | 'stable';
+    slope:    number;
+  }
+  interface SessionData {
+    sessions: { userId: string; name: string; sessionId: string; startedAt: string; endedAt: string; eventCount: string; durationSeconds: string }[];
+    keystrokeSessions: { userId: string; name: string; wpm: string; createdAt: string }[];
+  }
+  const [behaviourStats,    setBehaviourStats]    = useState<BehaviourStats | null>(null);
+  const [prognosisData,     setPrognosisData]     = useState<PrognosisData | null>(null);
+  const [sessionData,       setSessionData]       = useState<SessionData | null>(null);
+  const [analyticsLoading,  setAnalyticsLoading]  = useState(false);
+
   // Scraper state
   const [scrapeCounts, setScrapeCounts]   = useState<{ city: string; country: string; count: number }[]>([]);
   const [scrapeTotal, setScrapeTotal]     = useState(0);
@@ -202,6 +239,10 @@ export default function AdminPortal() {
   const [themeText, setThemeText] = useState('#FFFFFF');
   const [themeMsg, setThemeMsg] = useState('');
   const [cssFontMsg,    setCssFontMsg]    = useState('');
+  const [logoTitleColor,  setLogoTitleColor]  = useState(() => localStorage.getItem('seshaa-logo-title-color') ?? '');
+  const [logoSuffixColor, setLogoSuffixColor] = useState(() => localStorage.getItem('seshaa-logo-suffix-color') ?? '');
+  const [logoFont,         setLogoFont]        = useState(() => localStorage.getItem('seshaa-logo-font') ?? 'default');
+  const [customFontName,   setCustomFontName]  = useState(() => localStorage.getItem('seshaa-logo-font-name') ?? '');
   const [customCss,     setCustomCss]     = useState(() => localStorage.getItem('seshaa-custom-css') ?? '');
   const [cssSaved,      setCssSaved]      = useState(false);
   const [openRouterApiKey, setOpenRouterApiKey] = useState('');
@@ -228,6 +269,65 @@ export default function AdminPortal() {
     let el = document.getElementById('seshaa-custom-css');
     if (!el) { el = document.createElement('style'); el.id = 'seshaa-custom-css'; document.head.appendChild(el); }
     el.textContent = css;
+  };
+
+  /** Apply / remove a string CSS variable + persist to localStorage */
+  const applyCssStr = (varName: string, value: string, lsKey: string) => {
+    if (value) {
+      document.documentElement.style.setProperty(varName, value);
+      localStorage.setItem(lsKey, value);
+    } else {
+      document.documentElement.style.removeProperty(varName);
+      localStorage.removeItem(lsKey);
+    }
+  };
+
+  /** Load a Google Fonts stylesheet for the title font (replaces any previous one) */
+  const loadGoogleFont = (url: string | null, fontId: string) => {
+    document.querySelectorAll<HTMLLinkElement>('link[data-seshaa-font]').forEach(el => el.remove());
+    if (url) {
+      const link = document.createElement('link');
+      link.rel  = 'stylesheet';
+      link.href = url;
+      link.setAttribute('data-seshaa-font', fontId);
+      document.head.appendChild(link);
+    }
+  };
+
+  /** Apply a font preset: load GFont, set CSS var, persist */
+  const applyFontPreset = (id: string) => {
+    const preset = FONT_PRESETS.find(p => p.id === id);
+    if (!preset) return;
+    loadGoogleFont(preset.googleUrl, id);
+    if (id === 'default') {
+      document.documentElement.style.removeProperty('--logo-font-family');
+      localStorage.removeItem('seshaa-logo-font-family');
+    } else {
+      applyCssStr('--logo-font-family', preset.family, 'seshaa-logo-font-family');
+    }
+    localStorage.setItem('seshaa-logo-font', id);
+    setLogoFont(id);
+  };
+
+  /** Handle custom font file upload → @font-face → CSS var */
+  const handleFontUpload = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const dataUrl = e.target?.result as string;
+      const name = 'SeshaaCustomFont';
+      // Inject @font-face
+      let styleEl = document.getElementById('seshaa-custom-font-face') as HTMLStyleElement | null;
+      if (!styleEl) { styleEl = document.createElement('style'); styleEl.id = 'seshaa-custom-font-face'; document.head.appendChild(styleEl); }
+      styleEl.textContent = `@font-face { font-family: '${name}'; src: url('${dataUrl}'); font-weight: 900; font-style: italic; }`;
+      // Store in localStorage (may be large for woff2)
+      try { localStorage.setItem('seshaa-logo-font-data', dataUrl); } catch { /* ignore quota */ }
+      localStorage.setItem('seshaa-logo-font-name', file.name);
+      localStorage.setItem('seshaa-logo-font', 'custom');
+      applyCssStr('--logo-font-family', `'${name}',sans-serif`, 'seshaa-logo-font-family');
+      setCustomFontName(file.name);
+      setLogoFont('custom');
+    };
+    reader.readAsDataURL(file);
   };
 
   useEffect(() => {
@@ -288,6 +388,22 @@ export default function AdminPortal() {
     setThemeAccent(v?.accent || base.accent);
     setThemeText(v?.text || '#FFFFFF');
   }, [themeCountryCode, themeOverrides]);
+
+  // Load behaviour analytics lazily when the tab is first opened
+  useEffect(() => {
+    if (tab !== 'analytics') return;
+    if (behaviourStats) return; // already loaded
+    setAnalyticsLoading(true);
+    Promise.all([
+      analyticsApi.admin(),
+      analyticsApi.prognosis(),
+      analyticsApi.sessions(),
+    ]).then(([statsRes, progRes, sessRes]) => {
+      setBehaviourStats(statsRes.data as BehaviourStats);
+      setPrognosisData(progRes.data as PrognosisData);
+      setSessionData(sessRes.data as SessionData);
+    }).catch(() => {}).finally(() => setAnalyticsLoading(false));
+  }, [tab]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const availablePortals: PortalType[] = ['consumer', 'business', 'advertiser', 'salesrep', 'ambassador', 'admin'];
 
@@ -547,9 +663,11 @@ export default function AdminPortal() {
     { key: 'loans',    label: 'Loans',      icon: <Award size={20} strokeWidth={1.5} />, badge: loanApps.length },
     { key: 'salesreps',label: 'Sales Reps', icon: <Briefcase size={20} strokeWidth={1.5} /> },
     { key: 'adcms',    label: 'Ad CMS',     icon: <Tv size={20} strokeWidth={1.5} /> },
-    { key: 'scraper',  label: 'Scraper',    icon: <Database size={20} strokeWidth={1.5} /> },
-    { key: 'branding', label: 'Branding',   icon: <Paintbrush size={20} strokeWidth={1.5} /> },
-    { key: 'promote',  label: 'Press',      icon: <Send size={20} strokeWidth={1.5} /> },
+    { key: 'scraper',   label: 'Scraper',    icon: <Database size={20} strokeWidth={1.5} /> },
+    { key: 'branding',  label: 'Branding',   icon: <Paintbrush size={20} strokeWidth={1.5} /> },
+    { key: 'promote',   label: 'Press',      icon: <Send size={20} strokeWidth={1.5} /> },
+    { key: 'analytics', label: 'Behaviour',  icon: <Activity size={20} strokeWidth={1.5} /> },
+    { key: 'banking',   label: 'Banking',    icon: <CreditCard size={20} strokeWidth={1.5} /> },
   ];
 
   // Derived data for charts
@@ -1687,8 +1805,21 @@ export default function AdminPortal() {
               <div className="flex items-center justify-center bg-gray-950 rounded-xl border border-gray-800 py-4 mb-6"
                 style={{ backgroundColor: 'var(--cp, #008751)' }}>
                 <div className="flex items-center gap-0 select-none leading-none">
-                  <span style={{ fontSize: `var(--logo-main-size, ${logoMainDesktop}rem)`, fontWeight: 900, fontStyle: 'italic', fontFamily: '"Arial Black","Arial Bold",Arial,sans-serif', color: '#008751', WebkitTextStroke: `var(--logo-stroke, ${logoStroke}px) white`, letterSpacing: '-0.02em', lineHeight: 1 }}>seshaa</span>
-                  <span style={{ fontSize: `var(--logo-main-size, ${logoMainDesktop}rem)`, fontWeight: 700, fontStyle: 'italic', fontFamily: '"Arial Black","Arial Bold",Arial,sans-serif', color: 'white', letterSpacing: '-0.01em', lineHeight: 1 }}>.africa</span>
+                  <span style={{
+                    fontSize: `var(--logo-main-size, ${logoMainDesktop}rem)`,
+                    fontWeight: 900, fontStyle: 'italic',
+                    fontFamily: 'var(--logo-font-family, "Arial Black","Arial Bold",Arial,sans-serif)',
+                    color: logoTitleColor || 'var(--cs, white)',
+                    WebkitTextStroke: `var(--logo-stroke, ${logoStroke}px) rgba(0,0,0,0.2)`,
+                    letterSpacing: '-0.02em', lineHeight: 1,
+                  }}>seshaa</span>
+                  <span style={{
+                    fontSize: `var(--logo-main-size, ${logoMainDesktop}rem)`,
+                    fontWeight: 700, fontStyle: 'italic',
+                    fontFamily: 'var(--logo-font-family, "Arial Black","Arial Bold",Arial,sans-serif)',
+                    color: logoSuffixColor || 'var(--ca, #FCD116)',
+                    letterSpacing: '-0.01em', lineHeight: 1,
+                  }}>.africa</span>
                 </div>
               </div>
 
@@ -1736,6 +1867,135 @@ export default function AdminPortal() {
                   </button>
                   {cssFontMsg && <span className="text-xs text-pink-300">{cssFontMsg}</span>}
                 </div>
+              </div>
+            </div>
+
+            {/* ── Title Font & Color picker ──────────────────────────── */}
+            <div className="bg-gray-900 rounded-2xl border border-gray-800 p-5">
+              <h3 className="font-bold text-white mb-1 flex items-center gap-2">
+                <Paintbrush size={16} className="text-violet-400" strokeWidth={1.5} /> Title Font &amp; Colors
+              </h3>
+              <p className="text-xs text-gray-500 mb-5">Override the &quot;seshaa&quot; and &quot;.country&quot; title text colors and typeface.</p>
+
+              {/* Color row */}
+              <div className="grid grid-cols-2 gap-4 mb-5">
+                {([
+                  { label: '"seshaa" text color', value: logoTitleColor, set: setLogoTitleColor, lsKey: 'seshaa-logo-title-color', varName: '--logo-title-color', placeholder: 'e.g. #FFFFFF (leave blank = auto)' },
+                  { label: '".country" text color', value: logoSuffixColor, set: setLogoSuffixColor, lsKey: 'seshaa-logo-suffix-color', varName: '--logo-suffix-color', placeholder: 'e.g. #FCD116 (leave blank = auto)' },
+                ] as const).map(f => (
+                  <label key={f.label} className="text-xs text-gray-400">
+                    {f.label}
+                    <div className="mt-1.5 flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={f.value || '#ffffff'}
+                        onChange={e => {
+                          f.set(e.target.value);
+                          applyCssStr(f.varName, e.target.value, f.lsKey);
+                        }}
+                        className="w-10 h-9 rounded border border-gray-700 bg-gray-950 p-1 cursor-pointer"
+                      />
+                      <input
+                        value={f.value}
+                        onChange={e => {
+                          f.set(e.target.value);
+                          applyCssStr(f.varName, e.target.value, f.lsKey);
+                        }}
+                        placeholder={f.placeholder}
+                        className="flex-1 bg-gray-950 border border-gray-700 rounded-xl px-2 py-2 text-xs text-gray-100 placeholder-gray-600"
+                      />
+                      {f.value && (
+                        <button
+                          onClick={() => { f.set(''); applyCssStr(f.varName, '', f.lsKey); }}
+                          className="text-gray-500 hover:text-red-400 text-xs"
+                          title="Clear (reset to auto)"
+                        >✕</button>
+                      )}
+                    </div>
+                  </label>
+                ))}
+              </div>
+
+              {/* Font picker */}
+              <div className="mb-4">
+                <label className="text-xs text-gray-400 block mb-1.5">Typeface</label>
+                <div className="grid grid-cols-1 gap-2">
+                  {FONT_PRESETS.filter(p => p.id !== 'custom').map(p => (
+                    <button
+                      key={p.id}
+                      onClick={() => applyFontPreset(p.id)}
+                      className={`flex items-center justify-between px-3 py-2 rounded-xl border text-left transition-colors ${
+                        logoFont === p.id
+                          ? 'border-violet-500 bg-violet-950 text-white'
+                          : 'border-gray-700 bg-gray-950 text-gray-300 hover:border-gray-500'
+                      }`}
+                    >
+                      <span
+                        className="text-base"
+                        style={{
+                          fontFamily: p.family,
+                          fontWeight: 900,
+                          fontStyle: 'italic',
+                        }}
+                      >
+                        seshaa.africa
+                      </span>
+                      <span className="text-[10px] text-gray-500 shrink-0 ml-3">{p.label}</span>
+                    </button>
+                  ))}
+
+                  {/* Custom uploaded font row */}
+                  <div className={`flex items-center justify-between px-3 py-2 rounded-xl border transition-colors ${
+                    logoFont === 'custom'
+                      ? 'border-violet-500 bg-violet-950'
+                      : 'border-gray-700 bg-gray-950 hover:border-gray-500'
+                  }`}>
+                    <span className="text-xs text-gray-400">
+                      {logoFont === 'custom' && customFontName
+                        ? <span className="text-violet-300">✓ {customFontName}</span>
+                        : 'Upload custom font (.ttf / .woff / .woff2 / .otf)'}
+                    </span>
+                    <label className="cursor-pointer ml-3 shrink-0">
+                      <span className="text-xs px-2.5 py-1.5 rounded-lg bg-violet-700 hover:bg-violet-600 text-white font-semibold transition-colors">
+                        {logoFont === 'custom' ? 'Replace' : 'Upload'}
+                      </span>
+                      <input
+                        type="file"
+                        accept=".ttf,.otf,.woff,.woff2"
+                        className="hidden"
+                        onChange={e => { const f = e.target.files?.[0]; if (f) handleFontUpload(f); }}
+                      />
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => {
+                    setCssFontMsg('✓ Font & color settings saved.');
+                    setTimeout(() => setCssFontMsg(''), 2500);
+                  }}
+                  className="px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold rounded-xl transition-colors"
+                >
+                  Save
+                </button>
+                <button
+                  onClick={() => {
+                    setLogoTitleColor('');   applyCssStr('--logo-title-color',  '', 'seshaa-logo-title-color');
+                    setLogoSuffixColor('');  applyCssStr('--logo-suffix-color', '', 'seshaa-logo-suffix-color');
+                    applyFontPreset('default');
+                    setCustomFontName('');
+                    localStorage.removeItem('seshaa-logo-font-name');
+                    localStorage.removeItem('seshaa-logo-font-data');
+                    const styleEl = document.getElementById('seshaa-custom-font-face');
+                    if (styleEl) styleEl.textContent = '';
+                  }}
+                  className="text-xs text-gray-500 hover:text-gray-300 underline"
+                >
+                  Reset to defaults
+                </button>
+                {cssFontMsg && <span className="text-xs text-violet-300">{cssFontMsg}</span>}
               </div>
             </div>
 
@@ -2096,6 +2356,875 @@ export default function AdminPortal() {
             )}
           </div>
         )}
+
+        {/* ── Behaviour Analytics tab ──────────────────────────────────── */}
+        {tab === 'analytics' && (
+          <div className="p-6 space-y-8 max-w-5xl mx-auto">
+            <h2 className="text-xl font-bold text-white flex items-center gap-2">
+              <Activity size={20} className="text-purple-400" /> User Behaviour Analytics
+            </h2>
+
+            {analyticsLoading && (
+              <div className="flex items-center justify-center py-20">
+                <div className="w-10 h-10 border-4 border-t-transparent border-purple-500 rounded-full animate-spin" />
+              </div>
+            )}
+
+            {!analyticsLoading && behaviourStats && (
+              <>
+                {/* KPI row */}
+                <div className="grid grid-cols-3 gap-4">
+                  {[
+                    { label: 'All-time events',  value: behaviourStats.totals.allTime.toLocaleString(),     color: 'text-purple-400' },
+                    { label: 'Pageviews (7d)',   value: behaviourStats.totals.pageviews7d.toLocaleString(),  color: 'text-blue-400'   },
+                    { label: 'Searches (7d)',    value: behaviourStats.totals.searches7d.toLocaleString(),   color: 'text-cyan-400'   },
+                  ].map(k => (
+                    <div key={k.label} className="bg-gray-800/50 rounded-2xl p-4 border border-gray-700/40">
+                      <p className="text-xs text-gray-400 mb-1">{k.label}</p>
+                      <p className={`text-2xl font-bold tabular-nums ${k.color}`}>{k.value}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Events per day bar chart */}
+                <div className="bg-gray-800/50 rounded-2xl p-5 border border-gray-700/40">
+                  <p className="text-sm font-semibold text-white mb-4">Events per day (last 30 days)</p>
+                  {behaviourStats.eventsPerDay.length === 0
+                    ? <p className="text-xs text-gray-500 text-center py-6">No events yet</p>
+                    : (() => {
+                        const maxVal = Math.max(...behaviourStats.eventsPerDay.map(d => parseInt(d.count)), 1);
+                        return (
+                          <div className="flex items-end gap-0.5 h-28 overflow-hidden">
+                            {behaviourStats.eventsPerDay.map(d => {
+                              const pct = Math.round((parseInt(d.count) / maxVal) * 100);
+                              return (
+                                <div key={d.day} title={`${d.day}: ${d.count}`}
+                                  className="flex-1 min-w-0 rounded-t group relative cursor-default transition-all duration-300"
+                                  style={{ height: `${Math.max(pct, 2)}%`, backgroundColor: 'rgb(168 85 247 / 0.7)' }}>
+                                  <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] text-white bg-gray-900 px-1 rounded opacity-0 group-hover:opacity-100 whitespace-nowrap z-10 pointer-events-none">
+                                    {d.count}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        );
+                      })()
+                  }
+                </div>
+
+                {/* 2-col grid: top pages + searches */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-gray-800/50 rounded-2xl p-5 border border-gray-700/40">
+                    <p className="text-sm font-semibold text-white mb-3">Top Pages (30d)</p>
+                    {behaviourStats.topPages.length === 0
+                      ? <p className="text-xs text-gray-500">No data yet</p>
+                      : (() => {
+                          const max = Math.max(...behaviourStats.topPages.map(p => parseInt(p.count)), 1);
+                          return behaviourStats.topPages.map(p => (
+                            <div key={p.path} className="flex items-center gap-2 mb-2">
+                              <span className="text-xs text-gray-300 truncate flex-1 min-w-0 font-mono">{p.path || '/'}</span>
+                              <div className="w-24 h-2 bg-gray-700 rounded-full shrink-0">
+                                <div className="h-2 rounded-full bg-purple-500 transition-all" style={{ width: `${Math.round(parseInt(p.count)/max*100)}%` }} />
+                              </div>
+                              <span className="text-xs tabular-nums text-gray-400 w-8 text-right">{p.count}</span>
+                            </div>
+                          ));
+                        })()
+                    }
+                  </div>
+                  <div className="bg-gray-800/50 rounded-2xl p-5 border border-gray-700/40">
+                    <p className="text-sm font-semibold text-white mb-3">Top Searches (30d)</p>
+                    {behaviourStats.topSearches.length === 0
+                      ? <p className="text-xs text-gray-500">No data yet</p>
+                      : (() => {
+                          const max = Math.max(...behaviourStats.topSearches.map(s => parseInt(s.count)), 1);
+                          return behaviourStats.topSearches.map(s => (
+                            <div key={s.value} className="flex items-center gap-2 mb-2">
+                              <span className="text-xs text-gray-300 truncate flex-1 min-w-0">{s.value}</span>
+                              <div className="w-24 h-2 bg-gray-700 rounded-full shrink-0">
+                                <div className="h-2 rounded-full bg-cyan-500 transition-all" style={{ width: `${Math.round(parseInt(s.count)/max*100)}%` }} />
+                              </div>
+                              <span className="text-xs tabular-nums text-gray-400 w-8 text-right">{s.count}</span>
+                            </div>
+                          ));
+                        })()
+                    }
+                  </div>
+                </div>
+
+                {/* 2-col: device + country */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-gray-800/50 rounded-2xl p-5 border border-gray-700/40">
+                    <p className="text-sm font-semibold text-white mb-3">Device Breakdown (30d)</p>
+                    {behaviourStats.deviceBreakdown.map(d => {
+                      const icons: Record<string, string> = { mobile: '📱', tablet: '💻', desktop: '🖥️' };
+                      return (
+                        <div key={d.device} className="flex items-center gap-2 mb-2">
+                          <span className="text-base">{icons[d.device] ?? '❓'}</span>
+                          <span className="text-xs text-gray-300 capitalize flex-1">{d.device ?? 'unknown'}</span>
+                          <span className="text-sm font-semibold text-white tabular-nums">{parseInt(d.count).toLocaleString()}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="bg-gray-800/50 rounded-2xl p-5 border border-gray-700/40">
+                    <p className="text-sm font-semibold text-white mb-3">Top Countries (30d)</p>
+                    {behaviourStats.countryBreakdown.length === 0
+                      ? <p className="text-xs text-gray-500">No data yet</p>
+                      : (() => {
+                          const max = Math.max(...behaviourStats.countryBreakdown.map(c => parseInt(c.count)), 1);
+                          return behaviourStats.countryBreakdown.map(c => (
+                            <div key={c.country} className="flex items-center gap-2 mb-2">
+                              <span className="text-xs text-gray-300 uppercase w-6 shrink-0 font-mono">{c.country}</span>
+                              <div className="flex-1 h-2 bg-gray-700 rounded-full">
+                                <div className="h-2 rounded-full bg-emerald-500 transition-all" style={{ width: `${Math.round(parseInt(c.count)/max*100)}%` }} />
+                              </div>
+                              <span className="text-xs tabular-nums text-gray-400 w-10 text-right">{parseInt(c.count).toLocaleString()}</span>
+                            </div>
+                          ));
+                        })()
+                    }
+                  </div>
+                </div>
+
+                {/* Active hours heatmap */}
+                <div className="bg-gray-800/50 rounded-2xl p-5 border border-gray-700/40">
+                  <p className="text-sm font-semibold text-white mb-4">Active Hours UTC (7d)</p>
+                  <div className="flex items-end gap-1 h-20">
+                    {Array.from({ length: 24 }, (_, h) => {
+                      const entry = behaviourStats.activeHours.find(e => e.hour === h);
+                      const val   = entry ? parseInt(String(entry.count)) : 0;
+                      const maxH  = Math.max(...behaviourStats.activeHours.map(e => parseInt(String(e.count))), 1);
+                      const pct   = Math.round((val / maxH) * 100);
+                      return (
+                        <div key={h} className="flex-1 flex flex-col items-center gap-1">
+                          <div className="w-full rounded-t transition-all"
+                            style={{ height: `${Math.max(pct, 2)}%`, backgroundColor: `rgba(99,102,241,${0.2 + pct/130})` }}
+                            title={`${h}:00 — ${val} events`} />
+                          {h % 6 === 0 && <span className="text-[9px] text-gray-500 tabular-nums">{h}h</span>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* ── Prognosis / Forecast ─────────────────────────────────── */}
+            {!analyticsLoading && prognosisData && (
+              <div className="bg-gray-800/50 rounded-2xl p-5 border border-gray-700/40">
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-sm font-semibold text-white">14-day Forecast</p>
+                  <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+                    prognosisData.trend === 'growing'  ? 'bg-emerald-500/20 text-emerald-400' :
+                    prognosisData.trend === 'declining' ? 'bg-red-500/20 text-red-400' :
+                    'bg-gray-600/40 text-gray-400'
+                  }`}>
+                    {prognosisData.trend === 'growing' ? '📈' : prognosisData.trend === 'declining' ? '📉' : '➡️'} {prognosisData.trend} (slope {prognosisData.slope > 0 ? '+' : ''}{prognosisData.slope})
+                  </span>
+                </div>
+                <div className="flex items-end gap-0.5 h-24">
+                  {[...prognosisData.daily.slice(-14).map(d => ({ label: d.day.slice(5), val: parseInt(d.count), forecast: false })),
+                    ...prognosisData.forecast.map(f => ({ label: `+${f.day}`, val: f.predicted, forecast: true }))
+                  ].map((item, i) => {
+                    const allVals = [
+                      ...prognosisData.daily.slice(-14).map(d => parseInt(d.count)),
+                      ...prognosisData.forecast.map(f => f.predicted),
+                    ];
+                    const maxV = Math.max(...allVals, 1);
+                    const pct  = Math.round((item.val / maxV) * 100);
+                    return (
+                      <div key={i} title={`${item.label}: ${item.val}`}
+                        className="flex-1 rounded-t transition-all"
+                        style={{
+                          height: `${Math.max(pct, 2)}%`,
+                          backgroundColor: item.forecast ? 'rgba(251,191,36,0.55)' : 'rgba(99,102,241,0.7)',
+                        }} />
+                    );
+                  })}
+                </div>
+                <div className="flex justify-between text-[10px] text-gray-500 mt-1">
+                  <span>← 14 days history</span>
+                  <span className="text-yellow-500/80">14-day forecast →</span>
+                </div>
+              </div>
+            )}
+
+            {/* ── Session log ────────────────────────────────────────────── */}
+            {!analyticsLoading && sessionData && sessionData.sessions.length > 0 && (
+              <div className="bg-gray-800/50 rounded-2xl p-5 border border-gray-700/40">
+                <p className="text-sm font-semibold text-white mb-4">Recent Sessions (7d)</p>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs text-gray-300">
+                    <thead>
+                      <tr className="text-gray-500 border-b border-gray-700">
+                        <th className="text-left pb-2 pr-3">User</th>
+                        <th className="text-right pb-2 pr-3">Events</th>
+                        <th className="text-right pb-2 pr-3">Duration</th>
+                        <th className="text-right pb-2">Started</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {sessionData.sessions.slice(0, 20).map((s, i) => (
+                        <tr key={i} className="border-b border-gray-800/60 hover:bg-gray-700/20">
+                          <td className="py-1.5 pr-3 truncate max-w-[120px]">{s.name || 'guest'}</td>
+                          <td className="py-1.5 pr-3 text-right tabular-nums">{s.eventCount}</td>
+                          <td className="py-1.5 pr-3 text-right tabular-nums">
+                            {s.durationSeconds ? `${Math.round(parseFloat(String(s.durationSeconds))/60)}m` : '—'}
+                          </td>
+                          <td className="py-1.5 text-right text-gray-500">
+                            {new Date(s.startedAt).toLocaleDateString()}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* ── Admin WPM log ──────────────────────────────────────────── */}
+            {!analyticsLoading && sessionData && sessionData.keystrokeSessions.length > 0 && (
+              <div className="bg-gray-800/50 rounded-2xl p-5 border border-gray-700/40">
+                <p className="text-sm font-semibold text-white mb-4">Admin Keystroke WPM Log (7d)</p>
+                <div className="flex items-end gap-1 h-20 mb-2">
+                  {(() => {
+                    const wpmVals = sessionData.keystrokeSessions.slice(0, 50).map(k => parseInt(String(k.wpm)) || 0);
+                    const maxW = Math.max(...wpmVals, 1);
+                    return wpmVals.map((w, i) => (
+                      <div key={i} className="flex-1 rounded-t transition-all"
+                        style={{ height: `${Math.round(w/maxW*100)}%`, backgroundColor: 'rgba(251,191,36,0.7)' }}
+                        title={`${w} WPM — ${sessionData.keystrokeSessions[i]?.name}`} />
+                    ));
+                  })()}
+                </div>
+                <p className="text-xs text-gray-500">Avg WPM: {
+                  Math.round(sessionData.keystrokeSessions.slice(0, 50).reduce((s, k) => s + (parseInt(String(k.wpm)) || 0), 0)
+                    / Math.max(sessionData.keystrokeSessions.slice(0, 50).length, 1))
+                } · Sampled every 10 seconds</p>
+              </div>
+            )}
+
+            {!analyticsLoading && !behaviourStats && (
+              <p className="text-center text-gray-500 py-10 text-sm">No behaviour data collected yet — events will appear here once users interact with the app.</p>
+            )}
+
+            {/* Refresh button */}
+            <div className="flex justify-end">
+              <button
+                className="flex items-center gap-2 text-sm text-gray-400 hover:text-white border border-gray-700 rounded-xl px-4 py-2 hover:border-gray-600 transition-colors"
+                onClick={() => {
+                  setBehaviourStats(null);
+                  setPrognosisData(null);
+                  setSessionData(null);
+                  setAnalyticsLoading(true);
+                  Promise.all([analyticsApi.admin(), analyticsApi.prognosis(), analyticsApi.sessions()])
+                    .then(([s, p, se]) => {
+                      setBehaviourStats(s.data as BehaviourStats);
+                      setPrognosisData(p.data as PrognosisData);
+                      setSessionData(se.data as SessionData);
+                    }).catch(() => {}).finally(() => setAnalyticsLoading(false));
+                }}
+              >
+                <RefreshCw size={14} /> Refresh
+              </button>
+            </div>
+          </div>
+        )}
+        {tab === 'banking' && (
+          <div className="p-6 space-y-10 max-w-5xl mx-auto">
+
+            {/* ── Header ── */}
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                  <CreditCard size={20} className="text-emerald-400" /> Seshaa Financial Products
+                </h2>
+                <p className="text-sm text-gray-400 mt-1">
+                  Roadmap to launch <span className="text-emerald-300 font-semibold">seshaa.wallet</span>, <span className="text-emerald-300 font-semibold">seshaa.pay</span> and <span className="text-emerald-300 font-semibold">seshaa.bank</span> — from first API integration to full banking licence.
+                </p>
+              </div>
+              <a href="https://www.seshaa.africa" target="_blank" rel="noreferrer"
+                className="shrink-0 text-xs px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/20 transition-colors">
+                seshaa.bank ↗
+              </a>
+            </div>
+
+            {/* ── Phase roadmap ── */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-4">3-Phase Launch Roadmap</h3>
+              <div className="grid md:grid-cols-3 gap-4">
+                {[
+                  {
+                    phase: '01', title: 'Seshaa Wallet', timeframe: '0 – 6 months',
+                    color: 'border-emerald-500/40 bg-emerald-500/5',
+                    badge: 'Phase 1 · Now',
+                    badgeColor: 'bg-emerald-500/20 text-emerald-300',
+                    items: [
+                      'Integrate Paystack / Flutterwave payments',
+                      'In-app wallet via BaaS partner (Sudo Africa / Bloc)',
+                      'Virtual account per user (receive transfers)',
+                      'KYC flow (BVN / NIN for Nigeria, National ID)',
+                      'Wallet top-up (card, bank transfer, mobile money)',
+                      'P2P transfer between Seshaa users',
+                      'Pay for listings, bookings & ads with wallet',
+                    ],
+                  },
+                  {
+                    phase: '02', title: 'Seshaa Pay', timeframe: '6 – 18 months',
+                    color: 'border-blue-500/40 bg-blue-500/5',
+                    badge: 'Phase 2 · Next',
+                    badgeColor: 'bg-blue-500/20 text-blue-300',
+                    items: [
+                      'Merchant payment acceptance (QR / link)',
+                      'Connect M-Pesa, MTN MoMo, Airtel Money',
+                      'Multi-currency (NGN, KES, GHS, XOF, ZAR)',
+                      'Payouts to ambassadors & sales reps',
+                      'Micro-loans to verified businesses',
+                      'Diaspora remittance product',
+                      'Apply for PSP licences (NG, KE, GH)',
+                    ],
+                  },
+                  {
+                    phase: '03', title: 'Seshaa Bank', timeframe: '18 – 36 months',
+                    color: 'border-purple-500/40 bg-purple-500/5',
+                    badge: 'Phase 3 · Future',
+                    badgeColor: 'bg-purple-500/20 text-purple-300',
+                    items: [
+                      'Apply for e-money / digital bank licence',
+                      'Launch seshaa.bank domain & brand',
+                      'Interest-bearing savings accounts',
+                      'BNPL (Buy Now Pay Later) for bookings',
+                      'Business banking for listed companies',
+                      'African cross-border payments network',
+                      'Pan-African card (Visa/Mastercard co-brand)',
+                    ],
+                  },
+                ].map(p => (
+                  <div key={p.phase} className={`rounded-2xl border p-5 ${p.color}`}>
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-3xl font-black text-white/10">{p.phase}</span>
+                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${p.badgeColor}`}>{p.badge}</span>
+                    </div>
+                    <h4 className="text-base font-bold text-white mb-0.5">{p.title}</h4>
+                    <p className="text-xs text-gray-500 mb-4">{p.timeframe}</p>
+                    <ul className="space-y-2">
+                      {p.items.map(item => (
+                        <li key={item} className="flex items-start gap-2 text-xs text-gray-300">
+                          <span className="text-emerald-400 mt-0.5 shrink-0">✓</span>
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* ── BaaS Partners (start here — no licence needed) ── */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-1">
+                Step 1 — Banking as a Service (BaaS) Partners
+              </h3>
+              <p className="text-xs text-gray-500 mb-4">Launch Seshaa Wallet without a banking licence — ride on an existing licensed infrastructure partner.</p>
+              <div className="grid md:grid-cols-2 gap-3">
+                {[
+                  {
+                    name: 'Sudo Africa',       flag: '🇳🇬', coverage: 'Nigeria',
+                    what: 'Virtual bank accounts, virtual & physical cards (Visa/Mastercard), multi-currency wallets. Best for: NGN wallet + card issuing.',
+                    docs: 'https://docs.sudo.africa',
+                    signup: 'https://app.sudo.africa/register',
+                    tag: '⭐ Recommended start',
+                    tagColor: 'bg-emerald-500/20 text-emerald-300',
+                  },
+                  {
+                    name: 'Bloc (Blochq)',     flag: '🇳🇬', coverage: 'Nigeria',
+                    what: 'Core banking infrastructure, virtual accounts, KYC, compliance, cards. Used by fintechs to launch in days.',
+                    docs: 'https://docs.blochq.io',
+                    signup: 'https://blochq.io/contact',
+                    tag: 'Full-stack BaaS',
+                    tagColor: 'bg-blue-500/20 text-blue-300',
+                  },
+                  {
+                    name: 'OnePipe',           flag: '🇳🇬', coverage: 'Nigeria',
+                    what: 'API aggregator — access multiple banks + fintech APIs in one integration. Accounts, transfers, bill payments.',
+                    docs: 'https://docs.onepipe.io',
+                    signup: 'https://onepipe.io',
+                    tag: 'Multi-bank aggregator',
+                    tagColor: 'bg-orange-500/20 text-orange-300',
+                  },
+                  {
+                    name: 'Stitch Money',      flag: '🇿🇦', coverage: 'South Africa, Nigeria',
+                    what: 'Open banking — link bank accounts, instant bank payments (no card needed), account verification.',
+                    docs: 'https://docs.stitch.money',
+                    signup: 'https://stitch.money/contact',
+                    tag: 'Open banking',
+                    tagColor: 'bg-purple-500/20 text-purple-300',
+                  },
+                  {
+                    name: 'Mono',              flag: '🇳🇬🇬🇭🇰🇪', coverage: 'Nigeria, Ghana, Kenya',
+                    what: 'Open banking — connect user bank accounts, read transactions, verify identity via bank data.',
+                    docs: 'https://docs.mono.co',
+                    signup: 'https://app.mono.co/signup',
+                    tag: 'Open banking + KYC',
+                    tagColor: 'bg-cyan-500/20 text-cyan-300',
+                  },
+                  {
+                    name: 'Bankly',            flag: '🇳🇬', coverage: 'Nigeria',
+                    what: 'Agent banking infrastructure, wallet management, USSD APIs. Good for offline/rural reach.',
+                    docs: 'https://developer.bankly.ng',
+                    signup: 'https://bankly.ng',
+                    tag: 'Agent banking',
+                    tagColor: 'bg-yellow-500/20 text-yellow-300',
+                  },
+                ].map(p => (
+                  <div key={p.name} className="rounded-xl border border-gray-700/40 bg-gray-800/30 p-4">
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-white text-sm">{p.flag} {p.name}</span>
+                          <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${p.tagColor}`}>{p.tag}</span>
+                        </div>
+                        <p className="text-[10px] text-gray-500 mt-0.5">{p.coverage}</p>
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-400 mb-3 leading-relaxed">{p.what}</p>
+                    <div className="flex gap-2">
+                      <a href={p.docs} target="_blank" rel="noreferrer"
+                        className="text-xs px-3 py-1.5 rounded-lg bg-gray-700/60 text-gray-300 hover:bg-gray-700 transition-colors border border-gray-600/40">
+                        📄 Docs
+                      </a>
+                      <a href={p.signup} target="_blank" rel="noreferrer"
+                        className="text-xs px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 transition-colors border border-emerald-500/30">
+                        → Get started
+                      </a>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* ── Mobile Money APIs ── */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-1">
+                Step 2 — Mobile Money API Integrations
+              </h3>
+              <p className="text-xs text-gray-500 mb-4">Connect the largest mobile money networks in Africa — covering 700M+ mobile money accounts across 54 countries.</p>
+              <div className="space-y-2">
+                {[
+                  {
+                    name: 'M-Pesa Daraja API', flag: '🇰🇪🇹🇿🇲🇿🇬🇭🇱🇸🇪🇬🇨🇩',
+                    coverage: 'Kenya, Tanzania, Mozambique, Ghana, Lesotho, Egypt, DRC',
+                    users: '51M+', type: 'STK Push, C2B, B2C, Reversal, Balance',
+                    docs: 'https://developer.safaricom.co.ke',
+                    signup: 'https://developer.safaricom.co.ke/MyApps',
+                    pricing: 'Transaction % — varies by market',
+                    note: 'Largest single mobile money network. Sandbox free, instant access.',
+                    color: 'border-green-700/40',
+                  },
+                  {
+                    name: 'MTN MoMo API', flag: '🇳🇬🇬🇭🇨🇮🇨🇲🇺🇬🇷🇼🇿🇲🇧🇯🇬🇳',
+                    coverage: '17 African countries',
+                    users: '290M+', type: 'Collections, Disbursements, Remittances, Sandbox',
+                    docs: 'https://momodeveloper.mtn.com',
+                    signup: 'https://momodeveloper.mtn.com/signup',
+                    pricing: 'Free sandbox · Production: revenue share',
+                    note: 'Largest mobile money network by country coverage. Sandbox: instant signup.',
+                    color: 'border-yellow-700/40',
+                  },
+                  {
+                    name: 'Airtel Money API', flag: '🇳🇬🇰🇪🇹🇿🇺🇬🇷🇼🇿🇲🇿🇼🇲🇼🇲🇬',
+                    coverage: '14 African countries',
+                    users: '35M+', type: 'Collections, Disbursements, Airtime, Balance',
+                    docs: 'https://developers.airtel.africa',
+                    signup: 'https://developers.airtel.africa/user/register',
+                    pricing: 'Per transaction',
+                    note: 'Strong coverage across East & Central Africa.',
+                    color: 'border-red-700/40',
+                  },
+                  {
+                    name: 'Orange Money API', flag: '🇸🇳🇨🇮🇲🇱🇧🇫🇨🇲🇲🇷🇲🇩🇬🇳',
+                    coverage: 'Senegal, Côte d\'Ivoire, Mali, Burkina Faso, Cameroon + more',
+                    users: '20M+', type: 'Push/pull payments, P2P, bill pay, merchant',
+                    docs: 'https://developer.orange.com/apis/om-webpay',
+                    signup: 'https://developer.orange.com/user/register',
+                    pricing: 'Revenue share model',
+                    note: 'Essential for West Africa francophone markets.',
+                    color: 'border-orange-700/40',
+                  },
+                  {
+                    name: 'Wave API', flag: '🇸🇳🇲🇱🇨🇮🇧🇫🇺🇬',
+                    coverage: 'Senegal, Mali, Côte d\'Ivoire, Burkina Faso, Uganda',
+                    users: '10M+', type: 'Merchant payments, disbursements',
+                    docs: 'https://wave.com/en/api',
+                    signup: 'https://wave.com/en/business',
+                    pricing: '1% per transaction',
+                    note: 'Zero-fee model disrupting West Africa. Fastest growing mobile money.',
+                    color: 'border-blue-700/40',
+                  },
+                ].map(p => (
+                  <div key={p.name} className={`rounded-xl border ${p.color} bg-gray-800/20 p-4`}>
+                    <div className="flex flex-wrap items-start gap-3 justify-between">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-2 mb-1">
+                          <span className="font-semibold text-white text-sm">{p.name}</span>
+                          <span className="text-base leading-none" title={p.coverage}>{p.flag}</span>
+                          <span className="text-[10px] text-gray-500 bg-gray-700/50 px-2 py-0.5 rounded-full">{p.users} users</span>
+                        </div>
+                        <p className="text-[10px] text-gray-500 mb-1">{p.coverage}</p>
+                        <p className="text-xs text-gray-400 mb-1"><span className="text-gray-500">API: </span>{p.type}</p>
+                        <p className="text-xs text-emerald-400/70">{p.note}</p>
+                      </div>
+                      <div className="flex flex-col gap-1.5 shrink-0">
+                        <span className="text-[10px] text-gray-500">{p.pricing}</span>
+                        <div className="flex gap-2">
+                          <a href={p.docs} target="_blank" rel="noreferrer"
+                            className="text-xs px-2.5 py-1 rounded-lg bg-gray-700/60 text-gray-300 hover:bg-gray-700 transition-colors border border-gray-600/40">
+                            📄 Docs
+                          </a>
+                          <a href={p.signup} target="_blank" rel="noreferrer"
+                            className="text-xs px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 transition-colors border border-emerald-500/30">
+                            → Sign up
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* ── Payment Gateways ── */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-1">
+                Step 3 — Payment Gateway Integrations
+              </h3>
+              <p className="text-xs text-gray-500 mb-4">Accept card payments, bank transfers and mobile money through a single unified API — these gateways aggregate multiple payment methods.</p>
+              <div className="grid md:grid-cols-2 gap-3">
+                {[
+                  {
+                    name: 'Paystack',    flag: '🇳🇬🇬🇭🇰🇪🇿🇦', coverage: 'Nigeria, Ghana, Kenya, South Africa',
+                    what: 'Cards, bank transfer, USSD, QR, mobile money. Owned by Stripe. Best dev experience on the continent.',
+                    pricing: '1.5% + ₦100 (NG) · 1.95% (GH/KE/ZA)',
+                    docs: 'https://paystack.com/docs',
+                    signup: 'https://dashboard.paystack.com/#/signup',
+                    tag: '⭐ Start here', tagColor: 'bg-emerald-500/20 text-emerald-300',
+                  },
+                  {
+                    name: 'Flutterwave', flag: '🇳🇬🇬🇭🇰🇪🇿🇦🇺🇬🇹🇿🇷🇼🇿🇲', coverage: '34 African countries',
+                    what: 'Cards, mobile money, bank transfers, USSD, POS, virtual accounts, multi-currency. Best cross-border coverage.',
+                    pricing: '1.4% cards · 1% mobile money',
+                    docs: 'https://developer.flutterwave.com',
+                    signup: 'https://app.flutterwave.com/register',
+                    tag: 'Best coverage', tagColor: 'bg-blue-500/20 text-blue-300',
+                  },
+                  {
+                    name: 'Interswitch', flag: '🇳🇬🇰🇪🇺🇬🇹🇿', coverage: 'Nigeria, East Africa',
+                    what: 'Nigeria\'s oldest payment network. Verve cards, Quickteller, ISW Switch (ATM network), Webpay online.',
+                    pricing: 'Enterprise pricing',
+                    docs: 'https://developer.interswitchgroup.com',
+                    signup: 'https://developer.interswitchgroup.com/docs/register',
+                    tag: 'Nigeria backbone', tagColor: 'bg-orange-500/20 text-orange-300',
+                  },
+                  {
+                    name: 'Cellulant Tingg', flag: '🇳🇬🇰🇪🇬🇭🇿🇦🇹🇿🇺🇬🇷🇼', coverage: '18 African countries',
+                    what: 'Unified payment API across 18 markets — mobile money, cards, bank transfers, USSD all in one.',
+                    pricing: 'Per transaction (custom)',
+                    docs: 'https://developer.cellulant.io',
+                    signup: 'https://www.tingg.africa/contact',
+                    tag: '18 countries', tagColor: 'bg-purple-500/20 text-purple-300',
+                  },
+                  {
+                    name: 'DPO Group', flag: '🇳🇬🇰🇪🇿🇦🇬🇭🇹🇿🇺🇬🇿🇲🇲🇼', coverage: '19 African countries',
+                    what: 'Online payments across 19 African markets. Strong in East + Southern Africa. Owned by Network International.',
+                    pricing: '3.8% per transaction (varies)',
+                    docs: 'https://docs.dpogroup.com',
+                    signup: 'https://www.dpogroup.com/register',
+                    tag: 'East + Southern Africa', tagColor: 'bg-cyan-500/20 text-cyan-300',
+                  },
+                  {
+                    name: 'Onafriq (MFS Africa)', flag: '🌍', coverage: '35+ countries, 500+ M-Money wallets',
+                    what: 'The largest mobile money hub in Africa — connect once, reach 500M+ mobile money accounts across 35 countries.',
+                    pricing: 'Enterprise / revenue share',
+                    docs: 'https://www.onafriq.com/developers',
+                    signup: 'https://www.onafriq.com/contact-us',
+                    tag: 'Pan-Africa hub', tagColor: 'bg-amber-500/20 text-amber-300',
+                  },
+                ].map(p => (
+                  <div key={p.name} className="rounded-xl border border-gray-700/40 bg-gray-800/30 p-4">
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-white text-sm">{p.flag} {p.name}</span>
+                          <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${p.tagColor}`}>{p.tag}</span>
+                        </div>
+                        <p className="text-[10px] text-gray-500 mt-0.5">{p.coverage}</p>
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-400 mb-1 leading-relaxed">{p.what}</p>
+                    <p className="text-[10px] text-emerald-400/70 mb-3">💰 {p.pricing}</p>
+                    <div className="flex gap-2">
+                      <a href={p.docs} target="_blank" rel="noreferrer"
+                        className="text-xs px-3 py-1.5 rounded-lg bg-gray-700/60 text-gray-300 hover:bg-gray-700 transition-colors border border-gray-600/40">
+                        📄 Docs
+                      </a>
+                      <a href={p.signup} target="_blank" rel="noreferrer"
+                        className="text-xs px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 transition-colors border border-emerald-500/30">
+                        → Get access
+                      </a>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* ── Regulatory Checklist ── */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-1">
+                Step 4 — Regulatory Licences by Market
+              </h3>
+              <p className="text-xs text-gray-500 mb-4">Required licences to legally operate a payment service, e-wallet or digital bank in each major African market. BaaS partner handles this for Phase 1.</p>
+              <div className="space-y-2">
+                {[
+                  {
+                    country: '🇳🇬 Nigeria', regulator: 'CBN — Central Bank of Nigeria',
+                    licence: 'Payment Service Provider (PSP) Licence — Category 3 (Super Agent) or Category 1 (PSSP)',
+                    requirement: 'Min ₦100M capital (PSSP) · ₦250M (Mobile Money)',
+                    timeline: '6–12 months',
+                    link: 'https://www.cbn.gov.ng/supervision/licensing.asp',
+                    priority: 'high',
+                  },
+                  {
+                    country: '🇰🇪 Kenya', regulator: 'CBK — Central Bank of Kenya',
+                    licence: 'Payment Service Provider Licence (National Payment System Act)',
+                    requirement: 'Min KES 20M capital · CBK approval required',
+                    timeline: '3–6 months',
+                    link: 'https://www.centralbank.go.ke/payment-systems/licensing/',
+                    priority: 'high',
+                  },
+                  {
+                    country: '🇬🇭 Ghana', regulator: 'BoG — Bank of Ghana',
+                    licence: 'Payment Service Provider Licence (Tier 2 or 3)',
+                    requirement: 'Min GHS 500K capital (Tier 2)',
+                    timeline: '3–9 months',
+                    link: 'https://www.bog.gov.gh/financial-stability/payment-systems/',
+                    priority: 'high',
+                  },
+                  {
+                    country: '🇿🇦 South Africa', regulator: 'SARB — South African Reserve Bank',
+                    licence: 'National Payment System (NPS) Operator Registration',
+                    requirement: 'Registration under PASA (Payment Association of SA)',
+                    timeline: '6–18 months',
+                    link: 'https://www.resbank.co.za/en/home/what-we-do/payments/payment-system-oversight',
+                    priority: 'medium',
+                  },
+                  {
+                    country: '🇸🇳 Senegal / West Africa (UEMOA)', regulator: 'BCEAO — Central Bank of West African States',
+                    licence: 'E-Money Issuer Authorization (covers 8 WAEMU countries)',
+                    requirement: 'Capital CFA 300M · local entity required',
+                    timeline: '6–12 months',
+                    link: 'https://www.bceao.int/en/content/electronic-money',
+                    priority: 'medium',
+                  },
+                  {
+                    country: '🇹🇿 Tanzania', regulator: 'BoT — Bank of Tanzania',
+                    licence: 'Payment System Licence (Payment Systems (Electronic Money) Regulations)',
+                    requirement: 'TZS 500M capital',
+                    timeline: '3–6 months',
+                    link: 'https://www.bot.go.tz/PaymentSystems/Licensing',
+                    priority: 'medium',
+                  },
+                  {
+                    country: '🇷🇼 Rwanda', regulator: 'BNR — National Bank of Rwanda',
+                    licence: 'Payment Service Provider Licence',
+                    requirement: 'RWF 50M capital · pro-innovation regulator',
+                    timeline: '2–4 months (fast-track available)',
+                    link: 'https://www.bnr.rw/financial-system/payment-systems/',
+                    priority: 'medium',
+                  },
+                ].map(r => (
+                  <div key={r.country} className={`rounded-xl border p-4 ${r.priority === 'high' ? 'border-amber-700/40 bg-amber-500/5' : 'border-gray-700/40 bg-gray-800/20'}`}>
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-2 mb-1">
+                          <span className="font-semibold text-white text-sm">{r.country}</span>
+                          {r.priority === 'high' && <span className="text-[10px] bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded-full font-semibold">Priority market</span>}
+                        </div>
+                        <p className="text-[10px] text-gray-500 mb-1">{r.regulator}</p>
+                        <p className="text-xs text-gray-300 mb-1">{r.licence}</p>
+                        <p className="text-xs text-gray-500">💰 {r.requirement}</p>
+                        <p className="text-xs text-blue-400/70">⏱ {r.timeline}</p>
+                      </div>
+                      <a href={r.link} target="_blank" rel="noreferrer"
+                        className="text-xs px-3 py-1.5 rounded-lg bg-gray-700/60 text-gray-300 hover:bg-gray-700 transition-colors border border-gray-600/40 shrink-0">
+                        📋 Apply ↗
+                      </a>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* ── Phase 1 launch checklist ── */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-4">
+                Phase 1 Launch Checklist — Seshaa Wallet
+              </h3>
+              <div className="grid md:grid-cols-2 gap-4">
+                {[
+                  {
+                    group: '🔧 Technical', color: 'border-blue-700/40',
+                    items: [
+                      { done: false, text: 'Sign up for Paystack — get test API keys' },
+                      { done: false, text: 'Sign up for Sudo Africa BaaS account' },
+                      { done: false, text: 'Build wallet balance model in DB (User → Wallet → Transaction)' },
+                      { done: false, text: 'Add wallet UI to user profile page' },
+                      { done: false, text: 'Implement top-up flow (card → wallet)' },
+                      { done: false, text: 'Implement P2P transfer between users' },
+                      { done: false, text: 'Pay for listings/bookings with wallet balance' },
+                    ],
+                  },
+                  {
+                    group: '🪪 KYC & Compliance', color: 'border-amber-700/40',
+                    items: [
+                      { done: false, text: 'Integrate BVN verification (for Nigeria users)' },
+                      { done: false, text: 'NIN lookup (NIMC API via Dojah or Smile ID)' },
+                      { done: false, text: 'Ghana Card / National ID for Ghana users' },
+                      { done: false, text: 'Set daily/monthly transaction limits for unverified users' },
+                      { done: false, text: 'Build KYC status into user profiles' },
+                      { done: false, text: 'Privacy policy update for financial data' },
+                      { done: false, text: 'Terms of service for wallet product' },
+                    ],
+                  },
+                  {
+                    group: '📱 Mobile Money Connect', color: 'border-green-700/40',
+                    items: [
+                      { done: false, text: 'Register on MTN MoMo Developer Portal' },
+                      { done: false, text: 'Register on M-Pesa Daraja API (for KE/TZ)' },
+                      { done: false, text: 'Register on Airtel Money Developer Portal' },
+                      { done: false, text: 'Test Collections (receive money from phone)' },
+                      { done: false, text: 'Test Disbursements (send to phone wallet)' },
+                      { done: false, text: 'Go-live approval from MTN/Safaricom' },
+                      { done: false, text: 'Webhook handlers for payment notifications' },
+                    ],
+                  },
+                  {
+                    group: '🏦 Business Setup', color: 'border-purple-700/40',
+                    items: [
+                      { done: false, text: 'Register company in Nigeria or Kenya (or both)' },
+                      { done: false, text: 'Open business bank account (Access, GTBank, Equity)' },
+                      { done: false, text: 'Register seshaa.bank domain (Namecheap/GoDaddy)' },
+                      { done: false, text: 'Apply for CBN PSP licence (Phase 2 prep)' },
+                      { done: false, text: 'Anti-Money Laundering (AML) policy document' },
+                      { done: false, text: 'Data Protection Officer (NDPR compliance — Nigeria)' },
+                      { done: false, text: 'Cybersecurity assessment & pen test before launch' },
+                    ],
+                  },
+                ].map(g => (
+                  <div key={g.group} className={`rounded-xl border ${g.color} bg-gray-800/20 p-4`}>
+                    <h4 className="text-sm font-semibold text-white mb-3">{g.group}</h4>
+                    <ul className="space-y-2">
+                      {g.items.map(item => (
+                        <li key={item.text} className="flex items-start gap-2 text-xs text-gray-400">
+                          <span className={`mt-0.5 shrink-0 w-4 h-4 rounded border flex items-center justify-center text-[10px] ${item.done ? 'border-emerald-500 bg-emerald-500 text-white' : 'border-gray-600'}`}>
+                            {item.done ? '✓' : ''}
+                          </span>
+                          {item.text}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* ── KYC Providers ── */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-4">
+                KYC / Identity Verification Providers
+              </h3>
+              <div className="grid md:grid-cols-3 gap-3">
+                {[
+                  {
+                    name: 'Smile ID',    flag: '🌍', coverage: '30+ African countries',
+                    what: 'BVN, NIN, Ghana Card, Driver\'s License, passport, liveness checks, document OCR.',
+                    docs: 'https://docs.usesmileid.com',
+                    signup: 'https://usesmileid.com',
+                    tag: '⭐ Best for Africa', tagColor: 'bg-emerald-500/20 text-emerald-300',
+                  },
+                  {
+                    name: 'Dojah',      flag: '🇳🇬🇬🇭🇰🇪', coverage: 'Nigeria, Ghana, Kenya',
+                    what: 'BVN, NIN, CAC lookup, Ghana Card, KRA PIN. Very affordable pricing.',
+                    docs: 'https://docs.dojah.io',
+                    signup: 'https://app.dojah.io/signup',
+                    tag: 'Affordable', tagColor: 'bg-blue-500/20 text-blue-300',
+                  },
+                  {
+                    name: 'Onfido',     flag: '🌍', coverage: 'Global (all Africa)',
+                    what: 'AI document verification, liveness detection, global ID coverage. Enterprise-grade.',
+                    docs: 'https://documentation.onfido.com',
+                    signup: 'https://onfido.com/contact',
+                    tag: 'Enterprise', tagColor: 'bg-purple-500/20 text-purple-300',
+                  },
+                ].map(p => (
+                  <div key={p.name} className="rounded-xl border border-gray-700/40 bg-gray-800/30 p-4">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-semibold text-white text-sm">{p.flag} {p.name}</span>
+                      <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${p.tagColor}`}>{p.tag}</span>
+                    </div>
+                    <p className="text-[10px] text-gray-500 mb-2">{p.coverage}</p>
+                    <p className="text-xs text-gray-400 mb-3 leading-relaxed">{p.what}</p>
+                    <div className="flex gap-2">
+                      <a href={p.docs} target="_blank" rel="noreferrer"
+                        className="text-xs px-3 py-1.5 rounded-lg bg-gray-700/60 text-gray-300 hover:bg-gray-700 transition-colors border border-gray-600/40">
+                        📄 Docs
+                      </a>
+                      <a href={p.signup} target="_blank" rel="noreferrer"
+                        className="text-xs px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 transition-colors border border-emerald-500/30">
+                        → Sign up
+                      </a>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* ── Quick links ── */}
+            <div className="rounded-xl border border-gray-700/40 bg-gray-800/20 p-5">
+              <h3 className="text-sm font-semibold text-white mb-3">📚 Quick Reference Links</h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                {[
+                  { label: 'Paystack Docs',          href: 'https://paystack.com/docs' },
+                  { label: 'Flutterwave Docs',        href: 'https://developer.flutterwave.com' },
+                  { label: 'M-Pesa Daraja',           href: 'https://developer.safaricom.co.ke' },
+                  { label: 'MTN MoMo Developer',      href: 'https://momodeveloper.mtn.com' },
+                  { label: 'Airtel Money Dev',        href: 'https://developers.airtel.africa' },
+                  { label: 'Sudo Africa BaaS',        href: 'https://docs.sudo.africa' },
+                  { label: 'Smile ID KYC',            href: 'https://usesmileid.com' },
+                  { label: 'Dojah KYC',               href: 'https://dojah.io' },
+                  { label: 'CBN PSP Licence (NG)',    href: 'https://www.cbn.gov.ng/supervision/licensing.asp' },
+                  { label: 'CBK Licence (KE)',        href: 'https://www.centralbank.go.ke/payment-systems/licensing/' },
+                  { label: 'BoG Licence (GH)',        href: 'https://www.bog.gov.gh/financial-stability/payment-systems/' },
+                  { label: 'Stitch Open Banking',     href: 'https://stitch.money' },
+                  { label: 'Mono Open Banking',       href: 'https://mono.co' },
+                  { label: 'Onafriq (MFS Africa)',    href: 'https://www.onafriq.com' },
+                  { label: 'Cellulant Tingg',         href: 'https://developer.cellulant.io' },
+                  { label: 'DPO Group',               href: 'https://docs.dpogroup.com' },
+                  { label: 'Bloc BaaS',               href: 'https://blochq.io' },
+                  { label: 'OnePipe Nigeria',         href: 'https://onepipe.io' },
+                ].map(l => (
+                  <a key={l.href} href={l.href} target="_blank" rel="noreferrer"
+                    className="text-xs px-3 py-2 rounded-lg bg-gray-700/40 text-gray-300 hover:bg-gray-700/70 hover:text-white transition-colors border border-gray-700/30 flex items-center justify-between gap-1">
+                    {l.label} <ArrowUpRight size={11} className="shrink-0 opacity-50" />
+                  </a>
+                ))}
+              </div>
+            </div>
+
+          </div>
+        )}
+
       </div>
     </div>
   );

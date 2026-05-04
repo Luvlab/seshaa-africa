@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Leaf, ExternalLink, RefreshCw } from 'lucide-react';
 import { merchApi } from '../services/api';
 import type { MerchProduct, MerchProvider, MerchService } from '../types';
+import FavoriteButton from '../components/ui/FavoriteButton';
 
 export default function MerchStorePage() {
   const [providers, setProviders] = useState<MerchProvider[]>([]);
@@ -69,7 +70,10 @@ export default function MerchStorePage() {
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {products.map(p => (
-              <div key={`${p.provider}-${p.id}`} className="bg-white border rounded-2xl overflow-hidden">
+              <div key={`${p.provider}-${p.id}`} className="relative bg-white border rounded-2xl overflow-hidden">
+                <div className="absolute top-2 right-2 z-10">
+                  <FavoriteButton id={`${p.provider}-${p.id}`} type="merch" name={p.name} size={14} />
+                </div>
                 <div className="aspect-square bg-gray-100">
                   {p.imageUrl ? <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">No image</div>}
                 </div>

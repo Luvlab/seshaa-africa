@@ -13,11 +13,13 @@ import {
   Calendar, MapPin, Users, Ticket, Plus, ChevronDown,
   ExternalLink, RefreshCw, Search, Loader2, Globe, Clock,
 } from 'lucide-react';
-import { eventsApi, DiscoveredEvent } from '../services/api';
+import { eventsApi } from '../services/api';
+import type { DiscoveredEvent } from '../services/api';
 import { useAuthStore } from '../store/auth';
 import { useThemeStore } from '../store/theme';
 import { COUNTRIES } from '../components/layout/CountryPicker';
 import clsx from 'clsx';
+import FavoriteButton from '../components/ui/FavoriteButton';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 interface DBEvent {
@@ -81,6 +83,10 @@ function DiscoveredCard({ event }: { event: DiscoveredEvent }) {
   const upcoming = isUpcoming(event.startDate);
 
   return (
+    <div className="relative">
+      <div className="absolute top-2 right-2 z-10">
+        <FavoriteButton id={event.id ?? url} type="event" name={event.title} size={14} />
+      </div>
     <a
       href={url} target="_blank" rel="noopener noreferrer"
       className="group block bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow"
@@ -147,6 +153,7 @@ function DiscoveredCard({ event }: { event: DiscoveredEvent }) {
         </div>
       </div>
     </a>
+    </div>
   );
 }
 
@@ -156,7 +163,10 @@ function DBEventCard({ event, onAttend, attending }: { event: DBEvent; onAttend:
   const gradient = CATEGORY_COLORS[cat] ?? CATEGORY_COLORS.Other;
 
   return (
-    <div className="bg-white rounded-2xl overflow-hidden border border-purple-100 shadow-sm hover:shadow-md transition-shadow">
+    <div className="relative bg-white rounded-2xl overflow-hidden border border-purple-100 shadow-sm hover:shadow-md transition-shadow">
+      <div className="absolute top-2 right-2 z-10">
+        <FavoriteButton id={event.id} type="event" name={event.title} size={14} />
+      </div>
       <div className="aspect-[4/3] overflow-hidden bg-gray-100">
         {event.imageUrl ? (
           <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover" />

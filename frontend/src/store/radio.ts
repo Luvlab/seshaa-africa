@@ -12,11 +12,14 @@ export interface RadioTrack {
   artist: string;
   album?: string;
   image: string;
-  audio: string;      // streaming URL
-  duration?: number;  // seconds
-  source: 'jamendo' | 'community';
+  audio: string;      // streaming URL (or live stream URL)
+  duration?: number;  // seconds; undefined for live streams
+  source: 'jamendo' | 'community' | 'archive' | 'live';
   genre?: string;
   country?: string;
+  year?: number;      // release year (archive / jamendo)
+  shareUrl?: string;  // link back to source
+  isLive?: boolean;   // true for live radio stations
 }
 
 interface RadioState {

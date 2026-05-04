@@ -194,30 +194,30 @@ export default function SeshaaTitle({ countryCode, size = 'sm', className = '', 
   return (
     <div className={`flex items-center gap-0 select-none leading-none ${className}`}>
 
-      {/* "seshaa" — secondary (flag) fill, accent (flag) outline */}
+      {/* "seshaa." — dot is part of the brand name, same white */}
       <span
         style={{
           fontSize: main,
           fontWeight: 900,
           fontStyle: 'italic',
-          fontFamily: '"Arial Black","Arial Bold",Arial,sans-serif',
-          color: 'var(--cs, white)',
+          fontFamily: 'var(--logo-font-family, "Arial Black","Arial Bold",Arial,sans-serif)',
+          color: 'var(--logo-title-color, var(--cs, white))',
           WebkitTextStroke: '0px transparent',
           letterSpacing: '-0.02em',
           lineHeight: 1,
         }}
       >
-        seshaa
+        seshaa.
       </span>
 
-      {/* ".[country]" — accent (flag) color, fades on transitions */}
+      {/* "[country]" — accent (flag) color, fades on transitions */}
       <span
         style={{
           fontSize: dot,
           fontWeight: 700,
           fontStyle: 'italic',
-          fontFamily: '"Arial Black","Arial Bold",Arial,sans-serif',
-          color: 'var(--ca, #FCD116)',
+          fontFamily: 'var(--logo-font-family, "Arial Black","Arial Bold",Arial,sans-serif)',
+          color: 'var(--logo-suffix-color, var(--ca, #FCD116))',
           opacity: fading ? 0 : 1,
           transition: 'opacity 0.22s ease',
           lineHeight: 1,
@@ -225,7 +225,7 @@ export default function SeshaaTitle({ countryCode, size = 'sm', className = '', 
           whiteSpace: 'nowrap',
         }}
       >
-        .{suffix}
+        {suffix}
       </span>
     </div>
   );

@@ -230,10 +230,10 @@ export default function SearchPage() {
                   <Plus size={13} /> Add a Place
                 </a>
               </div>
-              <div className="grid sm:grid-cols-2 gap-4">
+              <div className="grid sm:grid-cols-2 gap-4 min-w-0">
                 {listings.map((l, i) => (
                   <React.Fragment key={l.id}>
-                    <ListingCard listing={l} />
+                    <div className="min-w-0 overflow-hidden"><ListingCard listing={l} /></div>
                     {(i + 1) % 8 === 0 && <div className="sm:col-span-2"><AdBanner tier="BANNER" country={filters.country} city={filters.city} /></div>}
                   </React.Fragment>
                 ))}

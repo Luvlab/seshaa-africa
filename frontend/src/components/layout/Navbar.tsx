@@ -1,11 +1,11 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useLayoutEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Search, Menu, X, MessageCircle, Bell, User, ChevronDown, Sparkles, Globe,
   Home, Newspaper, Tag, BarChart2, Megaphone, PartyPopper,
   Star, Briefcase, Languages, Settings, Globe2, Archive,
-  ShoppingBag, Radio,
+  ShoppingBag, Radio, Car, Package, Truck,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/auth';
 import { useThemeStore } from '../../store/theme';
@@ -36,6 +36,9 @@ const PAGE_SUFFIX_MAP: [string, string][] = [
   ['/add-listing', 'add'],
   ['/listings',    'directory'],
   ['/bookings',    'bookings'],
+  ['/ride',        'ride'],
+  ['/delivery',    'delivery'],
+  ['/transport',   'transport'],
 ];
 
 const PORTAL_LABELS: Record<PortalType, string> = {
@@ -70,6 +73,9 @@ const ALL_TABS: Tab[] = [
   { id: 'translate',   path: '/translate',  label: 'Translate',   icon: <Languages    size={15} /> },
   { id: 'admin',       path: '/admin',      label: 'Admin',       icon: <Settings     size={15} />, roles: ['ADMIN'] },
   { id: 'diaspora',    path: '/diaspora',   label: 'Diaspora',    icon: <Globe2       size={15} /> },
+  { id: 'ride',        path: '/ride',       label: 'Ride',        icon: <Car          size={15} /> },
+  { id: 'delivery',    path: '/delivery',   label: 'Delivery',    icon: <Package      size={15} /> },
+  { id: 'transport',   path: '/transport',  label: 'Transport',   icon: <Truck        size={15} /> },
   // Travels removed from nav — it's a category inside Search/Directory
   { id: 'archive',     path: '/archive',    label: 'Archive',     icon: <Archive      size={15} /> },
 ];
@@ -85,6 +91,20 @@ export default function Navbar() {
   const [portalOpen, setPortalOpen] = useState(false);
   const [searchQ, setSearchQ] = useState('');
   const [countryPickerOpen, setCountryPickerOpen] = useState(false);
+  const navRef = useRef<HTMLElement>(null);
+
+  // Keep --nav-h in sync with actual navbar height.
+  // useLayoutEffect fires synchronously before browser paint → no flicker.
+  useLayoutEffect(() => {
+    const update = () => {
+      if (navRef.current) {
+        document.documentElement.style.setProperty('--nav-h', navRef.current.offsetHeight + 'px');
+      }
+    };
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, [mobileOpen]);
 
   const currentLang = LANGUAGES.find(l => l.code === i18n.language) || LANGUAGES[0];
 
@@ -140,7 +160,7 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 shadow-md" style={{ backgroundColor: 'var(--cp)' }}>
+    <nav ref={navRef} className="fixed top-0 left-0 right-0 z-50 shadow-md" style={{ backgroundColor: 'var(--cp)' }}>
       {/* ── Main header row — full viewport width, 56px fixed height ── */}
       <div className="w-full px-4 sm:px-6 h-14 flex items-center gap-3">
 
@@ -287,9 +307,9 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Tab strip — desktop, full width */}
-      <div className="hidden md:block bg-black/15 border-t border-white/10">
-        <div className="w-full px-4 sm:px-6 flex items-center gap-0.5 overflow-x-auto scrollbar-none">
+      {/* Tab strip — desktop, full width, explicit h-9=36px so --nav-h fallback (92px) is accurate */}
+      <div className="hidden md:flex items-center bg-black/15 border-t border-white/10 h-9">
+        <div className="w-full h-full px-4 sm:px-6 flex items-center gap-0.5 overflow-x-auto scrollbar-none">
           {visibleTabs.map(tab => {
             const isActive = tab.path === '/'
               ? location.pathname === '/'

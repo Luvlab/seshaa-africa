@@ -5,6 +5,11 @@
 /* ── Country-based theme colors — updated at runtime by theme store ─────── */
 :root {
   --cp: #008751;
+  /* Navbar height — CSS default so padding works before JS fires.
+     Mobile: header only (h-14 = 56px).
+     Desktop md+: header (56px) + tab strip (h-9 = 36px) = 92px.
+     JS (useLayoutEffect in Navbar) overrides with exact measured value. */
+  --nav-h: 56px;
   --cp-dark: #006633;
   --cp-light: #e6f4ec;
   --cs: #ffffff;
@@ -21,6 +26,7 @@
 @media (min-width: 768px) {
   :root {
     --logo-main-size: var(--logo-main-size-tablet);
+    --nav-h: 92px; /* header 56px + tab strip 36px */
   }
 }
 
@@ -216,7 +222,7 @@ svg.lucide {
 }
 
 .chat-overlay {
-  top: 56px;
+  top: 56px; /* mobile: header only */
   left: 0;
   right: 0;
   bottom: calc(env(safe-area-inset-bottom) + 66px);
@@ -224,6 +230,7 @@ svg.lucide {
 
 @media (min-width: 768px) {
   .chat-overlay {
+    top: 92px; /* desktop: header (56px) + tab strip (36px) */
     bottom: 0;
   }
 }
@@ -248,4 +255,24 @@ textarea::placeholder {
 /* ── Remove iOS tap highlight ────────────────────────────────────────────── */
 * {
   -webkit-tap-highlight-color: transparent;
+}
+
+/* ── Flag wave animation (country cards on hover) ────────────────────────── */
+@keyframes flagWave {
+  0%   { transform: rotate(0deg)   scaleX(1);    }
+  20%  { transform: rotate(-8deg)  scaleX(0.94); }
+  40%  { transform: rotate(9deg)   scaleX(1.06); }
+  60%  { transform: rotate(-5deg)  scaleX(0.97); }
+  80%  { transform: rotate(5deg)   scaleX(1.03); }
+  100% { transform: rotate(0deg)   scaleX(1);    }
+}
+
+.flag-emoji {
+  display: inline-block;
+  transform-origin: 30% 90%;  /* flag-pole bottom-left anchor */
+  will-change: transform;
+}
+
+.country-flag-btn:hover .flag-emoji {
+  animation: flagWave 0.65s ease-in-out;
 }

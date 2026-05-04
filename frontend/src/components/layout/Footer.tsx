@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
+import SeshaaTitle from '../brand/SeshaaTitle';
+import { useThemeStore } from '../../store/theme';
 
 // ── Font-size persistence helpers ────────────────────────────────────────────
 const FS_KEY   = 'seshaa-font-size';
@@ -24,6 +26,7 @@ export function initFontSize() {
 // ── Component ────────────────────────────────────────────────────────────────
 export default function Footer() {
   const { t } = useTranslation();
+  const { countryCode } = useThemeStore();
   const [fontSize, setFontSize] = useState(readFontSize);
 
   // Sync on mount (in case App.tsx already applied it; keep state in sync)
@@ -43,9 +46,8 @@ export default function Footer() {
 
         {/* Brand */}
         <div className="col-span-2 sm:col-span-1">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="text-2xl">🌍</span>
-            <span className="text-white font-bold text-lg">{t('app.name')}</span>
+          <div className="mb-3">
+            <SeshaaTitle countryCode={countryCode} size="md" />
           </div>
           <p className="text-sm text-gray-400 leading-relaxed">{t('app.tagline')}</p>
           <p className="text-xs text-gray-500 mt-3 leading-relaxed">

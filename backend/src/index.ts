@@ -28,6 +28,9 @@ import eventDiscoverRouter from './routes/eventDiscover';
 import promotionsRouter from './routes/promotions';
 import merchRouter from './routes/merch';
 import radioRouter from './routes/radio';
+import messagesRouter from './routes/messages';
+import ridesRouter from './routes/rides';
+import analyticsRouter from './routes/analytics';
 
 const app = express();
 
@@ -82,6 +85,9 @@ app.use('/api/events', eventDiscoverRouter);
 app.use('/api/promotions', promotionsRouter);
 app.use('/api/merch', merchRouter);
 app.use('/api/radio', radioRouter);
+app.use('/api/messages', messagesRouter);
+app.use('/api/rides', ridesRouter);
+app.use('/api/analytics', analyticsRouter);
 
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error(err);

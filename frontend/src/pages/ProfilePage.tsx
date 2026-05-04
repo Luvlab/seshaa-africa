@@ -17,13 +17,14 @@ import {
   ChevronRight, Lock, Eye, EyeOff, Check, X, Bell,
   CalendarDays, MapPin, Phone, ChevronDown, Building2,
   Clock, CheckCircle, XCircle, AlertCircle, ArrowRight,
-  Sparkles, Plus,
+  Sparkles, Plus, Heart, Trash2,
 } from 'lucide-react';
 import { useAuthStore } from '../store/auth';
 import { authApi, bookingsApi, listingsApi } from '../services/api';
 import api from '../services/api';
 import type { Booking, ChatRoom, Listing } from '../types';
 import { LANGUAGES } from '../i18n';
+import { useFavoritesStore } from '../store/favorites';
 
 const STATUS_META: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
   PENDING:   { label: 'Pending',   icon: <Clock size={13} />,        color: 'text-amber-600 bg-amber-50 border-amber-200' },
@@ -56,7 +57,8 @@ export default function ProfilePage() {
   const [showNew, setShowNew]           = useState(false);
   const [pwLoading, setPwLoading]       = useState(false);
   const [pwMsg, setPwMsg]               = useState<{ ok: boolean; text: string } | null>(null);
-  const [activeSection, setSection]     = useState<'overview' | 'messages' | 'bookings' | 'listings'>('overview');
+  const [activeSection, setSection]     = useState<'overview' | 'messages' | 'bookings' | 'listings' | 'saved'>('overview');
+  const { items: favItems, remove: removeFav } = useFavoritesStore();
 
   useEffect(() => {
     if (!user) return;
@@ -172,21 +174,24 @@ export default function ProfilePage() {
         )}
 
         {/* Section tabs */}
-        <div className="flex border-t border-white/20">
+        <div className="flex border-t border-white/20 overflow-x-auto scrollbar-none">
           {([
-            { id: 'overview',  label: t('profile.overview'),  icon: <Bell size={13} /> },
-            { id: 'messages',  label: t('profile.messages'),  icon: <MessageCircle size={13} />, badge: unread },
-            { id: 'bookings',  label: t('profile.bookings'),  icon: <CalendarDays size={13} />, badge: upcomingCount },
-            { id: 'listings',  label: t('profile.myPlaces'),  icon: <Building2 size={13} /> },
+            { id: 'overview',  label: t('profile.overview'),  icon: <Bell size={14} /> },
+            { id: 'messages',  label: t('profile.messages'),  icon: <MessageCircle size={14} />, badge: unread },
+            { id: 'bookings',  label: t('profile.bookings'),  icon: <CalendarDays size={14} />, badge: upcomingCount },
+            { id: 'listings',  label: t('profile.myPlaces'),  icon: <Building2 size={14} /> },
+            { id: 'saved',     label: 'Saved',                icon: <Heart size={14} />, badge: favItems.length || undefined },
+            ...(user?.role === 'ADMIN' ? [{ id: 'admin', label: 'Admin', icon: <Settings size={14} /> }] : []),
           ] as const).map(tab => (
-            <button key={tab.id} onClick={() => setSection(tab.id)}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-3 text-xs font-bold relative transition-colors ${
+            <button key={tab.id}
+              onClick={() => tab.id === 'admin' ? navigate('/admin') : setSection(tab.id as typeof activeSection)}
+              className={`shrink-0 flex items-center justify-center gap-1.5 px-3 py-3.5 text-sm font-bold relative transition-colors ${
                 activeSection === tab.id ? 'text-white bg-white/15' : 'text-white/60 hover:text-white/80'
-              }`}>
+              } ${tab.id === 'admin' ? 'border-l border-white/20' : ''}`}>
               {tab.icon}
-              <span className="hidden sm:inline">{tab.label}</span>
+              <span>{tab.label}</span>
               {(tab as { badge?: number }).badge ? (
-                <span className="absolute top-1.5 right-2 sm:right-4 w-4 h-4 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center font-bold">
+                <span className="absolute top-2 right-1 w-4 h-4 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center font-bold">
                   {(tab as { badge?: number }).badge! > 9 ? '9+' : (tab as { badge?: number }).badge}
                 </span>
               ) : null}
@@ -529,6 +534,50 @@ export default function ProfilePage() {
                   </Link>
                 </div>
               ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Section: Saved / Favourites ── */}
+      {activeSection === 'saved' && (
+        <div className="px-4 py-5">
+          {favItems.length === 0 ? (
+            <div className="text-center py-12">
+              <Heart size={40} className="mx-auto mb-3 text-gray-200" />
+              <p className="text-gray-500 font-semibold">No saved items yet</p>
+              <p className="text-sm text-gray-400 mt-1">Tap the ♡ on any listing, article, event or track to save it here.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {favItems.sort((a, b) => b.addedAt - a.addedAt).map(item => {
+                const href = item.type === 'listing' ? `/listing/${item.id}`
+                  : item.type === 'event' ? '/events'
+                  : item.type === 'news'  ? '/news'
+                  : item.type === 'classified' ? '/classifieds'
+                  : '/merch';
+                const typeLabel = item.type === 'listing' ? '📍 Directory'
+                  : item.type === 'event' ? '🎪 Event'
+                  : item.type === 'news'  ? '📰 News'
+                  : item.type === 'classified' ? '🏷️ Classified'
+                  : item.type === 'track' ? '🎵 Track'
+                  : '🛍️ Merch';
+                return (
+                  <div key={`${item.type}-${item.id}`} className="flex items-center gap-3 bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
+                    <Heart size={16} className="text-rose-400 shrink-0" fill="currentColor" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-gray-800 truncate">{item.name}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">{typeLabel}</p>
+                    </div>
+                    <Link to={href} className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 shrink-0">
+                      View
+                    </Link>
+                    <button onClick={() => removeFav(item.id, item.type)} className="p-1.5 text-gray-300 hover:text-red-400 transition-colors shrink-0">
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>

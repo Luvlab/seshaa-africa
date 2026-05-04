@@ -1,4 +1,5 @@
 import { Component, useEffect, Suspense, lazy, useState } from 'react';
+import { useAnalytics, usePageview } from './hooks/useAnalytics';
 import type { ReactNode, ErrorInfo } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import './i18n';
@@ -33,6 +34,9 @@ import TravelsPage from './pages/TravelsPage';
 import ArchivePage from './pages/ArchivePage';
 import RadioPage from './pages/RadioPage';
 import FooterPlayer from './components/radio/FooterPlayer';
+import RidePage from './pages/RidePage';
+import DeliveryPage from './pages/DeliveryPage';
+import TransportPage from './pages/TransportPage';
 
 // Detail/modal pages — still lazy-loaded (rarely visited)
 const ListingDetail = lazy(() => import('./pages/ListingDetail'));
@@ -48,6 +52,7 @@ const TAB_PATHS = [
   '/messages', '/bookings', '/advertise',
   '/ambassador', '/salesrep', '/admin',
   '/add-listing', '/translate', '/business', '/events', '/diaspora', '/travels', '/archive',
+  '/ride', '/delivery', '/transport',
 ];
 
 // ── Error Boundary ──────────────────────────────────────────────────────────
@@ -105,6 +110,8 @@ function Spinner() {
 function TabContainer() {
   const { pathname } = useLocation();
   const isTab = TAB_PATHS.some(p => pathname === p);
+  usePageview();
+  useAnalytics();
 
   // Map path → component, each wrapped in its own Error Boundary
   const TABS = [
@@ -128,6 +135,9 @@ function TabContainer() {
     { path: '/travels',     el: <ErrorBoundary key="travels"><TravelsPage /></ErrorBoundary> },
     { path: '/archive',     el: <ErrorBoundary key="archive"><ArchivePage /></ErrorBoundary> },
     { path: '/radio',       el: <ErrorBoundary key="radio"><RadioPage /></ErrorBoundary> },
+    { path: '/ride',        el: <ErrorBoundary key="ride"><RidePage defaultType="RIDE" /></ErrorBoundary> },
+    { path: '/delivery',    el: <ErrorBoundary key="delivery"><DeliveryPage /></ErrorBoundary> },
+    { path: '/transport',   el: <ErrorBoundary key="transport"><TransportPage /></ErrorBoundary> },
   ];
 
   return (
@@ -198,6 +208,45 @@ export default function App() {
       root.style.setProperty('--logo-main-size-desktop', logoMainLegacy + 'rem');
     }
     if (logoStroke) root.style.setProperty('--logo-stroke',    logoStroke + 'px');
+
+    // Title font & colors
+    const logoTitleColor  = localStorage.getItem('seshaa-logo-title-color');
+    const logoSuffixColor = localStorage.getItem('seshaa-logo-suffix-color');
+    const logoFontFamily  = localStorage.getItem('seshaa-logo-font-family');
+    const logoFontId      = localStorage.getItem('seshaa-logo-font') ?? 'default';
+    const logoFontData    = localStorage.getItem('seshaa-logo-font-data');
+    const logoFontName    = localStorage.getItem('seshaa-logo-font-name');
+    if (logoTitleColor)  root.style.setProperty('--logo-title-color',  logoTitleColor);
+    if (logoSuffixColor) root.style.setProperty('--logo-suffix-color', logoSuffixColor);
+    if (logoFontFamily)  root.style.setProperty('--logo-font-family',  logoFontFamily);
+    // Re-inject Google Fonts link if a preset (non-default, non-custom) was selected
+    if (logoFontId && logoFontId !== 'default' && logoFontId !== 'custom') {
+      const GFONTS: Record<string, string> = {
+        playfair:   'https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,900&display=swap',
+        fraunces:   'https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,900&display=swap',
+        barlow:     'https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@1,800&display=swap',
+        montserrat: 'https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@1,900&display=swap',
+        raleway:    'https://fonts.googleapis.com/css2?family=Raleway:ital,wght@1,900&display=swap',
+        josefin:    'https://fonts.googleapis.com/css2?family=Josefin+Sans:ital,wght@1,700&display=swap',
+      };
+      const url = GFONTS[logoFontId];
+      if (url) {
+        const link = document.createElement('link');
+        link.rel  = 'stylesheet';
+        link.href = url;
+        link.setAttribute('data-seshaa-font', logoFontId);
+        document.head.appendChild(link);
+      }
+    }
+    // Re-inject @font-face for custom uploaded font
+    if (logoFontId === 'custom' && logoFontData) {
+      const styleEl = document.createElement('style');
+      styleEl.id = 'seshaa-custom-font-face';
+      styleEl.textContent = `@font-face { font-family: 'SeshaaCustomFont'; src: url('${logoFontData}'); font-weight: 900; font-style: italic; }`;
+      document.head.appendChild(styleEl);
+      void logoFontName; // referenced for future display
+    }
+
     if (customCss) {
       const el = document.createElement('style');
       el.id = 'seshaa-custom-css';
@@ -242,7 +291,7 @@ export default function App() {
       <BrowserRouter>
         <div className="min-h-screen flex flex-col bg-gray-50">
           <Navbar />
-          <main className="flex-1 pt-14 md:pt-24 pb-16 md:pb-0" style={{ paddingBottom: 'calc(4rem + var(--player-bar-h, 0px))' }}>
+          <main className="flex-1 pt-14 md:pt-[92px]" style={{ paddingBottom: 'calc(4rem + var(--player-bar-h, 0px))' }}>
             <TabContainer />
           </main>
           <Footer />

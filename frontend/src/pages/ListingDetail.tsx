@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import FavoriteButton from '../components/ui/FavoriteButton';
 import {
   Phone, MapPin, Globe, MessageCircle, BadgeCheck, Star, Calendar,
   Award, ArrowLeft, Share2, Clock, Hash, Building2, User, Mail,
@@ -228,6 +229,7 @@ export default function ListingDetail() {
                 <div className="flex items-center gap-2 flex-wrap">
                   <h1 className="text-2xl font-bold text-gray-900 leading-tight">{listing.name}</h1>
                   {listing.verified && <BadgeCheck size={20} className="text-blue-500 shrink-0" />}
+                  <FavoriteButton id={listing.id} type="listing" name={listing.name} size={16} variant="inline" className="ml-1" />
                 </div>
 
                 <div className="flex items-center gap-2 flex-wrap mt-1.5">

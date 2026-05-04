@@ -6,6 +6,7 @@ import clsx from 'clsx';
 import type { Listing } from '../../types';
 import StarRating from '../ui/StarRating';
 import BookingModal from './BookingModal';
+import FavoriteButton from '../ui/FavoriteButton';
 
 const TYPE_COLORS = {
   PERSONAL: 'bg-blue-100 text-blue-700',
@@ -36,7 +37,7 @@ export default function ListingCard({ listing, compact }: Props) {
     <>
       <div
         className={clsx(
-          'bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-md hover:border-opacity-60 transition-all',
+          'relative bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-md hover:border-opacity-60 transition-all',
           compact ? 'p-3' : 'p-4',
           listing.isPro && 'border-l-4',
           certLevel === 'PLATINUM' ? 'border-l-purple-400' :
@@ -45,6 +46,10 @@ export default function ListingCard({ listing, compact }: Props) {
         )}
         style={listing.isPro ? {} : {}}
       >
+        {/* Favourite heart — always visible, top-right */}
+        <div className="absolute top-2.5 right-2.5 z-10">
+          <FavoriteButton id={listing.id} type="listing" name={listing.name} size={14} />
+        </div>
         <Link to={`/listing/${listing.id}`} className="block">
           <div className="flex items-start gap-3">
             {/* Avatar / Logo */}
@@ -62,10 +67,10 @@ export default function ListingCard({ listing, compact }: Props) {
                 : listing.name.charAt(0).toUpperCase()}
             </div>
 
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 overflow-hidden">
               {/* Name + badges */}
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <h3 className={clsx('font-semibold text-gray-900 truncate', compact ? 'text-sm' : 'text-base')}>
+              <div className="flex items-start gap-1.5 flex-wrap">
+                <h3 className={clsx('font-semibold text-gray-900 break-words', compact ? 'text-sm' : 'text-base')}>
                   {listing.name}
                 </h3>
                 {listing.verified && (
@@ -108,24 +113,24 @@ export default function ListingCard({ listing, compact }: Props) {
               {!compact && (
                 <div className="mt-2 space-y-1">
                   {listing.phone && (
-                    <div className="flex items-center gap-1.5 text-sm text-gray-600">
-                      <Phone size={13} className="text-green-500 shrink-0" />
-                      <a href={`tel:${listing.phone}`} className="hover:underline" style={{ color: 'var(--cp)' }} onClick={e => e.stopPropagation()}>
+                    <div className="flex items-start gap-1.5 text-sm text-gray-600">
+                      <Phone size={13} className="text-green-500 shrink-0 mt-0.5" />
+                      <a href={`tel:${listing.phone}`} className="hover:underline break-all min-w-0" style={{ color: 'var(--cp)' }} onClick={e => e.stopPropagation()}>
                         {listing.phone}
                       </a>
                     </div>
                   )}
                   {(listing.address || listing.city) && (
-                    <div className="flex items-center gap-1.5 text-sm text-gray-600">
-                      <MapPin size={13} className="text-red-400 shrink-0" />
-                      <span className="truncate">{[listing.address, listing.city, listing.country].filter(Boolean).join(', ')}</span>
+                    <div className="flex items-start gap-1.5 text-sm text-gray-600">
+                      <MapPin size={13} className="text-red-400 shrink-0 mt-0.5" />
+                      <span className="break-words min-w-0">{[listing.address, listing.city, listing.country].filter(Boolean).join(', ')}</span>
                     </div>
                   )}
                   {listing.website && (
-                    <div className="flex items-center gap-1.5 text-sm text-gray-600">
-                      <Globe size={13} className="text-blue-400 shrink-0" />
+                    <div className="flex items-start gap-1.5 text-sm text-gray-600">
+                      <Globe size={13} className="text-blue-400 shrink-0 mt-0.5" />
                       <a href={listing.website} target="_blank" rel="noopener noreferrer"
-                        className="hover:underline text-blue-500 truncate" onClick={e => e.stopPropagation()}>
+                        className="hover:underline text-blue-500 break-all min-w-0" onClick={e => e.stopPropagation()}>
                         {listing.website.replace(/^https?:\/\/(www\.)?/, '')}
                       </a>
                     </div>
@@ -134,7 +139,7 @@ export default function ListingCard({ listing, compact }: Props) {
               )}
 
               {compact && (
-                <p className="text-xs text-gray-500 mt-0.5 truncate">
+                <p className="text-xs text-gray-500 mt-0.5 break-words">
                   {[listing.city, listing.country].filter(Boolean).join(', ')}
                 </p>
               )}
@@ -178,7 +183,7 @@ export default function ListingCard({ listing, compact }: Props) {
           </div>
 
           {listing.description && !compact && (
-            <p className="mt-2.5 text-sm text-gray-500 line-clamp-2 leading-relaxed">{listing.description}</p>
+            <p className="mt-2.5 text-sm text-gray-500 leading-relaxed break-words line-clamp-3">{listing.description}</p>
           )}
         </Link>
 

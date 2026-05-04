@@ -143,14 +143,50 @@ const ALL_SOURCES: Source[] = [
   // ── ZAMBIA & SOUTHERN AFRICA ─────────────────────────────────────────────
   { name: 'Zambian Observer', url: 'https://www.zambianobserver.com/feed/', country: 'Zambia' },
   { name: 'Lusaka Times', url: 'https://www.lusakatimes.com/feed/', country: 'Zambia' },
+  { name: 'Daily Nation ZM', url: 'https://www.daily-mail.co.zm/feed/', country: 'Zambia' },
+  { name: 'Malawi24', url: 'https://malawi24.com/feed/', country: 'Malawi' },
+  { name: 'Malawi Nyasa Times', url: 'https://www.nyasatimes.com/feed/', country: 'Malawi' },
+  { name: 'The Namibian', url: 'https://www.namibian.com.na/rss/index.php', country: 'Namibia' },
+  { name: 'Botswana Daily News', url: 'https://www.dailynews.gov.bw/rss.php', country: 'Botswana' },
+  { name: 'Observer Lesotho', url: 'https://www.lesothotimes.co.ls/feed/', country: 'Lesotho' },
+  { name: 'Observer Eswatini', url: 'https://www.observer.org.sz/feed/', country: 'Eswatini' },
 
   // ── DR CONGO ─────────────────────────────────────────────────────────────
   { name: 'Radio Okapi DRC', url: 'https://www.radiookapi.net/rss.xml', country: 'DR Congo', lang: 'fr' },
   { name: 'Actualité CD', url: 'https://actualite.cd/feed', country: 'DR Congo', lang: 'fr' },
+  { name: 'Congo Planet', url: 'https://congoplanet.com/feed/', country: 'DR Congo', lang: 'fr' },
 
   // ── ANGOLA & MOZAMBIQUE ───────────────────────────────────────────────────
   { name: 'Angola Press', url: 'https://www.angop.ao/rss/', country: 'Angola', lang: 'pt' },
   { name: 'O País MZ', url: 'https://opais.co.mz/feed/', country: 'Mozambique', lang: 'pt' },
+  { name: 'Club of Mozambique', url: 'https://clubofmozambique.com/feed/', country: 'Mozambique' },
+
+  // ── EAST AFRICA ───────────────────────────────────────────────────────────
+  { name: 'The EastAfrican', url: 'https://www.theeastafrican.co.ke/tea/rss', country: 'East Africa' },
+  { name: 'Burundi Eco', url: 'https://burundi-eco.com/feed/', country: 'Burundi', lang: 'fr' },
+
+  // ── HORN OF AFRICA ───────────────────────────────────────────────────────
+  { name: 'Sudan Tribune', url: 'https://www.sudantribune.com/IMG/rss/rss.xml', country: 'Sudan' },
+  { name: 'Eritrea Profile', url: 'https://www.shabait.com/feed/', country: 'Eritrea' },
+  { name: 'Capital Ethiopia', url: 'https://capitalethiopia.com/feed/', country: 'Ethiopia', category: 'business' },
+
+  // ── NORTH AFRICA (additional) ─────────────────────────────────────────────
+  { name: 'Mada Masr', url: 'https://www.madamasr.com/en/feed/', country: 'Egypt' },
+  { name: 'HuffPost Maghreb', url: 'https://www.huffpostmaghreb.com/feeds/index.xml', country: 'North Africa', lang: 'fr' },
+
+  // ── WEST AFRICA (additional) ─────────────────────────────────────────────
+  { name: 'Sierra Leone Telegraph', url: 'https://www.thesierraleonetelegraph.com/feed/', country: 'Sierra Leone' },
+  { name: 'Liberian Observer', url: 'https://www.liberianobserver.com/feed/', country: 'Liberia' },
+  { name: 'Guinée Conakry', url: 'https://www.guineenews.org/feed/', country: 'Guinea', lang: 'fr' },
+  { name: 'L\'Agora Bénin', url: 'https://lagora.bj/feed/', country: 'Benin', lang: 'fr' },
+  { name: 'Togo First', url: 'https://www.togofirst.com/en/rss', country: 'Togo' },
+  { name: 'Niger Diaspora', url: 'https://nigerdiaspora.net/feed/', country: 'Niger', lang: 'fr' },
+  { name: 'Gabon Actu', url: 'https://gabonactu.com/feed/', country: 'Gabon', lang: 'fr' },
+
+  // ── INDIAN OCEAN & ISLANDS ────────────────────────────────────────────────
+  { name: 'L\'Express Madagascar', url: 'https://lexpress.mg/feed/', country: 'Madagascar', lang: 'fr' },
+  { name: 'L\'Express Mauritius', url: 'https://www.lexpress.mu/feed', country: 'Mauritius' },
+  { name: 'Seychelles News Agency', url: 'https://www.seychellesnewsagency.com/feed/', country: 'Seychelles' },
 
   // ── TRAVEL ───────────────────────────────────────────────────────────────
   { name: 'Africa Geographic', url: 'https://africageographic.com/blog/feed/', country: 'Pan-Africa', category: 'travel' },
@@ -256,12 +292,15 @@ function extractImage(item: Record<string, unknown>): string {
   return '';
 }
 
+// Max articles fetched per individual source — keeps high-volume feeds (Punch, etc.) from dominating
+const MAX_PER_SOURCE = 6;
+
 async function fetchSources(sources: Source[], category: string): Promise<NewsItem[]> {
   const results = await Promise.allSettled(
     sources.map(async (src): Promise<NewsItem[]> => {
       try {
         const feed = await parser.parseURL(src.url);
-        return (feed.items || []).slice(0, 15).map((item, i): NewsItem => ({
+        return (feed.items || []).slice(0, MAX_PER_SOURCE).map((item, i): NewsItem => ({
           id: `${src.name}-${i}-${Date.now()}`,
           title: (item.title || '').replace(/<[^>]+>/g, '').trim(),
           link: item.link || item.guid || '',
@@ -279,10 +318,29 @@ async function fetchSources(sources: Source[], category: string): Promise<NewsIt
     })
   );
 
-  return results
+  const allItems = results
     .filter((r): r is PromiseFulfilledResult<NewsItem[]> => r.status === 'fulfilled')
     .flatMap(r => r.value)
     .filter(item => item.title && item.link);
+
+  // ── Source diversity: interleave articles round-robin so no single outlet dominates ──
+  // Group by source, then zip (take 1 from each source in turn)
+  const bySource = new Map<string, NewsItem[]>();
+  for (const item of allItems) {
+    if (!bySource.has(item.source)) bySource.set(item.source, []);
+    bySource.get(item.source)!.push(item);
+  }
+
+  const interleaved: NewsItem[] = [];
+  const queues = Array.from(bySource.values());
+  let maxLen = Math.max(...queues.map(q => q.length));
+  for (let i = 0; i < maxLen; i++) {
+    for (const q of queues) {
+      if (q[i]) interleaved.push(q[i]);
+    }
+  }
+
+  return interleaved;
 }
 
 async function fetchCategory(category: string): Promise<NewsItem[]> {
@@ -294,19 +352,32 @@ async function fetchCategory(category: string): Promise<NewsItem[]> {
   const baseSources = ALL_SOURCES.filter(filter);
   const specialty = SPECIALTY_SOURCES[category] || [];
 
-  // For general — use all non-specialty sources, limit to 40 to avoid timeout
+  // For general — spread across countries; cap at 60 sources to avoid timeout
+  // Sort general sources to ensure country diversity before slicing
+  const generalSources = ALL_SOURCES.filter(s => !s.category || s.category === 'general');
+  const shuffledGeneral = generalSources.sort(() => Math.random() - 0.5).slice(0, 60);
   const selected = category === 'general'
-    ? [...ALL_SOURCES.filter(s => !s.category || s.category === 'general').slice(0, 40)]
-    : [...baseSources.slice(0, 20), ...specialty];
+    ? shuffledGeneral
+    : [...baseSources.slice(0, 25), ...specialty];
 
-  const items = (await fetchSources(selected, category))
+  // MAX articles any single source may contribute to the final feed
+  const MAX_PER_SOURCE_IN_FEED = 3;
+
+  const raw = await fetchSources(selected, category);
+
+  // Deduplicate by title prefix, then enforce per-source cap
+  const seen = new Set<string>();
+  const sourceCounts = new Map<string, number>();
+  const items = raw
     .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
-    // Remove duplicates by title similarity
-    .filter((item, idx, arr) => {
-      const titleLower = item.title.toLowerCase().slice(0, 60);
-      return !arr.slice(0, idx).some(prev =>
-        prev.title.toLowerCase().slice(0, 60) === titleLower
-      );
+    .filter(item => {
+      const titleKey = item.title.toLowerCase().slice(0, 60);
+      if (seen.has(titleKey)) return false;
+      seen.add(titleKey);
+      const count = sourceCounts.get(item.source) ?? 0;
+      if (count >= MAX_PER_SOURCE_IN_FEED) return false;
+      sourceCounts.set(item.source, count + 1);
+      return true;
     });
 
   cache.set(category, { items, fetchedAt: Date.now() });
