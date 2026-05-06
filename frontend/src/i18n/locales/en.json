@@ -11,6 +11,7 @@
     "classifieds": "Classifieds",
     "prices": "Prices",
     "merch": "Merch",
+    "market": "Market",
     "radio": "Radio",
     "messages": "Messages",
     "bookings": "Bookings",
@@ -544,8 +545,8 @@
     "maxPrice": "Max price"
   },
   "merch": {
-    "title": "Seshaa Merch",
-    "subtitle": "Africa-inspired apparel & accessories",
+    "title": "seshaa.market",
+    "subtitle": "Shop Africa's businesses & print-on-demand",
     "browse": "Browse Products",
     "providers": "Print Partners",
     "services": "Services",

@@ -20,7 +20,7 @@ import BookingsPage from './pages/BookingsPage';
 import NewsPage from './pages/NewsPage';
 import ClassifiedsPage from './pages/ClassifiedsPage';
 import PriceComparePage from './pages/PriceComparePage';
-import MerchStorePage from './pages/MerchStorePage';
+import MarketPage from './pages/MarketPage';
 import AdvertiserPortal from './pages/portals/AdvertiserPortal';
 import AmbassadorPortal from './pages/portals/AmbassadorPortal';
 import SalesRepPortal from './pages/portals/SalesRepPortal';
@@ -49,7 +49,7 @@ const NewsArticlePage  = lazy(() => import('./pages/NewsArticlePage'));
 // Tab paths — all kept mounted simultaneously
 const TAB_PATHS = [
   '/', '/search', '/news', '/classifieds', '/prices',
-  '/merch', '/radio',
+  '/market', '/radio',
   '/messages', '/bookings', '/advertise',
   '/ambassador', '/salesrep', '/admin',
   '/add-listing', '/translate', '/business', '/events', '/diaspora', '/travels', '/archive',
@@ -121,7 +121,7 @@ function TabContainer() {
     { path: '/news',        el: <ErrorBoundary key="news"><NewsPage /></ErrorBoundary> },
     { path: '/classifieds', el: <ErrorBoundary key="classifieds"><ClassifiedsPage /></ErrorBoundary> },
     { path: '/prices',      el: <ErrorBoundary key="prices"><PriceComparePage /></ErrorBoundary> },
-    { path: '/merch',       el: <ErrorBoundary key="merch"><MerchStorePage /></ErrorBoundary> },
+    { path: '/market',      el: <ErrorBoundary key="market"><MarketPage /></ErrorBoundary> },
     { path: '/messages',    el: <ErrorBoundary key="messages"><ChatPage /></ErrorBoundary> },
     { path: '/bookings',    el: <ErrorBoundary key="bookings"><BookingsPage /></ErrorBoundary> },
     { path: '/advertise',   el: <ErrorBoundary key="advertise"><AdvertiserPortal /></ErrorBoundary> },

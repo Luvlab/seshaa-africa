@@ -555,13 +555,13 @@ export default function ProfilePage() {
                   : item.type === 'event' ? '/events'
                   : item.type === 'news'  ? '/news'
                   : item.type === 'classified' ? '/classifieds'
-                  : '/merch';
+                  : '/market';
                 const typeLabel = item.type === 'listing' ? '📍 Directory'
                   : item.type === 'event' ? '🎪 Event'
                   : item.type === 'news'  ? '📰 News'
                   : item.type === 'classified' ? '🏷️ Classified'
                   : item.type === 'track' ? '🎵 Track'
-                  : '🛍️ Merch';
+                  : '🛍️ Market';
                 return (
                   <div key={`${item.type}-${item.id}`} className="flex items-center gap-3 bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
                     <Heart size={16} className="text-rose-400 shrink-0" fill="currentColor" />

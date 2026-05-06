@@ -179,6 +179,22 @@ export const merchApi = {
   services: () => api.get<{ services: Array<{ name: string; website: string; region: string; eco?: string; description?: string }> }>('/merch/services'),
 };
 
+// Market — business products
+export const marketApi = {
+  products: (params?: { country?: string; category?: string; limit?: number; offset?: number }) =>
+    api.get<any>('/market/products', { params }),
+  productsByListing: (listingId: string) =>
+    api.get<any>(`/market/products/${listingId}`),
+  myProducts: () =>
+    api.get<any>('/market/my-products'),
+  createProduct: (data: { listingId: string; name: string; description?: string; imageUrl?: string; price?: number; currency?: string; contactUrl?: string }) =>
+    api.post<any>('/market/products', data),
+  updateProduct: (id: string, data: Partial<{ name: string; description: string; imageUrl: string; price: number; currency: string; inStock: boolean; contactUrl: string; active: boolean }>) =>
+    api.patch<any>(`/market/products/${id}`, data),
+  deleteProduct: (id: string) =>
+    api.delete(`/market/products/${id}`),
+};
+
 // Admin
 export const adminApi = {
   stats: () => api.get('/admin/stats'),
