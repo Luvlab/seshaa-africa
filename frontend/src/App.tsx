@@ -296,7 +296,10 @@ export default function App() {
           <main className="flex-1 pt-14 md:pt-[92px]" style={{ paddingBottom: 'calc(4rem + var(--player-bar-h, 0px))' }}>
             <TabContainer />
           </main>
-          <Footer />
+          {/* footer-pull-up slides footer background up over main's paddingBottom gap */}
+          <div className="footer-pull-up">
+            <Footer />
+          </div>
           <MobileTabBar />
           <FooterPlayer />
           <ChatFAB />

@@ -244,6 +244,15 @@ svg.lucide {
   }
 }
 
+/* ── Footer: pull up over main's bottom padding so no gap shows ─────────── */
+/* main has paddingBottom for tab-bar clearance; footer-pull-up slides the   */
+/* footer's bg-gray-900 UP by the same amount, covering any light gap.       */
+.footer-pull-up {
+  background: #111827;                                    /* gray-900 — matches Footer */
+  margin-top: calc(-4rem - var(--player-bar-h, 0px));
+  padding-top: calc(4rem + var(--player-bar-h, 0px));
+}
+
 /* ── Scrollbar (subtle) ─────────────────────────────────────────────────── */
 ::-webkit-scrollbar       { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }

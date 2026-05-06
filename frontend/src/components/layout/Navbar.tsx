@@ -463,7 +463,7 @@ export default function Navbar() {
         <div
           className="md:hidden mobile-menu-overlay fixed left-0 right-0 z-40 overflow-y-auto overscroll-contain"
           style={{
-            top: '56px',
+            top: 'calc(var(--nav-h, 56px) - 1px)',   /* -1px overlaps nav to kill sub-pixel gap */
             bottom: 0,
             background: 'var(--cp)',
             WebkitOverflowScrolling: 'touch',

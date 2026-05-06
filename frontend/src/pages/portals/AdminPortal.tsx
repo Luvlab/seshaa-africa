@@ -821,7 +821,7 @@ export default function AdminPortal() {
 
   // ── Hero Slide Form (rendered inline inside list item OR at top for "Add New") ──
   const renderSlideForm = () => (
-    <div className="bg-gray-950 border border-orange-500/30 rounded-2xl p-5 mb-5">
+    <div className="bg-gray-950 border border-orange-500/30 rounded-2xl p-4 mb-5 overflow-hidden max-w-full">
       <div className="flex items-center justify-between mb-4">
         <h4 className="font-bold text-orange-300 text-sm flex items-center gap-2">
           {editingSlide ? <Edit2 size={14} /> : <Plus size={14} />}
@@ -835,10 +835,10 @@ export default function AdminPortal() {
         {/* Media section */}
         <div className="sm:col-span-2 lg:col-span-3">
           <p className="text-[10px] font-bold uppercase tracking-wider text-gray-600 mb-2">📺 Media</p>
-          <div className="flex gap-2 mb-3">
+          <div className="flex flex-wrap gap-2 mb-3">
             {(['youtube', 'image', 'video', 'default'] as const).map(type => (
               <button key={type} onClick={() => setSlideForm(f => ({ ...f, mediaType: type }))}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${slideForm.mediaType === type ? 'bg-orange-500 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}>
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors shrink-0 ${slideForm.mediaType === type ? 'bg-orange-500 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}>
                 {type === 'youtube' ? '▶ YouTube' : type === 'image' ? '🖼 Image/GIF' : type === 'video' ? '🎬 Video' : '🎨 Default'}
               </button>
             ))}
@@ -1057,7 +1057,7 @@ export default function AdminPortal() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white">
+    <div className="min-h-screen bg-gray-950 text-white overflow-x-hidden">
 
       {/* Admin top bar — full width */}
       <div className="w-full bg-gray-900 border-b border-gray-800 px-4 sm:px-6 lg:px-10 py-3 flex items-center gap-3">
@@ -1105,7 +1105,7 @@ export default function AdminPortal() {
       </div>
 
       {/* Full-width content area */}
-      <div className="w-full px-4 sm:px-6 lg:px-10 py-6">
+      <div className="w-full px-4 sm:px-6 lg:px-10 py-6 overflow-x-hidden">
 
         {/* Tab bar */}
         <div className="flex gap-1 overflow-x-auto bg-gray-900 rounded-xl p-1 mb-6 border border-gray-800 scrollbar-none">
@@ -1952,7 +1952,7 @@ export default function AdminPortal() {
                     const payLabel: Record<string, string> = { paid: '✅ Paid', pending: '🕐 Pending', partial: '💛 Partial', unpaid: '⚠️ Unpaid', overdue: '🔴 Overdue', comp: '🎁 Comp' };
                     return (
                       <div key={slide.id}
-                        className={`border rounded-2xl p-4 transition-opacity ${slide.active ? 'border-gray-700 bg-gray-950' : 'border-gray-800 bg-gray-900/50 opacity-60'}`}>
+                        className={`border rounded-2xl p-4 transition-opacity overflow-hidden ${slide.active ? 'border-gray-700 bg-gray-950' : 'border-gray-800 bg-gray-900/50 opacity-60'}`}>
                         <div className="flex items-start gap-3">
                           {/* Index */}
                           <div className="w-8 h-8 rounded-full bg-orange-500/20 text-orange-400 flex items-center justify-center text-xs font-black shrink-0">
@@ -2043,7 +2043,7 @@ export default function AdminPortal() {
 
               {/* Revenue summary */}
               {heroSlides.length > 0 && (
-                <div className="mt-4 pt-4 border-t border-gray-800 grid grid-cols-3 gap-3">
+                <div className="mt-4 pt-4 border-t border-gray-800 grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {[
                     { label: 'Total campaign value', value: `$${heroSlides.reduce((s, sl) => s + (sl.paymentAmount ?? 0), 0).toFixed(0)}` },
                     { label: 'Active slides', value: `${heroSlides.filter(s => s.active).length} / ${heroSlides.length}` },
@@ -2432,7 +2432,7 @@ export default function AdminPortal() {
               <p className="text-xs text-gray-500 mb-5">Override the &quot;seshaa&quot; and &quot;.country&quot; title text colors and typeface.</p>
 
               {/* Color row */}
-              <div className="grid grid-cols-2 gap-4 mb-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
                 {([
                   { label: '"seshaa" text color', value: logoTitleColor, set: setLogoTitleColor, lsKey: 'seshaa-logo-title-color', varName: '--logo-title-color', placeholder: 'e.g. #FFFFFF (leave blank = auto)' },
                   { label: '".country" text color', value: logoSuffixColor, set: setLogoSuffixColor, lsKey: 'seshaa-logo-suffix-color', varName: '--logo-suffix-color', placeholder: 'e.g. #FCD116 (leave blank = auto)' },
@@ -2950,7 +2950,7 @@ export default function AdminPortal() {
             {!analyticsLoading && behaviourStats && (
               <>
                 {/* KPI row */}
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                   {[
                     { label: 'All-time events',  value: behaviourStats.totals.allTime.toLocaleString(),     color: 'text-purple-400' },
                     { label: 'Pageviews (7d)',   value: behaviourStats.totals.pageviews7d.toLocaleString(),  color: 'text-blue-400'   },
