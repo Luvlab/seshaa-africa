@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Send, Sparkles, MessageCircle, Lock, Users, Globe,
-  Hash, Bot, Plus, X, ArrowLeft, Building2, User2, Trash2,
+  Bot, Plus, X, ArrowLeft, Building2, User2, Trash2,
 } from 'lucide-react';
 import { useAuthStore } from '../store/auth';
 import api, { aiSearchApi } from '../services/api';

@@ -2,11 +2,19 @@ import { useMemo, useRef, useLayoutEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Home, Search, MessageCircle, PartyPopper, User } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { useAuthStore } from '../../store/auth';
 import { useThemeStore } from '../../store/theme';
 import clsx from 'clsx';
 
-const TABS = [
+interface TabDef {
+  path: string;
+  icon: LucideIcon;
+  tKey: string;
+  exact?: boolean;
+}
+
+const TABS: TabDef[] = [
   { path: '/',         icon: Home,          tKey: 'nav.home',      exact: true },
   { path: '/search',   icon: Search,        tKey: 'search.findBtn' },
   { path: '/messages', icon: MessageCircle, tKey: 'nav.chat' },
@@ -22,7 +30,6 @@ export default function MobileTabBar() {
   const tabBarRef = useRef<HTMLElement>(null);
 
   // Keep --tab-h in sync with actual tab bar height (including safe-area padding).
-  // Mirrors the same pattern used for --nav-h in Navbar.
   useLayoutEffect(() => {
     const update = () => {
       if (tabBarRef.current) {
@@ -45,44 +52,49 @@ export default function MobileTabBar() {
     const r = parseInt(full.slice(0, 2), 16);
     const g = parseInt(full.slice(2, 4), 16);
     const b = parseInt(full.slice(4, 6), 16);
-    const inactive = `rgba(${r},${g},${b},0.76)`;
-    const activeBg = `rgba(${r},${g},${b},0.2)`;
-    const border = `rgba(${r},${g},${b},0.3)`;
-    return { active: ct, inactive, activeBg, border };
+    return {
+      active: ct,
+      inactive: `rgba(${r},${g},${b},0.76)`,
+      activeBg: `rgba(${r},${g},${b},0.2)`,
+      border: `rgba(${r},${g},${b},0.3)`,
+    };
   }, [countryCode]);
 
-  const tabs = TABS.map(t => ({
-    ...t,
-    isActive: t.exact ? location.pathname === t.path : location.pathname.startsWith(t.path),
-  }));
-
   return (
-    <nav ref={tabBarRef} className="md:hidden fixed bottom-0 left-0 right-0 z-50 w-screen max-w-full overflow-hidden border-t"
-      style={{ backgroundColor: 'var(--cp)', borderTopColor: colors.border, paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+    <nav
+      ref={tabBarRef}
+      className="md:hidden fixed bottom-0 left-0 right-0 z-50 w-screen max-w-full overflow-hidden border-t"
+      style={{ backgroundColor: 'var(--cp)', borderTopColor: colors.border, paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+    >
       <div className="flex w-full items-stretch">
-        {tabs.map(tab => (
+        {TABS.map(tab => {
+          const Icon = tab.icon;
+          const isActive = tab.exact ? location.pathname === tab.path : location.pathname.startsWith(tab.path);
+          const dest = tab.path === '/profile' && !user ? '/auth' : tab.path;
+          return (
             <Link
               key={tab.path}
-              to={tab.path === '/profile' && !user ? '/auth' : tab.path}
-              className={clsx(
-                'min-w-0 flex-1 flex flex-col items-center justify-center px-1 py-2.5 gap-1 transition-colors active:scale-95 rounded-lg'
-              )}
-              style={{ color: tab.isActive ? colors.active : colors.inactive, backgroundColor: tab.isActive ? colors.activeBg : 'transparent' }}
+              to={dest}
+              className="min-w-0 flex-1 flex flex-col items-center justify-center px-1 py-2.5 gap-1 transition-colors active:scale-95 rounded-lg"
+              style={{
+                color: isActive ? colors.active : colors.inactive,
+                backgroundColor: isActive ? colors.activeBg : 'transparent',
+              }}
             >
-              <tab.icon
+              <Icon
                 size={24}
-                strokeWidth={tab.isActive ? 2 : 1.5}
-                className={clsx('transition-transform', tab.isActive && 'scale-110')}
+                strokeWidth={isActive ? 2 : 1.5}
+                className={clsx('transition-transform', isActive && 'scale-110')}
               />
               <span className={clsx(
                 'max-w-full truncate text-[10px] leading-none',
-                tab.isActive ? 'font-bold' : 'font-medium'
+                isActive ? 'font-bold' : 'font-medium',
               )}>
                 {t(tab.tKey)}
               </span>
             </Link>
-          )
-        ))}
+          );
+        })}
       </div>
     </nav>
   );
