@@ -2,6 +2,15 @@ import { Component, useEffect, Suspense, lazy, useState } from 'react';
 import { useAnalytics, usePageview } from './hooks/useAnalytics';
 import type { ReactNode, ErrorInfo } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+
+// ── Scroll to top on every navigation ────────────────────────────────────────
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [pathname]);
+  return null;
+}
 import './i18n';
 import { LANGUAGES } from './i18n';
 import Navbar from './components/layout/Navbar';
@@ -291,6 +300,7 @@ export default function App() {
   return (
     <ErrorBoundary>
       <BrowserRouter>
+        <ScrollToTop />
         <div className="min-h-screen flex flex-col bg-gray-50">
           <Navbar />
           <main className="flex-1 pt-14 md:pt-[92px]" style={{ paddingBottom: 'calc(4rem + var(--player-bar-h, 0px))' }}>
