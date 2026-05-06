@@ -383,7 +383,7 @@ export default function HomePage() {
           {CATEGORY_KEYS.map(key => (
             <button key={key}
               className="flex flex-col items-center gap-2 py-4 px-2 bg-white rounded-2xl border border-gray-100 hover:shadow-lg active:scale-95 transition-all group"
-              onClick={() => navigate(`/search?category=${key}`)}>
+              onClick={() => navigate(`/search?category=${key}${countryCode ? `&country=${encodeURIComponent(countryCode)}` : ''}`)}>
               <div className="w-14 h-14 sm:w-[72px] sm:h-[72px] rounded-2xl flex items-center justify-center shadow-md group-hover:scale-105 transition-transform"
                 style={{ backgroundColor: CATEGORY_COLORS[key] }}>
                 <span className="text-white [&>svg]:w-8 [&>svg]:h-8 sm:[&>svg]:w-11 sm:[&>svg]:h-11">{CATEGORY_ICONS[key]}</span>
