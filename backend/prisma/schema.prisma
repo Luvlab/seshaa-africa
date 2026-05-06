@@ -32,8 +32,9 @@ model User {
   eventsSubmitted        Event[]
   eventAttendances       EventAttendee[]
   radioTracks            RadioTrack[]
-  following          Follow[]  @relation("UserFollows")
-  followers          Follow[]  @relation("UserFollowers")
+  following          Follow[]     @relation("UserFollows")
+  followers          Follow[]     @relation("UserFollowers")
+  chatGroups         ChatGroup[]  @relation("GroupCreator")
 }
 
 enum Role {
@@ -674,4 +675,18 @@ model Follow {
   @@index([followerId])
   @@index([followingUserId])
   @@index([followingListingId])
+}
+
+// ─── Group Chats ──────────────────────────────────────────────────────────────
+model ChatGroup {
+  id        String   @id @default(uuid())
+  name      String
+  creatorId String
+  creator   User     @relation("GroupCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  memberIds String[] @default([])
+  channelId String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([creatorId])
 }

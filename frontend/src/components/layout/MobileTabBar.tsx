@@ -56,39 +56,11 @@ export default function MobileTabBar() {
     isActive: t.exact ? location.pathname === t.path : location.pathname.startsWith(t.path),
   }));
 
-  const openChatPanel = () => {
-    // Close the hamburger menu first, then open AI chat
-    window.dispatchEvent(new Event('seshaa:mobile-menu-close'));
-    window.dispatchEvent(new CustomEvent('seshaa:chat-toggle', { detail: { tab: 'ai' } }));
-  };
-
   return (
     <nav ref={tabBarRef} className="md:hidden fixed bottom-0 left-0 right-0 z-50 w-screen max-w-full overflow-hidden border-t"
       style={{ backgroundColor: 'var(--cp)', borderTopColor: colors.border, paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
       <div className="flex w-full items-stretch">
         {tabs.map(tab => (
-          tab.path === '/messages' ? (
-            <button
-              key={tab.path}
-              onClick={openChatPanel}
-              className={clsx(
-                'min-w-0 flex-1 flex flex-col items-center justify-center px-1 py-2.5 gap-1 transition-colors active:scale-95 rounded-lg'
-              )}
-              style={{ color: location.pathname.startsWith('/messages') ? colors.active : colors.inactive, backgroundColor: location.pathname.startsWith('/messages') ? colors.activeBg : 'transparent' }}
-            >
-              <tab.icon
-                size={24}
-                strokeWidth={location.pathname.startsWith('/messages') ? 2 : 1.5}
-                className={clsx('transition-transform', location.pathname.startsWith('/messages') && 'scale-110')}
-              />
-              <span className={clsx(
-                'max-w-full truncate text-[10px] leading-none',
-                location.pathname.startsWith('/messages') ? 'font-bold' : 'font-medium'
-              )}>
-                {t(tab.tKey)}
-              </span>
-            </button>
-          ) : (
             <Link
               key={tab.path}
               to={tab.path === '/profile' && !user ? '/auth' : tab.path}

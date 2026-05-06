@@ -35,6 +35,14 @@ async function canAccessChannelAsync(channelId: string, channelType: string, use
     const follow = await prisma.follow.findFirst({ where: { followerId: userId, followingListingId: listingId } });
     return Boolean(follow);
   }
+  // group:{id} — accessible if user is creator or member
+  if (channelType === 'group') {
+    const groupId = channelId.replace('group:', '');
+    const group = await prisma.chatGroup.findFirst({
+      where: { id: groupId, OR: [{ creatorId: userId }, { memberIds: { has: userId } }] },
+    });
+    return Boolean(group);
+  }
   return true;
 }
 
@@ -51,6 +59,7 @@ router.get('/:channelId', requireAuth, async (req: AuthRequest, res: Response) =
   else if (channelId === 'salesreps')   channelType = 'salesreps';
   else if (channelId === 'ambassadors') channelType = 'ambassadors';
   else if (channelId.startsWith('listing:')) channelType = 'listing';
+  else if (channelId.startsWith('group:'))   channelType = 'group';
   else if (channelId.startsWith('ai:'))      channelType = 'ai';
 
   if (!(await canAccessChannelAsync(channelId, channelType, userId, role))) {
@@ -80,6 +89,7 @@ router.post('/:channelId', requireAuth, async (req: AuthRequest, res: Response) 
   else if (channelId === 'salesreps')   channelType = 'salesreps';
   else if (channelId === 'ambassadors') channelType = 'ambassadors';
   else if (channelId.startsWith('listing:')) channelType = 'listing';
+  else if (channelId.startsWith('group:'))   channelType = 'group';
   else if (channelId.startsWith('ai:'))      channelType = 'ai';
 
   if (!(await canAccessChannelAsync(channelId, channelType, userId, role))) {

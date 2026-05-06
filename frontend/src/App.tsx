@@ -6,7 +6,7 @@ import './i18n';
 import { LANGUAGES } from './i18n';
 import Navbar from './components/layout/Navbar';
 import MobileTabBar from './components/layout/MobileTabBar';
-import ChatFAB from './components/layout/ChatFAB';
+// ChatFAB removed — chat lives at /messages
 import Footer, { initFontSize } from './components/layout/Footer';
 import { useThemeStore } from './store/theme';
 import InterestSurvey from './components/ads/InterestSurvey';
@@ -302,7 +302,7 @@ export default function App() {
           </div>
           <MobileTabBar />
           <FooterPlayer />
-          <ChatFAB />
+          {/* Chat is at /messages — no floating overlay needed */}
           {showSurvey && <InterestSurvey onClose={() => setShowSurvey(false)} />}
         </div>
       </BrowserRouter>
