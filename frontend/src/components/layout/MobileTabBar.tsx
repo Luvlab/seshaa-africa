@@ -1,19 +1,21 @@
 import { useMemo, useRef, useLayoutEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Home, Search, MessageCircle, PartyPopper, User } from 'lucide-react';
 import { useAuthStore } from '../../store/auth';
 import { useThemeStore } from '../../store/theme';
 import clsx from 'clsx';
 
 const TABS = [
-  { path: '/',       icon: Home,          label: 'Home',   exact: true },
-  { path: '/search', icon: Search,        label: 'Find' },
-  { path: '/messages', icon: MessageCircle, label: 'Chat' },
-  { path: '/events', icon: PartyPopper,   label: 'Events' },
-  { path: '/profile', icon: User,         label: 'Me' },
+  { path: '/',         icon: Home,          tKey: 'nav.home',      exact: true },
+  { path: '/search',   icon: Search,        tKey: 'search.findBtn' },
+  { path: '/messages', icon: MessageCircle, tKey: 'nav.chat' },
+  { path: '/events',   icon: PartyPopper,   tKey: 'nav.events' },
+  { path: '/profile',  icon: User,          tKey: 'nav.me' },
 ];
 
 export default function MobileTabBar() {
+  const { t } = useTranslation();
   const location = useLocation();
   const { user } = useAuthStore();
   const { countryCode } = useThemeStore();
@@ -83,7 +85,7 @@ export default function MobileTabBar() {
                 'max-w-full truncate text-[10px] leading-none',
                 location.pathname.startsWith('/messages') ? 'font-bold' : 'font-medium'
               )}>
-                {tab.label}
+                {t(tab.tKey)}
               </span>
             </button>
           ) : (
@@ -104,7 +106,7 @@ export default function MobileTabBar() {
                 'max-w-full truncate text-[10px] leading-none',
                 tab.isActive ? 'font-bold' : 'font-medium'
               )}>
-                {tab.label}
+                {t(tab.tKey)}
               </span>
             </Link>
           )

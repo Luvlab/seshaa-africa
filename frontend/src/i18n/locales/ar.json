@@ -31,7 +31,8 @@
     "delivery": "شحن",
     "transport": "نقل",
     "business": "أعمال",
-    "chat": "محادثة"
+    "chat": "محادثة",
+    "me": "أنا"
   },
   "search": {
     "placeholder": "ابحث بالاسم أو الهاتف أو اسم النشاط...",
@@ -531,7 +532,8 @@
     "search": "ابحث في الإعلانات المبوبة…",
     "filters": "الفلاتر",
     "minPrice": "أدنى سعر",
-    "maxPrice": "أعلى سعر"
+    "maxPrice": "أعلى سعر",
+    "conditionLabel": "الحالة"
   },
   "merch": {
     "title": "متجر Seshaa",

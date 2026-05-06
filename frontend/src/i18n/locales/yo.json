@@ -31,7 +31,8 @@
     "delivery": "Ìfiránṣẹ́",
     "transport": "Ọkọ̀",
     "business": "Òwò",
-    "chat": "Ìfọ̀rọ̀wérọ̀"
+    "chat": "Ìfọ̀rọ̀wérọ̀",
+    "me": "Mi"
   },
   "search": {
     "placeholder": "Wá orukọ, fóònu, òwò...",
@@ -513,7 +514,8 @@
     "search": "Wá àwọn ìpolówó…",
     "filters": "Àwọn Àlẹ̀mọ́",
     "minPrice": "Iye owó ìsàlẹ̀",
-    "maxPrice": "Iye owó òkè"
+    "maxPrice": "Iye owó òkè",
+    "conditionLabel": "Ipò"
   },
   "merch": {
     "title": "Ọjà Seshaa",

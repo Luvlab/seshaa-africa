@@ -31,7 +31,8 @@
     "delivery": "Yónnee",
     "transport": "Transport",
     "business": "Liggéey",
-    "chat": "Jàng ak"
+    "chat": "Jàng ak",
+    "me": "Man"
   },
   "search": {
     "placeholder": "Seet tur, telefon, liggéey...",
@@ -513,7 +514,8 @@
     "search": "Seet jënd ak jaay...",
     "filters": "Filtre yi",
     "minPrice": "Prix bu Topp",
-    "maxPrice": "Prix bu Kanam"
+    "maxPrice": "Prix bu Kanam",
+    "conditionLabel": "Yoon"
   },
   "merch": {
     "title": "Ngàllem Seshaa",

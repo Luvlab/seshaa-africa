@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Phone, Mail, Lock, Eye, EyeOff, Globe, ArrowRight, User } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { authApi } from '../services/api';
 import { useAuthStore } from '../store/auth';
 
@@ -22,6 +23,7 @@ type Mode = 'login' | 'register';
 
 export default function AuthPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { setAuth } = useAuthStore();
   const [mode, setMode] = useState<Mode>('login');
   const [inputType, setInputType] = useState<'phone' | 'email'>('phone');
@@ -119,7 +121,7 @@ export default function AuthPage() {
             }`}
           >
             <Phone size={20} strokeWidth={1.5} />
-            Phone
+            {t('auth.phone')}
           </button>
           <button
             onClick={() => setInputType('email')}
@@ -128,7 +130,7 @@ export default function AuthPage() {
             }`}
           >
             <Mail size={20} strokeWidth={1.5} />
-            Email
+            {t('auth.email')}
           </button>
         </div>
 
@@ -139,7 +141,7 @@ export default function AuthPage() {
               <User size={22} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" strokeWidth={1.5} />
               <input
                 type="text"
-                placeholder="Your full name"
+                placeholder={t('auth.name')}
                 className="w-full border-2 border-gray-200 rounded-2xl pl-12 pr-4 py-4 text-base outline-none focus:border-[var(--cp)] bg-white"
                 value={form.name}
                 onChange={e => set('name', e.target.value)}
@@ -154,7 +156,7 @@ export default function AuthPage() {
             }
             <input
               type={inputType === 'phone' ? 'tel' : 'email'}
-              placeholder={inputType === 'phone' ? '+234 800 000 0000' : 'your@email.com'}
+              placeholder={inputType === 'phone' ? '+234 800 000 0000' : t('auth.email')}
               className="w-full border-2 border-gray-200 rounded-2xl pl-12 pr-4 py-4 text-base outline-none focus:border-[var(--cp)] bg-white"
               value={form.identifier}
               onChange={e => set('identifier', e.target.value)}
@@ -166,7 +168,7 @@ export default function AuthPage() {
             <Lock size={22} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" strokeWidth={1.5} />
             <input
               type={showPw ? 'text' : 'password'}
-              placeholder="Password"
+              placeholder={t('auth.password')}
               className="w-full border-2 border-gray-200 rounded-2xl pl-12 pr-14 py-4 text-base outline-none focus:border-[var(--cp)] bg-white"
               value={form.password}
               onChange={e => set('password', e.target.value)}
@@ -187,7 +189,7 @@ export default function AuthPage() {
               <Globe size={22} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" strokeWidth={1.5} />
               <input
                 type="text"
-                placeholder="Country (e.g. Nigeria, Kenya…)"
+                placeholder={t('auth.country')}
                 className="w-full border-2 border-gray-200 rounded-2xl pl-12 pr-4 py-4 text-base outline-none focus:border-[var(--cp)] bg-white"
                 value={form.country}
                 onChange={e => set('country', e.target.value)}
@@ -214,7 +216,7 @@ export default function AuthPage() {
             <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
           ) : (
             <>
-              {mode === 'login' ? 'Sign In' : 'Create Account'}
+              {mode === 'login' ? t('auth.loginBtn') : t('auth.registerBtn')}
               <ArrowRight size={22} />
             </>
           )}
@@ -243,14 +245,14 @@ export default function AuthPage() {
         {/* Toggle login/register */}
         <div className="mt-8 text-center">
           <p className="text-gray-500 text-base">
-            {mode === 'login' ? "Don't have an account?" : 'Already have an account?'}
+            {mode === 'login' ? t('auth.noAccount') : t('auth.hasAccount')}
           </p>
           <button
             className="mt-2 text-base font-bold"
             style={{ color: 'var(--cp)' }}
             onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError(''); }}
           >
-            {mode === 'login' ? 'Create a free account →' : 'Sign in →'}
+            {mode === 'login' ? t('auth.register') + ' →' : t('auth.login') + ' →'}
           </button>
         </div>
 

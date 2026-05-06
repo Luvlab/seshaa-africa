@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Plus, Search, MapPin, Tag, Shield, AlertTriangle, X, ChevronRight, Clock, CheckCircle } from 'lucide-react';
 import { classifiedsApi } from '../services/api';
 import { useAuthStore } from '../store/auth';
@@ -53,6 +54,7 @@ function SafetyBanner() {
 }
 
 function PostForm({ onClose, onPosted }: { onClose: () => void; onPosted: () => void }) {
+  const { t } = useTranslation();
   const [form, setForm] = useState({
     title: '', description: '', price: '', currency: 'USD',
     category: '', condition: 'USED' as 'NEW' | 'USED' | 'REFURBISHED',
@@ -78,7 +80,7 @@ function PostForm({ onClose, onPosted }: { onClose: () => void; onPosted: () => 
     <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-5 border-b sticky top-0 bg-white">
-          <h2 className="font-bold text-gray-900">Post a Classified Ad</h2>
+          <h2 className="font-bold text-gray-900">{t('classifieds.postAd')}</h2>
           <button onClick={onClose}><X size={20} className="text-gray-400"/></button>
         </div>
 
@@ -159,7 +161,7 @@ function PostForm({ onClose, onPosted }: { onClose: () => void; onPosted: () => 
           <button type="submit" disabled={posting}
             className="w-full py-3 text-white rounded-xl font-bold disabled:opacity-60"
             style={{ backgroundColor: 'var(--cp)' }}>
-            {posting ? 'Posting...' : 'Post Ad for Free'}
+            {posting ? t('common.loading') : t('classifieds.postAd')}
           </button>
         </form>
       </div>
@@ -207,6 +209,7 @@ function ClassifiedCard({ item }: { item: Classified }) {
 }
 
 export default function ClassifiedsPage() {
+  const { t } = useTranslation();
   const { user } = useAuthStore();
   const { countryCode } = useThemeStore();
   const [items, setItems] = useState<Classified[]>([]);
@@ -248,7 +251,7 @@ export default function ClassifiedsPage() {
           <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
             className="w-full border rounded-xl pl-10 pr-4 py-3 text-sm outline-none focus:border-[var(--cp)]"
-            placeholder="Search classifieds..."
+            placeholder={t('classifieds.search')}
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
@@ -259,7 +262,7 @@ export default function ClassifiedsPage() {
           className="shrink-0 flex items-center gap-1.5 px-4 py-2.5 text-white rounded-xl font-semibold text-sm"
           style={{ backgroundColor: 'var(--cp)' }}
         >
-          <Plus size={16}/> Post
+          <Plus size={16}/> {t('classifieds.postAd')}
         </button>
       </form>
 
@@ -270,7 +273,7 @@ export default function ClassifiedsPage() {
           className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium border transition-all ${!activeCategory ? 'text-white border-[var(--cp)]' : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}
           style={!activeCategory ? { backgroundColor: 'var(--cp)' } : {}}
         >
-          All
+          {t('classifieds.allCategories')}
         </button>
         {CATEGORIES.map(cat => (
           <button
@@ -323,7 +326,7 @@ export default function ClassifiedsPage() {
       ) : items.length === 0 ? (
         <div className="text-center py-16 text-gray-400">
           <p className="text-5xl mb-3">📦</p>
-          <p className="font-medium">No listings found</p>
+          <p className="font-medium">{t('classifieds.noAds')}</p>
           <p className="text-sm mt-1">Be the first to post in this category</p>
           <button onClick={() => !!user ? setShowPost(true) : alert('Please sign in')} className="mt-3 text-sm font-semibold" style={{ color: 'var(--cp)' }}>
             Post a free ad
@@ -338,9 +341,9 @@ export default function ClassifiedsPage() {
       {/* Pagination */}
       {total > 20 && (
         <div className="flex justify-center gap-3 mt-6">
-          <button disabled={page === 1} onClick={() => setPage(p => p - 1)} className="px-4 py-2 border rounded-xl text-sm disabled:opacity-40">Previous</button>
+          <button disabled={page === 1} onClick={() => setPage(p => p - 1)} className="px-4 py-2 border rounded-xl text-sm disabled:opacity-40">{t('archive.prev')}</button>
           <span className="px-4 py-2 text-sm text-gray-500">Page {page}</span>
-          <button disabled={items.length < 20} onClick={() => setPage(p => p + 1)} className="px-4 py-2 border rounded-xl text-sm disabled:opacity-40">Next</button>
+          <button disabled={items.length < 20} onClick={() => setPage(p => p + 1)} className="px-4 py-2 border rounded-xl text-sm disabled:opacity-40">{t('archive.next')}</button>
         </div>
       )}
 

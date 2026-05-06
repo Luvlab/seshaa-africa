@@ -32,7 +32,8 @@
     "delivery": "Kutumira",
     "transport": "Nzira",
     "business": "Bhizinesi",
-    "chat": "Taura"
+    "chat": "Taura",
+    "me": "Ini"
   },
   "search": {
     "placeholder": "Tsvaga zita, nhamba, bhizinesi...",
@@ -539,7 +540,8 @@
     "search": "Tsvaga mishevedzo…",
     "filters": "Sarudzo",
     "minPrice": "Mutengo Wakaderera",
-    "maxPrice": "Mutengo Wakakwira"
+    "maxPrice": "Mutengo Wakakwira",
+    "conditionLabel": "Mamiriro"
   },
   "merch": {
     "title": "Zvinhu zveSeshaa",

@@ -10,6 +10,7 @@
  *   seshaa.ride / seshaa.delivery / seshaa.transport
  */
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Car, Package, Truck, MapPin, ArrowRight, Clock, CheckCircle,
   AlertCircle, Star, Shield, Plus, ChevronDown, Navigation,
@@ -52,6 +53,7 @@ const STATUS_COLOR: Record<RideStatus, string> = {
 
 // ── Sub-component: booking form ───────────────────────────────────────────────
 function BookForm({ type, onBooked }: { type: ServiceType; onBooked: () => void }) {
+  const { t } = useTranslation();
   const { user } = useAuthStore();
   const [pickup, setPickup]     = useState('');
   const [dropoff, setDropoff]   = useState('');
@@ -89,8 +91,8 @@ function BookForm({ type, onBooked }: { type: ServiceType; onBooked: () => void 
   if (!user) {
     return (
       <div className="bg-white rounded-2xl border p-6 text-center">
-        <p className="text-gray-600 mb-4">Sign in to book a {TYPE_META[type].label.toLowerCase()}</p>
-        <a href="/auth" className="px-5 py-2.5 rounded-xl text-white font-semibold text-sm" style={{ backgroundColor: 'var(--cp,#008751)' }}>Sign In</a>
+        <p className="text-gray-600 mb-4">{t('ride.loginRequired')}</p>
+        <a href="/auth" className="px-5 py-2.5 rounded-xl text-white font-semibold text-sm" style={{ backgroundColor: 'var(--cp,#008751)' }}>{t('ride.loginBtn')}</a>
       </div>
     );
   }
@@ -103,7 +105,7 @@ function BookForm({ type, onBooked }: { type: ServiceType; onBooked: () => void 
 
       <div className="space-y-3">
         <div>
-          <label className="text-xs font-semibold text-gray-500 block mb-1">📍 Pickup address *</label>
+          <label className="text-xs font-semibold text-gray-500 block mb-1">📍 {t('ride.pickup')} *</label>
           <div className="flex items-center gap-2 bg-gray-50 border rounded-xl px-3 py-2">
             <MapPin size={15} className="text-green-500 shrink-0" />
             <input className="flex-1 outline-none bg-transparent text-sm" placeholder="e.g. Kampala Road, Nakasero"
@@ -113,7 +115,7 @@ function BookForm({ type, onBooked }: { type: ServiceType; onBooked: () => void 
 
         {type !== 'TRANSPORT' && (
           <div>
-            <label className="text-xs font-semibold text-gray-500 block mb-1">🏁 Drop-off address</label>
+            <label className="text-xs font-semibold text-gray-500 block mb-1">🏁 {t('ride.dropoff')}</label>
             <div className="flex items-center gap-2 bg-gray-50 border rounded-xl px-3 py-2">
               <Navigation size={15} className="text-red-400 shrink-0" />
               <input className="flex-1 outline-none bg-transparent text-sm" placeholder="Destination"
@@ -159,14 +161,14 @@ function BookForm({ type, onBooked }: { type: ServiceType; onBooked: () => void 
             </select>
           </div>
           <div>
-            <label className="text-xs font-semibold text-gray-500 block mb-1">🕐 Schedule (optional)</label>
+            <label className="text-xs font-semibold text-gray-500 block mb-1">🕐 {t('ride.schedule')}</label>
             <input type="datetime-local" className="w-full bg-gray-50 border rounded-xl px-3 py-2 text-sm outline-none"
               value={scheduled} onChange={e => setScheduled(e.target.value)} />
           </div>
         </div>
 
         <div>
-          <label className="text-xs font-semibold text-gray-500 block mb-1">📝 Notes (optional)</label>
+          <label className="text-xs font-semibold text-gray-500 block mb-1">📝 {t('ride.notes')}</label>
           <textarea className="w-full bg-gray-50 border rounded-xl px-3 py-2 text-sm outline-none resize-none"
             rows={2} placeholder="Any special instructions…"
             value={notes} onChange={e => setNotes(e.target.value)} />
@@ -180,7 +182,11 @@ function BookForm({ type, onBooked }: { type: ServiceType; onBooked: () => void 
       <button onClick={submit} disabled={saving}
         className="w-full py-3 rounded-xl text-white font-bold text-sm transition-opacity disabled:opacity-60"
         style={{ background: `var(--cp,#008751)` }}>
-        {saving ? 'Submitting…' : `Book ${TYPE_META[type].label} →`}
+        {saving ? t('common.loading') : (
+          type === 'RIDE' ? t('ride.bookBtn') :
+          type === 'DELIVERY' ? t('ride.bookDelivery') :
+          t('ride.bookTransport')
+        )}
       </button>
     </div>
   );
@@ -188,6 +194,7 @@ function BookForm({ type, onBooked }: { type: ServiceType; onBooked: () => void 
 
 // ── Sub-component: my rides list ──────────────────────────────────────────────
 function MyRides({ type, refresh }: { type: ServiceType; refresh: number }) {
+  const { t } = useTranslation();
   const [rides, setRides] = useState<RideRequest[]>([]);
   const [loading, setLoad] = useState(true);
 
@@ -199,8 +206,8 @@ function MyRides({ type, refresh }: { type: ServiceType; refresh: number }) {
       .finally(() => setLoad(false));
   }, [type, refresh]);
 
-  if (loading) return <div className="text-center py-6 text-gray-400 text-sm">Loading…</div>;
-  if (!rides.length) return <p className="text-sm text-gray-400 text-center py-4">No {type.toLowerCase()}s yet</p>;
+  if (loading) return <div className="text-center py-6 text-gray-400 text-sm">{t('common.loading')}</div>;
+  if (!rides.length) return <p className="text-sm text-gray-400 text-center py-4">{t('ride.noRides')}</p>;
 
   return (
     <div className="space-y-3">
@@ -215,7 +222,7 @@ function MyRides({ type, refresh }: { type: ServiceType; refresh: number }) {
                 </p>
               )}
             </div>
-            <span className={`text-[11px] font-bold px-2 py-1 rounded-full shrink-0 ${STATUS_COLOR[r.status]}`}>{r.status}</span>
+            <span className={`text-[11px] font-bold px-2 py-1 rounded-full shrink-0 ${STATUS_COLOR[r.status]}`}>{t(`ride.status.${r.status}`)}</span>
           </div>
           {r.driverName && (
             <div className="flex items-center gap-1.5 text-xs text-gray-600 mt-1">
@@ -239,6 +246,7 @@ function MyRides({ type, refresh }: { type: ServiceType; refresh: number }) {
 
 // ── Sub-component: available drivers ─────────────────────────────────────────
 function DriversPanel({ type }: { type: ServiceType }) {
+  const { t } = useTranslation();
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [loading, setLoad]    = useState(true);
 
@@ -250,8 +258,8 @@ function DriversPanel({ type }: { type: ServiceType }) {
       .finally(() => setLoad(false));
   }, [type]);
 
-  if (loading) return <div className="text-center py-4 text-gray-400 text-sm">Loading drivers…</div>;
-  if (!drivers.length) return <p className="text-sm text-gray-400 text-center py-4">No verified drivers online yet</p>;
+  if (loading) return <div className="text-center py-4 text-gray-400 text-sm">{t('common.loading')}</div>;
+  if (!drivers.length) return <p className="text-sm text-gray-400 text-center py-4">{t('ride.noDrivers')}</p>;
 
   return (
     <div className="space-y-2">
@@ -277,6 +285,7 @@ function DriversPanel({ type }: { type: ServiceType }) {
 
 // ── Driver registration form ──────────────────────────────────────────────────
 function DriverRegForm() {
+  const { t } = useTranslation();
   const [vehicleType, setVehicle] = useState('car');
   const [services, setServices]   = useState<ServiceType[]>(['RIDE']);
   const [plate, setPlate]         = useState('');
@@ -303,7 +312,7 @@ function DriverRegForm() {
 
   return (
     <div className="bg-white rounded-2xl border shadow-sm p-5 space-y-4">
-      <h3 className="font-bold text-gray-800 flex items-center gap-2"><Car size={18} /> Register as a Driver / Courier</h3>
+      <h3 className="font-bold text-gray-800 flex items-center gap-2"><Car size={18} /> {t('ride.driverRegTitle')}</h3>
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="text-xs font-semibold text-gray-500 block mb-1">Vehicle Type</label>
@@ -345,7 +354,7 @@ function DriverRegForm() {
       <button onClick={submit} disabled={saving}
         className="w-full py-3 rounded-xl text-white font-bold text-sm disabled:opacity-60"
         style={{ backgroundColor: 'var(--cp,#008751)' }}>
-        {saving ? 'Registering…' : 'Register as Driver →'}
+        {saving ? t('common.loading') : t('ride.registerBtn')}
       </button>
     </div>
   );
@@ -355,6 +364,7 @@ function DriverRegForm() {
 interface Props { defaultType?: ServiceType }
 
 export default function RidePage({ defaultType = 'RIDE' }: Props) {
+  const { t } = useTranslation();
   const [serviceType, setServiceType] = useState<ServiceType>(defaultType);
   const [section, setSection]         = useState<'book' | 'my' | 'drivers' | 'register'>('book');
   const [refreshKey, setRefreshKey]   = useState(0);
@@ -362,9 +372,9 @@ export default function RidePage({ defaultType = 'RIDE' }: Props) {
   const meta = TYPE_META[serviceType];
 
   const SECTIONS = [
-    { id: 'book' as const,    label: 'Book',    icon: <Plus size={13} /> },
-    { id: 'my' as const,      label: 'My Trips', icon: <Clock size={13} /> },
-    { id: 'drivers' as const, label: 'Drivers',  icon: <Car size={13} /> },
+    { id: 'book' as const,    label: t('ride.tabs.book'),        icon: <Plus size={13} /> },
+    { id: 'my' as const,      label: t('ride.tabs.myRides'),     icon: <Clock size={13} /> },
+    { id: 'drivers' as const, label: t('ride.tabs.drivers'),     icon: <Car size={13} /> },
   ];
 
   return (
@@ -414,7 +424,7 @@ export default function RidePage({ defaultType = 'RIDE' }: Props) {
           <DriversPanel type={serviceType} />
           <button onClick={() => setShowDriverReg(v => !v)}
             className="w-full flex items-center justify-between px-4 py-3 bg-white border rounded-xl hover:bg-gray-50 transition-colors">
-            <span className="text-sm font-semibold text-gray-700">Become a driver / courier</span>
+            <span className="text-sm font-semibold text-gray-700">{t('ride.becomeDriver')}</span>
             <ChevronDown size={16} className={`text-gray-400 transition-transform ${showDriverReg ? 'rotate-180' : ''}`} />
           </button>
           {showDriverReg && <DriverRegForm />}
@@ -424,9 +434,9 @@ export default function RidePage({ defaultType = 'RIDE' }: Props) {
       {/* Trust signals */}
       <div className="mt-8 grid grid-cols-3 gap-3">
         {[
-          { icon: <Shield size={20} className="text-green-500" />, label: 'Verified Drivers' },
-          { icon: <Star   size={20} className="text-yellow-500" />, label: 'Rated Trips' },
-          { icon: <CheckCircle size={20} className="text-blue-500" />, label: 'Tracked Delivery' },
+          { icon: <Shield size={20} className="text-green-500" />, label: t('ride.trust.safe') },
+          { icon: <Star   size={20} className="text-yellow-500" />, label: t('ride.trust.fast') },
+          { icon: <CheckCircle size={20} className="text-blue-500" />, label: t('ride.trust.pay') },
         ].map(({ icon, label }) => (
           <div key={label} className="bg-white rounded-xl border p-3 flex flex-col items-center gap-1.5 text-center">
             {icon}
@@ -438,14 +448,14 @@ export default function RidePage({ defaultType = 'RIDE' }: Props) {
       {/* How it works */}
       <div className="mt-6 bg-white rounded-2xl border p-5">
         <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-          <AlertCircle size={16} className="text-blue-400" /> How {meta.label} works
+          <AlertCircle size={16} className="text-blue-400" /> {t('ride.howItWorks')}
         </h3>
         <ol className="space-y-3">
           {([
-            { n: '1', text: `Enter your pickup ${serviceType === 'TRANSPORT' ? 'and cargo details' : 'and destination'}` },
-            { n: '2', text: 'A verified driver nearby accepts your request' },
-            { n: '3', text: serviceType === 'DELIVERY' ? 'Driver picks up and delivers your package' : 'Driver arrives at your pickup point' },
-            { n: '4', text: 'Rate your experience after completion' },
+            { n: '1', text: t('ride.step1') },
+            { n: '2', text: t('ride.step2') },
+            { n: '3', text: t('ride.step3') },
+            { n: '4', text: t('ride.step4') },
           ]).map(step => (
             <li key={step.n} className="flex items-start gap-3">
               <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black text-white shrink-0"

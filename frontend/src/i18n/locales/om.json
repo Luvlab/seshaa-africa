@@ -31,7 +31,8 @@
     "delivery": "Dhiyeessaa",
     "transport": "Geejjibaaf",
     "business": "Daldala",
-    "chat": "Dubbii"
+    "chat": "Dubbii",
+    "me": "Ana"
   },
   "search": {
     "placeholder": "Maqaa, bilbila, daldala barbaadi...",
@@ -531,7 +532,8 @@
     "search": "Beeksisa barbaadi…",
     "filters": "Filtriwwan",
     "minPrice": "Gatii xiqqaa",
-    "maxPrice": "Gatii guddaa"
+    "maxPrice": "Gatii guddaa",
+    "conditionLabel": "Haala"
   },
   "merch": {
     "title": "Meeshalee Seshaa",

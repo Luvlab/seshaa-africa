@@ -31,7 +31,8 @@
     "delivery": "Wereza",
     "transport": "Entambula",
     "business": "Bizinesi",
-    "chat": "Yogereza"
+    "chat": "Yogereza",
+    "me": "Nze"
   },
   "search": {
     "placeholder": "Noonya erinnya, simu, bizinesi...",
@@ -533,7 +534,8 @@
     "search": "Noonya ebigulwa…",
     "filters": "Zungula",
     "minPrice": "Ebbeeyi Entono",
-    "maxPrice": "Ebbeeyi Enkulu"
+    "maxPrice": "Ebbeeyi Enkulu",
+    "conditionLabel": "Embeera"
   },
   "merch": {
     "title": "Ebintu bya Seshaa",

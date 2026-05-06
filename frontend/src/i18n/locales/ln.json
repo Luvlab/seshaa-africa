@@ -32,7 +32,8 @@
     "transport": "Kobemba",
     "business": "Mosala",
     "chat": "Kosolola",
-    "salesRep": "Mokambi"
+    "salesRep": "Mokambi",
+    "me": "Ngai"
   },
   "search": {
     "placeholder": "Luka nkombo, telefoni, mosala...",
@@ -532,7 +533,8 @@
     "search": "Luka bilisambisi…",
     "filters": "Filtre",
     "minPrice": "Mtengo moke",
-    "maxPrice": "Mtengo monene"
+    "maxPrice": "Mtengo monene",
+    "conditionLabel": "Boye"
   },
   "merch": {
     "title": "Biloko ya Seshaa",

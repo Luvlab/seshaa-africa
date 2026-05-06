@@ -3,6 +3,7 @@
  * Live  · Discovery (Jamendo CC) · Archive (Internet Archive, oldest→newest) · Community
  */
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { radioApi } from '../services/api';
 import type { LiveStation } from '../services/api';
 import { useRadioStore } from '../store/radio';
@@ -158,6 +159,7 @@ function TrackRow({ track, playlist, index }: { track: RadioTrack; playlist: Rad
 
 // ── StationCard ───────────────────────────────────────────────────────────────
 function StationCard({ station }: { station: LiveStation }) {
+  const { t } = useTranslation();
   const { currentTrack, playing, play, pause, resume } = useRadioStore();
   const stationId = `rb_${station.id}`;
   const isActive = currentTrack?.id === stationId;
@@ -233,10 +235,10 @@ function StationCard({ station }: { station: LiveStation }) {
         onClick={handlePlay}
       >
         {isActive && playing
-          ? <><Pause size={13} /> Pause</>
+          ? <><Pause size={13} /> {t('radio.pause')}</>
           : isActive
-            ? <><Play size={13} className="ml-0.5" /> Resume</>
-            : <><Signal size={13} /> Listen Live</>
+            ? <><Play size={13} className="ml-0.5" /> {t('radio.play')}</>
+            : <><Signal size={13} /> {t('radio.play')}</>
         }
       </button>
     </div>
@@ -319,6 +321,7 @@ function SubmitTrackForm({ onDone }: { onDone: () => void }) {
 
 // ── LIVE TAB ──────────────────────────────────────────────────────────────────
 function LiveTab() {
+  const { t } = useTranslation();
   const [stations, setStations] = useState<LiveStation[]>([]);
   const [loading, setLoading]   = useState(true);
   const [country, setCountry]   = useState('');
@@ -345,7 +348,7 @@ function LiveTab() {
   if (loading) return (
     <div className="py-20 flex flex-col items-center gap-3 text-gray-400">
       <Loader2 size={28} className="animate-spin" />
-      <p className="text-sm">Loading African radio stations…</p>
+      <p className="text-sm">{t('common.loading')}</p>
     </div>
   );
 
@@ -403,6 +406,7 @@ const LIMIT_OPTIONS = [30, 50, 100, 200];
 
 // ── DISCOVERY TAB (Jamendo CC) ────────────────────────────────────────────────
 function DiscoveryTab() {
+  const { t } = useTranslation();
   const [activeTag, setActiveTag] = useState('afrobeats');
   const [tracks, setTracks]       = useState<RadioTrack[]>([]);
   const [loading, setLoading]     = useState(false);
@@ -470,7 +474,7 @@ function DiscoveryTab() {
         {loading
           ? <div className="py-16 flex flex-col items-center gap-3 text-gray-400">
               <Loader2 size={28} className="animate-spin" />
-              <p className="text-sm">Loading {meta.label} tracks…</p>
+              <p className="text-sm">{t('common.loading')}</p>
             </div>
           : tracks.length === 0
             ? <div className="py-16 text-center text-gray-400">
@@ -487,7 +491,7 @@ function DiscoveryTab() {
         <div className="mt-4 bg-emerald-50 border border-emerald-100 rounded-2xl px-4 py-3 flex items-center gap-3">
           <div className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" style={{ animation: playing ? 'pulse 1s ease-in-out infinite' : 'none' }} />
           <p className="text-sm text-emerald-800 flex-1 min-w-0 truncate">
-            {playing ? 'Now playing: ' : 'Paused: '}<strong>{currentTrack.name}</strong> by {currentTrack.artist}
+            {playing ? `${t('radio.nowPlaying')}: ` : `${t('radio.pause')}: `}<strong>{currentTrack.name}</strong> by {currentTrack.artist}
           </p>
         </div>
       )}
@@ -500,6 +504,7 @@ function DiscoveryTab() {
 
 // ── ARCHIVE TAB (Internet Archive, oldest → newest) ───────────────────────────
 function ArchiveTab() {
+  const { t } = useTranslation();
   const [decade,    setDecade]    = useState(0);   // index into DECADES
   const [genre,     setGenre]     = useState('');
   const [page,      setPage]      = useState(1);
@@ -609,14 +614,14 @@ function ArchiveTab() {
         {loading
           ? <div className="py-16 flex flex-col items-center gap-3 text-gray-400">
               <Loader2 size={28} className="animate-spin" />
-              <p className="text-sm">Searching the archive… this may take a moment</p>
+              <p className="text-sm">{t('common.loading')}</p>
               <p className="text-xs text-gray-300">Fetching audio metadata from archive.org</p>
             </div>
           : error
             ? <div className="py-16 text-center text-gray-400">
-                <p className="text-sm">{error}</p>
+                <p className="text-sm">{t('common.error')}</p>
                 <button onClick={() => load(decade, genre, page, archiveLimit)}
-                  className="mt-3 text-xs text-emerald-600 underline">Try again</button>
+                  className="mt-3 text-xs text-emerald-600 underline">{t('common.retry')}</button>
               </div>
             : tracks.length === 0
               ? <div className="py-16 text-center text-gray-400">
@@ -672,6 +677,7 @@ function ArchiveTab() {
 
 // ── COMMUNITY TAB ─────────────────────────────────────────────────────────────
 function CommunityTab() {
+  const { t } = useTranslation();
   const [tracks,      setTracks]      = useState<RadioTrack[]>([]);
   const [total,       setTotal]       = useState(0);
   const [loading,     setLoading]     = useState(true);
@@ -706,7 +712,7 @@ function CommunityTab() {
       <div className="mb-5 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-100 rounded-2xl p-4 flex items-start gap-3">
         <Users size={20} className="text-purple-500 shrink-0 mt-0.5" />
         <div className="flex-1">
-          <p className="text-sm font-bold text-purple-800">Share African music with the community</p>
+          <p className="text-sm font-bold text-purple-800">{t('radio.community')}</p>
           <p className="text-xs text-purple-700 mt-0.5">Submit a link to music you own or are licensed to share. After review it appears here.</p>
         </div>
         <button
@@ -714,7 +720,7 @@ function CommunityTab() {
           className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-bold text-white"
           style={{ background: 'var(--cp, #008751)' }}
         >
-          <Plus size={14} /> Submit
+          <Plus size={14} /> {t('radio.submit')}
         </button>
       </div>
 
@@ -743,7 +749,7 @@ function CommunityTab() {
       {/* Track list */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between gap-3 flex-wrap">
-          <span className="font-bold text-gray-800">Community Tracks</span>
+          <span className="font-bold text-gray-800">{t('radio.community')}</span>
           <div className="flex items-center gap-3">
             {/* Limit selector */}
             <div className="flex items-center gap-1">
@@ -763,7 +769,7 @@ function CommunityTab() {
         {loading
           ? <div className="py-16 flex flex-col items-center gap-3 text-gray-400">
               <Loader2 size={28} className="animate-spin" />
-              <p className="text-sm">Loading community tracks…</p>
+              <p className="text-sm">{t('common.loading')}</p>
             </div>
           : tracks.length === 0
             ? <div className="py-16 text-center text-gray-400">
@@ -782,6 +788,7 @@ function CommunityTab() {
 
 // ── MAIN PAGE ─────────────────────────────────────────────────────────────────
 export default function RadioPage() {
+  const { t } = useTranslation();
   const [tab, setTab] = useState<RadioTab>('live');
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -801,8 +808,8 @@ export default function RadioPage() {
           <Radio size={20} className="text-white" />
         </div>
         <div>
-          <h1 className="font-black text-gray-900 text-xl leading-tight">Seshaa Radio</h1>
-          <p className="text-xs text-gray-500">Live stations · CC music · Historical archive · Community</p>
+          <h1 className="font-black text-gray-900 text-xl leading-tight">{t('radio.title')}</h1>
+          <p className="text-xs text-gray-500">{t('radio.subtitle')}</p>
         </div>
         <div className="ml-auto hidden sm:flex items-center gap-1.5 bg-amber-50 border border-amber-100 rounded-xl px-3 py-1.5">
           <Headphones size={14} className="text-amber-500" />

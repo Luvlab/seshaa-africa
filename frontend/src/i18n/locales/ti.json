@@ -31,7 +31,8 @@
     "delivery": "ምርካብ",
     "transport": "መጓዓዝያ",
     "business": "ንግዲ",
-    "chat": "ዕላል"
+    "chat": "ዕላል",
+    "me": "ኣነ"
   },
   "search": {
     "placeholder": "ስም፣ ቴሌፎን፣ ንግዲ ደሊ...",
@@ -531,7 +532,8 @@
     "search": "ኣዋጃት ደሊ…",
     "filters": "ማጣሪያ",
     "minPrice": "ዝወሓደ ዋጋ",
-    "maxPrice": "ዝለዓለ ዋጋ"
+    "maxPrice": "ዝለዓለ ዋጋ",
+    "conditionLabel": "ኩነታት"
   },
   "merch": {
     "title": "ናውቲ Seshaa",

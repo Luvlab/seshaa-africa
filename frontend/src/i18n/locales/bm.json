@@ -31,7 +31,8 @@
     "delivery": "Ci Bɛɛ Kɛlɛn",
     "transport": "Yɔrɔko",
     "business": "Baara",
-    "chat": "Kumana"
+    "chat": "Kumana",
+    "me": "Ne"
   },
   "search": {
     "placeholder": "Tɔgɔ, telefɔni, baara dɔn...",
@@ -513,7 +514,8 @@
     "search": "San ni feere dɔn...",
     "filters": "Sugandi",
     "minPrice": "Jaramujɛ Dɔgɔ",
-    "maxPrice": "Jaramujɛ Bon"
+    "maxPrice": "Jaramujɛ Bon",
+    "conditionLabel": "Cogodili"
   },
   "merch": {
     "title": "Seshaa Fonikɛlaw",

@@ -31,7 +31,8 @@
     "delivery": "Kugeza",
     "transport": "Gutwara",
     "business": "Ubucuruzi",
-    "chat": "Ikiganiro"
+    "chat": "Ikiganiro",
+    "me": "Njye"
   },
   "search": {
     "placeholder": "Shakisha izina, telefone, ubucuruzi...",
@@ -531,7 +532,8 @@
     "search": "Shakisha amatangazo…",
     "filters": "Zunguriza",
     "minPrice": "Igiciro cy'Ntoya",
-    "maxPrice": "Igiciro cy'Ntarengwa"
+    "maxPrice": "Igiciro cy'Ntarengwa",
+    "conditionLabel": "Uko bimeze"
   },
   "merch": {
     "title": "Ibicuruzwa bya Seshaa",

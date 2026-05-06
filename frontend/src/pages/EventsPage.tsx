@@ -9,6 +9,7 @@
  * matching the pattern used on the news page.
  */
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Calendar, MapPin, Users, Ticket, Plus, ChevronDown,
   ExternalLink, RefreshCw, Search, Loader2, Globe, Clock,
@@ -77,6 +78,7 @@ function isUpcoming(d: string) {
 
 // ── Discovered event card ─────────────────────────────────────────────────────
 function DiscoveredCard({ event }: { event: DiscoveredEvent }) {
+  const { t } = useTranslation();
   const cat = event.category ?? 'Other';
   const gradient = CATEGORY_COLORS[cat] ?? CATEGORY_COLORS.Other;
   const url = event.ticketUrl || event.sourceUrl;
@@ -137,7 +139,7 @@ function DiscoveredCard({ event }: { event: DiscoveredEvent }) {
         <div className="flex items-center justify-between pt-1">
           <div className="flex items-center gap-1.5">
             {event.isFree ? (
-              <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">Free</span>
+              <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">{t('events.free')}</span>
             ) : event.price ? (
               <span className="text-xs font-bold text-gray-700 flex items-center gap-1">
                 <Ticket size={10} /> {event.price}
@@ -159,6 +161,7 @@ function DiscoveredCard({ event }: { event: DiscoveredEvent }) {
 
 // ── DB event card (community-submitted) ──────────────────────────────────────
 function DBEventCard({ event, onAttend, attending }: { event: DBEvent; onAttend: (id: string) => void; attending: boolean }) {
+  const { t } = useTranslation();
   const cat = event.category ?? 'Other';
   const gradient = CATEGORY_COLORS[cat] ?? CATEGORY_COLORS.Other;
 
@@ -203,7 +206,7 @@ function DBEventCard({ event, onAttend, attending }: { event: DBEvent; onAttend:
         <div className="flex items-center justify-between pt-1">
           <div className="flex items-center gap-2">
             {event.isFree ? (
-              <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">Free</span>
+              <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">{t('events.free')}</span>
             ) : event.price ? (
               <span className="text-xs font-bold text-gray-700 flex items-center gap-1">
                 <Ticket size={11} /> {event.currency ?? '$'}{event.price}
@@ -219,7 +222,7 @@ function DBEventCard({ event, onAttend, attending }: { event: DBEvent; onAttend:
           {event.ticketUrl && (
             <a href={event.ticketUrl} target="_blank" rel="noopener noreferrer"
               className="text-xs font-bold px-3 py-1.5 rounded-xl bg-purple-600 text-white hover:bg-purple-700 flex items-center gap-1">
-              Tickets <ExternalLink size={10} />
+              {t('events.ticket')} <ExternalLink size={10} />
             </a>
           )}
           {!event.ticketUrl && (
@@ -231,7 +234,7 @@ function DBEventCard({ event, onAttend, attending }: { event: DBEvent; onAttend:
                 attending ? 'bg-green-100 text-green-700 cursor-default' : 'bg-purple-600 text-white hover:bg-purple-700'
               )}
             >
-              {attending ? '✓ Going' : 'Going'}
+              {attending ? `✓ ${t('events.attending')}` : t('events.attend')}
             </button>
           )}
         </div>
@@ -242,6 +245,7 @@ function DBEventCard({ event, onAttend, attending }: { event: DBEvent; onAttend:
 
 // ── Main page ─────────────────────────────────────────────────────────────────
 export default function EventsPage() {
+  const { t } = useTranslation();
   const { user }        = useAuthStore();
   const { countryCode } = useThemeStore();
 
@@ -379,7 +383,7 @@ export default function EventsPage() {
               value={country} onChange={e => setCountry(e.target.value)}
               className="appearance-none border border-gray-200 rounded-xl pl-4 pr-8 py-2.5 text-sm outline-none focus:border-purple-400 bg-white"
             >
-              <option value="">All countries</option>
+              <option value="">{t('search.country')}</option>
               {AFRICAN_COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
             <ChevronDown size={14} className="absolute right-3 top-3.5 text-gray-400 pointer-events-none" />
@@ -400,7 +404,7 @@ export default function EventsPage() {
               onClick={() => setShowSubmitForm(s => !s)}
               className="shrink-0 inline-flex items-center gap-1.5 bg-purple-600 text-white font-bold px-4 py-2 rounded-xl hover:bg-purple-700 text-sm transition-colors"
             >
-              <Plus size={15} /> Submit Event
+              <Plus size={15} /> {t('events.create')}
             </button>
           )}
         </div>
@@ -412,7 +416,7 @@ export default function EventsPage() {
             className={clsx('shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors',
               !category ? 'bg-purple-600 text-white border-purple-600' : 'bg-white text-gray-600 border-gray-200 hover:border-purple-300')}
           >
-            All
+            {t('search.all')}
           </button>
           {CATEGORIES.map(cat => (
             <button
@@ -468,13 +472,13 @@ export default function EventsPage() {
             {loadingDiscover ? (
               <div className="py-20 flex flex-col items-center gap-3 text-gray-400">
                 <Loader2 size={28} className="animate-spin" />
-                <p className="text-sm">Discovering African events…</p>
+                <p className="text-sm">{t('common.loading')}</p>
                 <p className="text-xs text-gray-300">Checking 30+ sources across the continent</p>
               </div>
             ) : filteredDiscovered.length === 0 ? (
               <div className="text-center py-20">
                 <div className="text-5xl mb-4">🌍</div>
-                <p className="text-gray-500 font-semibold">No discovered events match your filters</p>
+                <p className="text-gray-500 font-semibold">{t('events.noEvents')}</p>
                 <p className="text-sm text-gray-400 mt-1">Try a different country or category</p>
                 <button onClick={handleRefresh} className="mt-4 inline-flex items-center gap-2 bg-purple-600 text-white font-bold px-5 py-2.5 rounded-2xl hover:bg-purple-700">
                   <RefreshCw size={15} /> Refresh sources
@@ -496,19 +500,19 @@ export default function EventsPage() {
             {loadingDb ? (
               <div className="py-16 flex flex-col items-center gap-3 text-gray-400">
                 <Loader2 size={24} className="animate-spin" />
-                <p className="text-sm">Loading community events…</p>
+                <p className="text-sm">{t('common.loading')}</p>
               </div>
             ) : filteredDb.length === 0 ? (
               <div className="text-center py-20">
                 <div className="text-5xl mb-4">🎪</div>
-                <p className="text-gray-500 text-lg font-semibold">No community events yet</p>
+                <p className="text-gray-500 text-lg font-semibold">{t('events.noEvents')}</p>
                 <p className="text-gray-400 text-sm mt-1">Be the first to submit one!</p>
                 {user && (
                   <button
                     onClick={() => setShowSubmitForm(true)}
                     className="mt-4 inline-flex items-center gap-2 bg-purple-600 text-white font-bold px-6 py-3 rounded-2xl hover:bg-purple-700"
                   >
-                    <Plus size={18} /> Submit an Event
+                    <Plus size={18} /> {t('events.create')}
                   </button>
                 )}
               </div>
@@ -529,7 +533,7 @@ export default function EventsPage() {
         {/* ── Submit form ── */}
         {showSubmitForm && user && (
           <div className="mt-10 bg-white rounded-2xl border border-gray-200 p-6">
-            <h2 className="text-xl font-black text-gray-900 mb-5">Submit an Event</h2>
+            <h2 className="text-xl font-black text-gray-900 mb-5">{t('events.create')}</h2>
             <form onSubmit={handleSubmitEvent} className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Title *</label>
@@ -607,11 +611,11 @@ export default function EventsPage() {
               <div className="flex gap-3">
                 <button type="submit" disabled={submitting}
                   className="flex-1 py-3 rounded-2xl font-black text-white bg-purple-600 hover:bg-purple-700 disabled:opacity-60 transition-colors">
-                  {submitting ? 'Submitting…' : 'Submit Event'}
+                  {submitting ? t('common.loading') : t('events.create')}
                 </button>
                 <button type="button" onClick={() => setShowSubmitForm(false)}
                   className="px-6 py-3 rounded-2xl font-bold bg-gray-100 text-gray-700 hover:bg-gray-200">
-                  Cancel
+                  {t('common.cancel')}
                 </button>
               </div>
             </form>

@@ -31,7 +31,8 @@
     "delivery": "Ukuhambisa",
     "transport": "Ezokuthutha",
     "business": "Ibhizinisi",
-    "chat": "Ingxoxo"
+    "chat": "Ingxoxo",
+    "me": "Mina"
   },
   "search": {
     "placeholder": "Sesha igama, ucingo, ibhizinisi...",
@@ -539,7 +540,8 @@
     "search": "Sesha izikhangiso…",
     "filters": "Izihlungi",
     "minPrice": "Inani elincane",
-    "maxPrice": "Inani elikhulu"
+    "maxPrice": "Inani elikhulu",
+    "conditionLabel": "Isimo"
   },
   "merch": {
     "title": "Impahla yeSeshaa",

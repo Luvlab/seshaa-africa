@@ -31,7 +31,8 @@
     "delivery": "Isarwa",
     "transport": "Sufuri",
     "business": "Kasuwanci",
-    "chat": "Hira"
+    "chat": "Hira",
+    "me": "Ni"
   },
   "search": {
     "placeholder": "Nemi suna, waya, kasuwanci...",
@@ -531,7 +532,8 @@
     "search": "Nemi tallace-tallace…",
     "filters": "Tace",
     "minPrice": "Farashi na ƙasa",
-    "maxPrice": "Farashi na sama"
+    "maxPrice": "Farashi na sama",
+    "conditionLabel": "Yanayi"
   },
   "merch": {
     "title": "Kayan Seshaa",

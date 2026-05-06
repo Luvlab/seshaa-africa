@@ -31,7 +31,8 @@
     "delivery": "Dzo Nu",
     "transport": "Tso Nu",
     "business": "Dɔwɔla",
-    "chat": "Ƒo Taflatse"
+    "chat": "Ƒo Taflatse",
+    "me": "Nye"
   },
   "search": {
     "placeholder": "Dzi ŋkɔ, telefon, dɔwɔla...",
@@ -531,7 +532,8 @@
     "search": "Dzi xexlẽwo...",
     "filters": "Tefe Siwo",
     "minPrice": "Adzɔ Anyi",
-    "maxPrice": "Adzɔ Dzi"
+    "maxPrice": "Adzɔ Dzi",
+    "conditionLabel": "Aɖaŋu"
   },
   "merch": {
     "title": "Seshaa Nufianu",

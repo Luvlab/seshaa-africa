@@ -31,7 +31,8 @@
     "delivery": "Fa Bɛkyɛ",
     "transport": "Kwan",
     "business": "Adwuma",
-    "chat": "Kasa"
+    "chat": "Kasa",
+    "me": "Me"
   },
   "search": {
     "placeholder": "Hwehwɛ din, fon, adwuma...",
@@ -513,7 +514,8 @@
     "search": "Hwehwɛ tɔ na tɔn...",
     "filters": "Nsiesie",
     "minPrice": "Efi Ketewa",
-    "maxPrice": "Efi Kɛse"
+    "maxPrice": "Efi Kɛse",
+    "conditionLabel": "Nhyehyɛe"
   },
   "merch": {
     "title": "Seshaa Ntadeɛ",

@@ -31,7 +31,8 @@
     "delivery": "Tinda",
     "transport": "Loke",
     "business": "Komersi",
-    "chat": "Solola"
+    "chat": "Solola",
+    "me": "Mono"
   },
   "search": {
     "placeholder": "Zola nkumbu, telefone, komersi...",
@@ -531,7 +532,8 @@
     "search": "Zola malongi...",
     "filters": "Zitina",
     "minPrice": "Ntalu ya Moke",
-    "maxPrice": "Ntalu ya Kilo"
+    "maxPrice": "Ntalu ya Kilo",
+    "conditionLabel": "Minikisi"
   },
   "merch": {
     "title": "Biloko ya Seshaa",

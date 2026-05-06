@@ -31,7 +31,8 @@
     "delivery": "Fandefasana",
     "transport": "Fitaterana",
     "business": "Orinasa",
-    "chat": "Resadresaka"
+    "chat": "Resadresaka",
+    "me": "Izaho"
   },
   "search": {
     "placeholder": "Tadiavo anarana, lalamaina, orinasa...",
@@ -533,7 +534,8 @@
     "search": "Hikaroka fampilazana…",
     "filters": "Sivana",
     "minPrice": "Vidiny Ambany",
-    "maxPrice": "Vidiny Avo"
+    "maxPrice": "Vidiny Avo",
+    "conditionLabel": "Toe-javatra"
   },
   "merch": {
     "title": "Entana Seshaa",

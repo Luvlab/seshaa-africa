@@ -106,30 +106,30 @@ type IconComp = React.ComponentType<{ size?: number; className?: string }>;
 interface Tab {
   id: string;
   path: string;
-  label: string;
+  tKey: string;
   Icon: IconComp;
   roles?: string[];
 }
 
 const ALL_TABS: Tab[] = [
-  { id: 'home',        path: '/',           label: 'Home',        Icon: Home },
-  { id: 'search',      path: '/search',     label: 'Directory',   Icon: Search },
-  { id: 'news',        path: '/news',       label: 'News',        Icon: Newspaper },
-  { id: 'classifieds', path: '/classifieds',label: 'Classifieds', Icon: Tag },
-  { id: 'prices',      path: '/prices',     label: 'Prices',      Icon: BarChart2 },
-  { id: 'merch',       path: '/merch',      label: 'Merch',       Icon: ShoppingBag },
-  { id: 'radio',       path: '/radio',      label: 'Radio',       Icon: Radio },
-  { id: 'events',      path: '/events',     label: 'Events',      Icon: PartyPopper },
-  { id: 'translate',   path: '/translate',  label: 'Translate',   Icon: Languages },
-  { id: 'diaspora',    path: '/diaspora',   label: 'Diaspora',    Icon: Globe2 },
-  { id: 'ride',        path: '/ride',       label: 'Ride',        Icon: Car },
-  { id: 'delivery',    path: '/delivery',   label: 'Delivery',    Icon: Package },
-  { id: 'transport',   path: '/transport',  label: 'Transport',   Icon: Truck },
-  { id: 'archive',     path: '/archive',    label: 'Archive',     Icon: Archive },
-  { id: 'advertise',   path: '/advertise',  label: 'Advertise',   Icon: Megaphone },
-  { id: 'ambassador',  path: '/ambassador', label: 'Ambassador',  Icon: Star,     roles: ['AMBASSADOR', 'ADMIN'] },
-  { id: 'salesrep',    path: '/salesrep',   label: 'Sales',       Icon: Briefcase, roles: ['SALES_REP', 'ADMIN'] },
-  { id: 'admin',       path: '/admin',      label: 'Admin',       Icon: Settings,  roles: ['ADMIN'] },
+  { id: 'home',        path: '/',           tKey: 'nav.home',        Icon: Home },
+  { id: 'search',      path: '/search',     tKey: 'nav.search',      Icon: Search },
+  { id: 'news',        path: '/news',       tKey: 'nav.news',        Icon: Newspaper },
+  { id: 'classifieds', path: '/classifieds',tKey: 'nav.classifieds', Icon: Tag },
+  { id: 'prices',      path: '/prices',     tKey: 'nav.prices',      Icon: BarChart2 },
+  { id: 'merch',       path: '/merch',      tKey: 'nav.merch',       Icon: ShoppingBag },
+  { id: 'radio',       path: '/radio',      tKey: 'nav.radio',       Icon: Radio },
+  { id: 'events',      path: '/events',     tKey: 'nav.events',      Icon: PartyPopper },
+  { id: 'translate',   path: '/translate',  tKey: 'nav.translate',   Icon: Languages },
+  { id: 'diaspora',    path: '/diaspora',   tKey: 'nav.diaspora',    Icon: Globe2 },
+  { id: 'ride',        path: '/ride',       tKey: 'nav.ride',        Icon: Car },
+  { id: 'delivery',    path: '/delivery',   tKey: 'nav.delivery',    Icon: Package },
+  { id: 'transport',   path: '/transport',  tKey: 'nav.transport',   Icon: Truck },
+  { id: 'archive',     path: '/archive',    tKey: 'nav.archive',     Icon: Archive },
+  { id: 'advertise',   path: '/advertise',  tKey: 'nav.advertise',   Icon: Megaphone },
+  { id: 'ambassador',  path: '/ambassador', tKey: 'nav.ambassador',  Icon: Star,     roles: ['AMBASSADOR', 'ADMIN'] },
+  { id: 'salesrep',    path: '/salesrep',   tKey: 'nav.sales',       Icon: Briefcase, roles: ['SALES_REP', 'ADMIN'] },
+  { id: 'admin',       path: '/admin',      tKey: 'nav.admin',       Icon: Settings,  roles: ['ADMIN'] },
 ];
 
 export default function Navbar() {
@@ -418,7 +418,7 @@ export default function Navbar() {
                   <span className="absolute inset-0 rounded-t-lg border border-yellow-400/20 pointer-events-none" />
                 )}
                 <Icon size={15} />
-                {tab.label}
+                {t(tab.tKey)}
                 {isActive && (
                   <span className={clsx(
                     'absolute bottom-0 left-2 right-2 h-0.5 rounded-t',
@@ -487,7 +487,7 @@ export default function Navbar() {
                   >
                     <Icon size={40} />
                     <span className="text-[10px] font-semibold leading-none text-center px-1 line-clamp-1">
-                      {tab.label}
+                      {t(tab.tKey)}
                     </span>
                   </Link>
                 );

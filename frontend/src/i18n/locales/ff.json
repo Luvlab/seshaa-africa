@@ -31,7 +31,8 @@
     "delivery": "Hoolnude",
     "transport": "Laawol",
     "business": "Ngalu",
-    "chat": "Haaldude"
+    "chat": "Haaldude",
+    "me": "Mi"
   },
   "search": {
     "placeholder": "Yiy innde, telefon, ngalu...",
@@ -513,7 +514,8 @@
     "search": "Yiy janga-yoora...",
     "filters": "Siftoreeje",
     "minPrice": "Njurum Neɗɗo",
-    "maxPrice": "Njurum Toowɗo"
+    "maxPrice": "Njurum Toowɗo",
+    "conditionLabel": "Haaɗi"
   },
   "merch": {
     "title": "Ngalu Seshaa",

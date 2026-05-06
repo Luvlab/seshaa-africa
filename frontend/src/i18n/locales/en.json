@@ -31,7 +31,8 @@
     "delivery": "Delivery",
     "transport": "Transport",
     "business": "Business",
-    "chat": "Chat"
+    "chat": "Chat",
+    "me": "Me"
   },
   "search": {
     "placeholder": "Search name, phone, business...",
@@ -521,8 +522,8 @@
       "fair": "Fair",
       "poor": "Poor"
     },
+    "conditionLabel": "Condition",
     "price": "Price",
-    "condition": "Condition",
     "postedBy": "Posted by",
     "contact": "Contact Seller",
     "edit": "Edit",

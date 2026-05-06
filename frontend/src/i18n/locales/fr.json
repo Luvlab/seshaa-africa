@@ -31,7 +31,8 @@
     "delivery": "Livraison",
     "transport": "Transport",
     "business": "Entreprise",
-    "chat": "Chat"
+    "chat": "Chat",
+    "me": "Moi"
   },
   "search": {
     "placeholder": "Rechercher nom, téléphone, entreprise...",
@@ -513,7 +514,8 @@
     "search": "Rechercher dans les annonces…",
     "filters": "Filtres",
     "minPrice": "Prix min",
-    "maxPrice": "Prix max"
+    "maxPrice": "Prix max",
+    "conditionLabel": "État"
   },
   "merch": {
     "title": "Boutique Seshaa",

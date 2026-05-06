@@ -193,8 +193,8 @@ export default function ListingDetail() {
   if (!listing) return (
     <div className="text-center py-20 text-gray-400">
       <p className="text-5xl mb-3">🏢</p>
-      <p className="font-semibold text-gray-600">Listing not found</p>
-      <Link to="/search" className="mt-3 inline-block font-semibold hover:underline" style={{ color: 'var(--cp, #008751)' }}>Back to Directory</Link>
+      <p className="font-semibold text-gray-600">{t('common.notFound')}</p>
+      <Link to="/search" className="mt-3 inline-block font-semibold hover:underline" style={{ color: 'var(--cp, #008751)' }}>← {t('nav.search')}</Link>
     </div>
   );
 
@@ -206,7 +206,7 @@ export default function ListingDetail() {
     <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-10 py-6">
       {/* Back */}
       <Link to="/search" className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 mb-4">
-        <ArrowLeft size={14} /> Back to results
+        <ArrowLeft size={14} /> {t('nav.search')}
       </Link>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -344,7 +344,7 @@ export default function ListingDetail() {
                 <button
                   className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold border-2 border-blue-500 text-blue-600"
                   onClick={() => setShowBooking(true)}>
-                  <Calendar size={15} /> Book Now
+                  <Calendar size={15} /> {t('bookings.bookNow')}
                 </button>
               )}
             </div>
@@ -368,7 +368,7 @@ export default function ListingDetail() {
 
             {user && (
               <div className="mb-6 p-4 bg-gray-50 rounded-xl">
-                <p className="text-sm font-semibold text-gray-700 mb-2">Leave a review</p>
+                <p className="text-sm font-semibold text-gray-700 mb-2">{/* TODO: translate */ }Leave a review</p>
                 <StarRating value={myRating} interactive onChange={v => setMyRating(v)} size={24} showCount={false} />
                 <textarea
                   className="w-full mt-3 border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--cp)] resize-none"
@@ -379,7 +379,7 @@ export default function ListingDetail() {
                   onClick={submitReview} disabled={!myRating || submitting}
                   className="mt-2 px-4 py-2 rounded-lg text-white text-sm font-semibold disabled:opacity-40"
                   style={{ backgroundColor: 'var(--cp, #008751)' }}>
-                  {submitting ? 'Submitting...' : 'Submit Review'}
+                  {submitting ? t('common.loading') : t('listing.submit')}
                 </button>
               </div>
             )}
@@ -387,7 +387,7 @@ export default function ListingDetail() {
             {reviews.length === 0 ? (
               <div className="text-center py-8 text-gray-400">
                 <Star size={40} className="mx-auto mb-2 opacity-20" />
-                <p>No reviews yet. Be the first!</p>
+                <p>{t('search.noResults')}</p>
               </div>
             ) : (
               <div className="space-y-4">

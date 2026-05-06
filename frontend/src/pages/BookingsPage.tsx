@@ -1,23 +1,33 @@
 import { useState, useEffect } from 'react';
 import { Calendar, Clock, MapPin, CheckCircle, XCircle, AlertCircle, ChevronRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { bookingsApi } from '../services/api';
 import { useAuthStore } from '../store/auth';
 import { Link } from 'react-router-dom';
 import type { Booking, BookingStatus } from '../types';
 
-const STATUS_CONFIG: Record<BookingStatus, { icon: React.ReactNode; color: string; label: string }> = {
-  PENDING: { icon: <AlertCircle size={14} />, color: 'text-amber-600 bg-amber-50 border-amber-200', label: 'Pending' },
-  CONFIRMED: { icon: <CheckCircle size={14} />, color: 'text-green-600 bg-green-50 border-green-200', label: 'Confirmed' },
-  CANCELLED: { icon: <XCircle size={14} />, color: 'text-red-500 bg-red-50 border-red-200', label: 'Cancelled' },
-  COMPLETED: { icon: <CheckCircle size={14} />, color: 'text-blue-600 bg-blue-50 border-blue-200', label: 'Completed' },
-  NO_SHOW: { icon: <XCircle size={14} />, color: 'text-gray-500 bg-gray-50 border-gray-200', label: 'No-show' },
+const STATUS_COLORS: Record<BookingStatus, string> = {
+  PENDING:   'text-amber-600 bg-amber-50 border-amber-200',
+  CONFIRMED: 'text-green-600 bg-green-50 border-green-200',
+  CANCELLED: 'text-red-500 bg-red-50 border-red-200',
+  COMPLETED: 'text-blue-600 bg-blue-50 border-blue-200',
+  NO_SHOW:   'text-gray-500 bg-gray-50 border-gray-200',
 };
 
 export default function BookingsPage() {
   const { user } = useAuthStore();
+  const { t } = useTranslation();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'upcoming' | 'past' | 'all'>('upcoming');
+
+  const STATUS_CONFIG: Record<BookingStatus, { icon: React.ReactNode; color: string; label: string }> = {
+    PENDING:   { icon: <AlertCircle size={14} />, color: STATUS_COLORS.PENDING,   label: t('bookings.pending') },
+    CONFIRMED: { icon: <CheckCircle size={14} />, color: STATUS_COLORS.CONFIRMED, label: t('bookings.confirmed') },
+    CANCELLED: { icon: <XCircle size={14} />,     color: STATUS_COLORS.CANCELLED, label: t('bookings.cancelled') },
+    COMPLETED: { icon: <CheckCircle size={14} />, color: STATUS_COLORS.COMPLETED, label: t('bookings.completed') },
+    NO_SHOW:   { icon: <XCircle size={14} />,     color: STATUS_COLORS.NO_SHOW,   label: 'No-show' /* TODO: translate */ },
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -44,10 +54,10 @@ export default function BookingsPage() {
     return (
       <div className="max-w-lg mx-auto px-4 py-16 text-center">
         <div className="text-6xl mb-4">📅</div>
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">Your Bookings</h2>
-        <p className="text-gray-500 mb-6">Log in to see your bookings</p>
+        <h2 className="text-2xl font-bold text-gray-800 mb-2">{t('bookings.title')}</h2>
+        <p className="text-gray-500 mb-6">{t('common.loginRequired')}</p>
         <Link to="/auth" className="inline-block px-6 py-3 rounded-xl text-white font-semibold" style={{ backgroundColor: 'var(--cp)' }}>
-          Log In
+          {t('common.login')}
         </Link>
       </div>
     );
@@ -56,11 +66,11 @@ export default function BookingsPage() {
   return (
     <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 py-6">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">My Bookings</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t('bookings.title')}</h1>
         <Link to="/search?bookable=true"
           className="text-sm font-semibold px-4 py-2 rounded-xl text-white"
           style={{ backgroundColor: 'var(--cp)' }}>
-          Book a Service
+          {t('bookings.bookNow')}
         </Link>
       </div>
 
@@ -71,7 +81,7 @@ export default function BookingsPage() {
             className={`flex-1 py-2 rounded-lg text-sm font-medium capitalize transition-colors ${
               filter === f ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'
             }`}>
-            {f}
+            {f === 'upcoming' ? t('bookings.upcoming') : f === 'past' ? t('bookings.past') : t('bookings.all')}
           </button>
         ))}
       </div>
@@ -83,7 +93,7 @@ export default function BookingsPage() {
       ) : filtered.length === 0 ? (
         <div className="text-center py-12 text-gray-400">
           <Calendar size={48} className="mx-auto mb-3 opacity-30" />
-          <p className="font-medium text-gray-600">No {filter} bookings</p>
+          <p className="font-medium text-gray-600">{t('bookings.noBookings')}</p>
           {filter === 'upcoming' && (
             <Link to="/search?bookable=true" className="text-sm mt-2 inline-block hover:underline" style={{ color: 'var(--cp)' }}>
               Browse bookable services →
@@ -136,7 +146,7 @@ export default function BookingsPage() {
                         className="text-xs text-red-500 hover:text-red-700 font-medium"
                         onClick={() => cancel(booking.id)}
                       >
-                        Cancel
+                        {t('bookings.cancel')}
                       </button>
                     ) : null}
                   </div>

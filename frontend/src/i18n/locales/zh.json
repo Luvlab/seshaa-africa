@@ -31,7 +31,8 @@
     "delivery": "配送",
     "transport": "货运",
     "business": "企业",
-    "chat": "聊天"
+    "chat": "聊天",
+    "me": "我"
   },
   "search": {
     "placeholder": "搜索姓名、电话、企业...",
@@ -531,7 +532,8 @@
     "search": "搜索分类广告…",
     "filters": "筛选",
     "minPrice": "最低价格",
-    "maxPrice": "最高价格"
+    "maxPrice": "最高价格",
+    "conditionLabel": "状态"
   },
   "merch": {
     "title": "Seshaa 商店",

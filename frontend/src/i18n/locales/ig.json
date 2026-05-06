@@ -31,7 +31,8 @@
     "delivery": "Nnyefe",
     "transport": "Njem",
     "business": "Azụmahịa",
-    "chat": "Ikwu Okwu"
+    "chat": "Ikwu Okwu",
+    "me": "Nna"
   },
   "search": {
     "placeholder": "Chọọ aha, ekwentị, azụmahịa...",
@@ -513,7 +514,8 @@
     "search": "Chọọ mgbasa ozi…",
     "filters": "Ọnụọgụ",
     "minPrice": "Ọnụahịa dị ala",
-    "maxPrice": "Ọnụahịa dị elu"
+    "maxPrice": "Ọnụahịa dị elu",
+    "conditionLabel": "Ọnọdụ"
   },
   "merch": {
     "title": "Ngwongwo Seshaa",

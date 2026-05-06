@@ -60,12 +60,12 @@ export default function Footer() {
 
         {/* Directory */}
         <div>
-          <h4 className="text-white font-semibold mb-3 text-sm">Directory</h4>
+          <h4 className="text-white font-semibold mb-3 text-sm">{t('nav.search')}</h4>
           <ul className="space-y-2 text-sm">
-            <li><Link to="/search?type=BUSINESS"  className="hover:text-white transition-colors">Businesses</Link></li>
-            <li><Link to="/search?type=PERSONAL"  className="hover:text-white transition-colors">People</Link></li>
-            <li><Link to="/search?type=GOVERNMENT"className="hover:text-white transition-colors">Government</Link></li>
-            <li><Link to="/search?type=NGO"       className="hover:text-white transition-colors">NGOs</Link></li>
+            <li><Link to="/search?type=BUSINESS"  className="hover:text-white transition-colors">{t('listing.business')}</Link></li>
+            <li><Link to="/search?type=PERSONAL"  className="hover:text-white transition-colors">{t('listing.personal')}</Link></li>
+            <li><Link to="/search?type=GOVERNMENT"className="hover:text-white transition-colors">{t('listing.government')}</Link></li>
+            <li><Link to="/search?type=NGO"       className="hover:text-white transition-colors">{t('listing.ngo')}</Link></li>
             <li><Link to="/add-listing"           className="hover:text-white transition-colors">{t('listing.addNew')}</Link></li>
           </ul>
         </div>

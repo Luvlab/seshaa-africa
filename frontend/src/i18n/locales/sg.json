@@ -31,7 +31,8 @@
     "delivery": "Tinde",
     "transport": "Wali",
     "business": "Tene",
-    "chat": "Yeke Na"
+    "chat": "Yeke Na",
+    "me": "Mbi"
   },
   "search": {
     "placeholder": "Yeke sêse, telefone, tene...",
@@ -531,7 +532,8 @@
     "search": "Yeke malongi...",
     "filters": "Zaïo",
     "minPrice": "Ngangu Moke",
-    "maxPrice": "Ngangu Kilo"
+    "maxPrice": "Ngangu Kilo",
+    "conditionLabel": "Ala"
   },
   "merch": {
     "title": "Biloko tî Seshaa",

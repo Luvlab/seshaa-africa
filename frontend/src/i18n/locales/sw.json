@@ -31,7 +31,8 @@
     "delivery": "Utoaji",
     "transport": "Usafirishaji",
     "business": "Biashara",
-    "chat": "Zungumza"
+    "chat": "Zungumza",
+    "me": "Mimi"
   },
   "search": {
     "placeholder": "Tafuta jina, simu, biashara...",
@@ -513,7 +514,8 @@
     "search": "Tafuta matangazo…",
     "filters": "Vichujio",
     "minPrice": "Bei ya chini",
-    "maxPrice": "Bei ya juu"
+    "maxPrice": "Bei ya juu",
+    "conditionLabel": "Hali"
   },
   "merch": {
     "title": "Bidhaa za Seshaa",
