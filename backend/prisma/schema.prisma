@@ -100,6 +100,7 @@ model Listing {
   priceEntries   PriceEntry[]
   events         Event[]
   promotions     BusinessPromotion[]
+  marketProducts MarketProduct[]  @relation("ListingMarketProducts")
   followers          Follow[]  @relation("ListingFollowers")
 
   @@index([city, country])
@@ -542,6 +543,27 @@ enum PromotionType {
   ANNOUNCEMENT // general news from the business
   HIRING       // job opening
   NEW_PRODUCT  // new product or service launch
+}
+
+// ─── Seshaa Market — business product listings ───────────────────────────────
+// GOLD and DIAMOND tier listings can list products for sale/discovery.
+model MarketProduct {
+  id          String   @id @default(uuid())
+  listingId   String
+  listing     Listing  @relation("ListingMarketProducts", fields: [listingId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  imageUrl    String?
+  price       Float?
+  currency    String   @default("USD")
+  inStock     Boolean  @default(true)
+  contactUrl  String?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([listingId])
+  @@index([active])
 }
 
 // ─── Discovered Events — scraped/API-pulled African events ──────────────────
