@@ -32,6 +32,8 @@ model User {
   eventsSubmitted        Event[]
   eventAttendances       EventAttendee[]
   radioTracks            RadioTrack[]
+  following          Follow[]  @relation("UserFollows")
+  followers          Follow[]  @relation("UserFollowers")
 }
 
 enum Role {
@@ -98,6 +100,7 @@ model Listing {
   priceEntries   PriceEntry[]
   events         Event[]
   promotions     BusinessPromotion[]
+  followers          Follow[]  @relation("ListingFollowers")
 
   @@index([city, country])
   @@index([category])
@@ -631,4 +634,22 @@ model NewsArchive {
   @@index([country, publishedAt(sort: Desc)])
   @@index([archivedAt(sort: Desc)])
   @@index([source])
+}
+
+// ─── Follow System ────────────────────────────────────────────────────────────
+model Follow {
+  id                 String   @id @default(uuid())
+  followerId         String
+  follower           User     @relation("UserFollows",      fields: [followerId],         references: [id], onDelete: Cascade)
+  followingUserId    String?
+  followingUser      User?    @relation("UserFollowers",    fields: [followingUserId],    references: [id], onDelete: Cascade)
+  followingListingId String?
+  followingListing   Listing? @relation("ListingFollowers", fields: [followingListingId], references: [id], onDelete: Cascade)
+  createdAt          DateTime @default(now())
+
+  @@unique([followerId, followingUserId])
+  @@unique([followerId, followingListingId])
+  @@index([followerId])
+  @@index([followingUserId])
+  @@index([followingListingId])
 }

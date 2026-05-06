@@ -23,11 +23,18 @@ function dmChannelId(a: string, b: string) {
   return `dm:${[a, b].sort().join(':')}`;
 }
 
-function canAccessChannel(channelId: string, channelType: string, userId: string, role: string) {
+async function canAccessChannelAsync(channelId: string, channelType: string, userId: string, role: string): Promise<boolean> {
   if (channelType === 'admin' && role !== 'ADMIN') return false;
   if (channelType === 'salesreps' && !['ADMIN', 'SALES_REP'].includes(role)) return false;
   if (channelType === 'ambassadors' && !['ADMIN', 'AMBASSADOR'].includes(role)) return false;
   if (channelId.startsWith('dm:') && !channelId.includes(userId)) return false;
+  // listing:{id} — accessible if user follows the listing OR is ADMIN
+  if (channelType === 'listing') {
+    if (role === 'ADMIN') return true;
+    const listingId = channelId.replace('listing:', '');
+    const follow = await prisma.follow.findFirst({ where: { followerId: userId, followingListingId: listingId } });
+    return Boolean(follow);
+  }
   return true;
 }
 
@@ -46,7 +53,7 @@ router.get('/:channelId', requireAuth, async (req: AuthRequest, res: Response) =
   else if (channelId.startsWith('listing:')) channelType = 'listing';
   else if (channelId.startsWith('ai:'))      channelType = 'ai';
 
-  if (!canAccessChannel(channelId, channelType, userId, role)) {
+  if (!(await canAccessChannelAsync(channelId, channelType, userId, role))) {
     return res.status(403).json({ error: 'Access denied' });
   }
 
@@ -75,7 +82,7 @@ router.post('/:channelId', requireAuth, async (req: AuthRequest, res: Response) 
   else if (channelId.startsWith('listing:')) channelType = 'listing';
   else if (channelId.startsWith('ai:'))      channelType = 'ai';
 
-  if (!canAccessChannel(channelId, channelType, userId, role)) {
+  if (!(await canAccessChannelAsync(channelId, channelType, userId, role))) {
     return res.status(403).json({ error: 'Access denied' });
   }
   if (!content?.trim()) return res.status(400).json({ error: 'content required' });
@@ -139,7 +146,21 @@ router.get('/channels/list', requireAuth, async (req: AuthRequest, res: Response
     userId, `%${userId}%`
   );
 
-  res.json({ fixed: channels, dms });
+  // Listing channels (followed listings with their community chat)
+  const followedListings = await prisma.follow.findMany({
+    where: { followerId: userId, followingListingId: { not: null } },
+    include: { followingListing: { select: { id: true, name: true, city: true } } },
+    take: 20,
+  });
+  const listingChannels = followedListings
+    .filter(f => f.followingListing)
+    .map(f => ({
+      channelId: `listing:${f.followingListing!.id}`,
+      channelType: 'listing',
+      label: `🏢 ${f.followingListing!.name}${f.followingListing!.city ? ` · ${f.followingListing!.city}` : ''}`,
+    }));
+
+  res.json({ fixed: channels, dms, listingChannels });
 });
 
 export default router;

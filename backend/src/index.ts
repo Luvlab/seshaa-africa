@@ -31,6 +31,7 @@ import radioRouter from './routes/radio';
 import messagesRouter from './routes/messages';
 import ridesRouter from './routes/rides';
 import analyticsRouter from './routes/analytics';
+import followsRouter from './routes/follows';
 
 const app = express();
 
@@ -88,6 +89,7 @@ app.use('/api/radio', radioRouter);
 app.use('/api/messages', messagesRouter);
 app.use('/api/rides', ridesRouter);
 app.use('/api/analytics', analyticsRouter);
+app.use('/api/follows', followsRouter);
 
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error(err);
