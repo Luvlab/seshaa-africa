@@ -83,78 +83,85 @@ function DiscoveredCard({ event }: { event: DiscoveredEvent }) {
   const gradient = CATEGORY_COLORS[cat] ?? CATEGORY_COLORS.Other;
   const url = event.ticketUrl || event.sourceUrl;
   const upcoming = isUpcoming(event.startDate);
+  const [imgFailed, setImgFailed] = useState(false);
+
+  // Days until event
+  const daysUntil = Math.ceil((new Date(event.startDate).getTime() - Date.now()) / 86400_000);
+  const soonLabel = daysUntil <= 0 ? 'Today' : daysUntil === 1 ? 'Tomorrow' : daysUntil <= 7 ? `${daysUntil}d away` : null;
 
   return (
     <div className="relative">
       <div className="absolute top-2 right-2 z-10">
         <FavoriteButton id={event.id ?? url} type="event" name={event.title} size={14} />
       </div>
-    <a
-      href={url} target="_blank" rel="noopener noreferrer"
-      className="group block bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow"
-    >
-      {/* 4:3 image */}
-      <div className="aspect-[4/3] overflow-hidden bg-gray-100">
-        {event.imageUrl ? (
-          <img
-            src={event.imageUrl} alt={event.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-400"
-            onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
-          />
-        ) : (
-          <div className={`w-full h-full bg-gradient-to-br ${gradient} flex flex-col items-center justify-center gap-1`}>
-            <span className="text-4xl">{CAT_EMOJI[cat] ?? '🎪'}</span>
-          </div>
-        )}
-      </div>
+      <a
+        href={url} target="_blank" rel="noopener noreferrer"
+        className="group block bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow h-full"
+      >
+        {/* Thumbnail / flyer */}
+        <div className="aspect-[16/9] overflow-hidden bg-gray-100 relative">
+          {event.imageUrl && !imgFailed ? (
+            <img
+              src={event.imageUrl} alt={event.title}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              onError={() => setImgFailed(true)}
+            />
+          ) : (
+            <div className={`w-full h-full bg-gradient-to-br ${gradient} flex flex-col items-center justify-center gap-2`}>
+              <span className="text-5xl drop-shadow">{CAT_EMOJI[cat] ?? '🎪'}</span>
+              <span className="text-white/90 text-xs font-bold uppercase tracking-widest">{cat}</span>
+            </div>
+          )}
+          {/* Overlay "soon" badge */}
+          {soonLabel && (
+            <div className="absolute bottom-2 left-2">
+              <span className="text-[11px] font-black px-2 py-0.5 rounded-full bg-yellow-400 text-yellow-900 shadow">{soonLabel}</span>
+            </div>
+          )}
+        </div>
 
-      <div className="p-4 space-y-2">
-        {/* Category + upcoming badge */}
-        <div className="flex items-center gap-2">
-          {cat !== 'Other' && (
-            <span className="text-[11px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-purple-50 text-purple-700">
+        <div className="p-3 space-y-1.5">
+          {/* Category badge */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-purple-50 text-purple-700">
               {CAT_EMOJI[cat]} {cat}
             </span>
-          )}
-          {upcoming && (
-            <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700">Upcoming</span>
-          )}
-        </div>
-
-        <h3 className="font-black text-gray-900 text-sm leading-snug line-clamp-2 group-hover:text-purple-700 transition-colors">
-          {event.title}
-        </h3>
-
-        {(event.venue || event.city) && (
-          <p className="text-xs text-gray-500 flex items-center gap-1 truncate">
-            <MapPin size={11} className="shrink-0" />
-            {[event.venue, event.city, event.country].filter(Boolean).join(', ')}
-          </p>
-        )}
-
-        <p className="text-xs text-purple-600 font-semibold flex items-center gap-1">
-          <Calendar size={11} /> {formatDate(event.startDate)}
-        </p>
-
-        <div className="flex items-center justify-between pt-1">
-          <div className="flex items-center gap-1.5">
-            {event.isFree ? (
-              <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">{t('events.free')}</span>
-            ) : event.price ? (
-              <span className="text-xs font-bold text-gray-700 flex items-center gap-1">
-                <Ticket size={10} /> {event.price}
-              </span>
-            ) : null}
+            {upcoming && daysUntil > 7 && (
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700">Upcoming</span>
+            )}
           </div>
-          {/* Source credit — always visible */}
-          <span className="text-[11px] font-semibold text-gray-400 flex items-center gap-1">
-            <Globe size={9} />
-            {event.sourceName}
-            <ExternalLink size={9} className="opacity-60" />
-          </span>
+
+          <h3 className="font-black text-gray-900 text-sm leading-snug line-clamp-2 group-hover:text-purple-700 transition-colors">
+            {event.title}
+          </h3>
+
+          <p className="text-xs text-purple-600 font-semibold flex items-center gap-1">
+            <Calendar size={10} className="shrink-0" /> {formatDate(event.startDate)}
+          </p>
+
+          {(event.venue || event.city) && (
+            <p className="text-xs text-gray-500 flex items-center gap-1 truncate">
+              <MapPin size={10} className="shrink-0" />
+              <span className="truncate">{[event.venue, event.city].filter(Boolean).join(' · ')}</span>
+            </p>
+          )}
+
+          <div className="flex items-center justify-between pt-0.5">
+            <div className="flex items-center gap-1.5">
+              {event.isFree ? (
+                <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">{t('events.free')}</span>
+              ) : event.price ? (
+                <span className="text-xs font-bold text-gray-700 flex items-center gap-1">
+                  <Ticket size={10} /> {event.price}
+                </span>
+              ) : null}
+            </div>
+            <span className="text-[10px] font-semibold text-gray-400 flex items-center gap-1 shrink-0">
+              <Globe size={9} /> {event.sourceName} <ExternalLink size={9} />
+            </span>
+          </div>
         </div>
-      </div>
-    </a>
+      </a>
     </div>
   );
 }
@@ -457,29 +464,32 @@ export default function EventsPage() {
         {tab === 'discovered' && (
           <>
             {/* Attribution note */}
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between mb-4">
               <p className="text-xs text-gray-400 flex items-center gap-1.5">
                 <Globe size={11} />
-                Events sourced from Eventbrite, TimeOut, Pulse, OkayAfrica and 25+ African publishers · links go directly to source
+                Live events from Eventbrite, Ticketmaster, TimeOut, Pulse, OkayAfrica &amp; 40+ African publishers
+                {!loadingDiscover && filteredDiscovered.length > 0 && (
+                  <span className="font-semibold text-purple-500 ml-1">· {filteredDiscovered.length} upcoming</span>
+                )}
               </p>
               {!loadingDiscover && (
                 <span className="text-xs text-gray-400 flex items-center gap-1">
-                  <Clock size={10} /> cached 1h
+                  <Clock size={10} /> refreshed hourly
                 </span>
               )}
             </div>
 
             {loadingDiscover ? (
               <div className="py-20 flex flex-col items-center gap-3 text-gray-400">
-                <Loader2 size={28} className="animate-spin" />
-                <p className="text-sm">{t('common.loading')}</p>
-                <p className="text-xs text-gray-300">Checking 30+ sources across the continent</p>
+                <Loader2 size={28} className="animate-spin text-purple-400" />
+                <p className="text-sm font-semibold">Scanning 40+ African event sources…</p>
+                <p className="text-xs text-gray-300">This can take a few seconds on first load</p>
               </div>
             ) : filteredDiscovered.length === 0 ? (
               <div className="text-center py-20">
                 <div className="text-5xl mb-4">🌍</div>
                 <p className="text-gray-500 font-semibold">{t('events.noEvents')}</p>
-                <p className="text-sm text-gray-400 mt-1">Try a different country or category</p>
+                <p className="text-sm text-gray-400 mt-1">Try selecting a different country or category, or refresh sources</p>
                 <button onClick={handleRefresh} className="mt-4 inline-flex items-center gap-2 bg-purple-600 text-white font-bold px-5 py-2.5 rounded-2xl hover:bg-purple-700">
                   <RefreshCw size={15} /> Refresh sources
                 </button>

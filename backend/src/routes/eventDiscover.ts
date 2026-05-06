@@ -35,64 +35,87 @@ export interface DiscoveredEvent {
 }
 
 // ── RSS sources with event content ───────────────────────────────────────────
-type RssSource = { name: string; url: string; country: string; city?: string; category?: string };
+// Set `eventsOnly: true` for feeds that are 100% events — skips the looksLikeEvent filter
+type RssSource = { name: string; url: string; country: string; city?: string; category?: string; eventsOnly?: boolean };
 
 const RSS_SOURCES: RssSource[] = [
   // ── Pan-Africa ────────────────────────────────────────────────────────────
-  { name: 'OkayAfrica Events',        url: 'https://www.okayafrica.com/tag/events/feed/', country: 'Pan-Africa', category: 'Culture' },
-  { name: 'AfroPunk',                 url: 'https://afropunk.com/feed/',                  country: 'Pan-Africa', category: 'Music' },
-  { name: 'Africa.com Events',        url: 'https://www.africa.com/feed/',                country: 'Pan-Africa' },
-  { name: 'The Africa Report Events', url: 'https://www.theafricareport.com/tag/events/feed/', country: 'Pan-Africa' },
+  { name: 'OkayAfrica Events',         url: 'https://www.okayafrica.com/tag/events/feed/',    country: 'Pan-Africa', category: 'Culture' },
+  { name: 'AfroPunk',                  url: 'https://afropunk.com/feed/',                     country: 'Pan-Africa', category: 'Music' },
+  { name: 'The Africa Report Events',  url: 'https://www.theafricareport.com/tag/events/feed/', country: 'Pan-Africa' },
+  { name: 'African Business Events',   url: 'https://african.business/tag/events/feed/',      country: 'Pan-Africa', category: 'Business' },
+  { name: 'This Is Africa Events',     url: 'https://thisisafrica.me/tag/events/feed/',       country: 'Pan-Africa', category: 'Culture' },
 
   // ── South Africa ──────────────────────────────────────────────────────────
-  { name: "What's On in Cape Town",   url: 'https://www.whatsonincapetown.com/feed/',     country: 'South Africa', city: 'Cape Town' },
-  { name: 'Joburg Tourism Events',    url: 'https://www.joburgtourism.com/events/feed/',  country: 'South Africa', city: 'Johannesburg' },
-  { name: 'TimeOut South Africa',     url: 'https://www.timeout.com/south-africa/rss',   country: 'South Africa' },
-  { name: 'SA Events',                url: 'https://saevents.co.za/feed/',                country: 'South Africa' },
-  { name: 'Expresso Online',          url: 'https://www.expresso.co.za/feed/',            country: 'South Africa' },
-  { name: 'CapeTownMagazine Events',  url: 'https://www.capetownmagazine.com/whats-on/feed', country: 'South Africa', city: 'Cape Town' },
+  { name: "What's On in Cape Town",    url: 'https://www.whatsonincapetown.com/feed/',        country: 'South Africa', city: 'Cape Town', eventsOnly: true },
+  { name: 'SA Events',                 url: 'https://saevents.co.za/feed/',                   country: 'South Africa', eventsOnly: true },
+  { name: 'CapeTownMagazine Events',   url: 'https://www.capetownmagazine.com/whats-on/feed', country: 'South Africa', city: 'Cape Town', eventsOnly: true },
+  { name: 'TimeOut South Africa',      url: 'https://www.timeout.com/south-africa/things-to-do/rss', country: 'South Africa', eventsOnly: true },
+  { name: 'Joburg Events',             url: 'https://joburg.co.za/events/feed/',              country: 'South Africa', city: 'Johannesburg', eventsOnly: true },
+  { name: '2Oceansvibe Events',        url: 'https://2oceansvibe.com/tag/events/feed/',       country: 'South Africa', city: 'Cape Town' },
+  { name: 'IOL Entertainment SA',      url: 'https://www.iol.co.za/entertainment/rss',        country: 'South Africa' },
 
   // ── Nigeria ───────────────────────────────────────────────────────────────
-  { name: 'Pulse Nigeria Events',     url: 'https://www.pulse.ng/entertainment/rss',     country: 'Nigeria', category: 'Entertainment' },
-  { name: 'BellaNaija Events',        url: 'https://www.bellanaija.com/tag/event/feed/', country: 'Nigeria', category: 'Culture' },
-  { name: 'Lagos Events',             url: 'https://lagosevents.com/feed/',               country: 'Nigeria', city: 'Lagos' },
-  { name: 'Naira Events',             url: 'https://nairaevents.com/feed/',               country: 'Nigeria' },
+  { name: 'Lagos Events',              url: 'https://lagosevents.com/feed/',                  country: 'Nigeria', city: 'Lagos', eventsOnly: true },
+  { name: 'BellaNaija Events',         url: 'https://www.bellanaija.com/tag/event/feed/',     country: 'Nigeria', category: 'Culture' },
+  { name: 'Pulse Nigeria Events',      url: 'https://www.pulse.ng/entertainment/rss',         country: 'Nigeria', category: 'Entertainment' },
+  { name: 'Guardian Nigeria Events',   url: 'https://guardian.ng/tag/events/feed/',           country: 'Nigeria' },
+  { name: 'This Day Events',           url: 'https://www.thisdaylive.com/index.php/category/arts-culture/feed/', country: 'Nigeria' },
 
   // ── Kenya ─────────────────────────────────────────────────────────────────
-  { name: 'TimeOut Nairobi',          url: 'https://www.timeout.com/nairobi/rss',        country: 'Kenya', city: 'Nairobi' },
-  { name: 'Pulse Kenya Events',       url: 'https://www.pulselive.co.ke/entertainment/rss', country: 'Kenya', category: 'Entertainment' },
-  { name: 'Nairobi Events Guide',     url: 'https://nairobievents.com/feed/',             country: 'Kenya', city: 'Nairobi' },
-  { name: 'Nairobi Wire Events',      url: 'https://nairobiwire.com/tag/events/feed/',   country: 'Kenya', city: 'Nairobi' },
+  { name: 'TimeOut Nairobi',           url: 'https://www.timeout.com/nairobi/things-to-do/rss', country: 'Kenya', city: 'Nairobi', eventsOnly: true },
+  { name: 'Pulse Kenya Events',        url: 'https://www.pulselive.co.ke/entertainment/rss',  country: 'Kenya', category: 'Entertainment' },
+  { name: 'Nairobi Events',            url: 'https://nairobievents.com/feed/',                country: 'Kenya', city: 'Nairobi', eventsOnly: true },
+  { name: 'Nairobi Wire Events',       url: 'https://nairobiwire.com/tag/events/feed/',       country: 'Kenya', city: 'Nairobi' },
+  { name: 'Standard Media Events KE',  url: 'https://www.standardmedia.co.ke/tag/events/rss', country: 'Kenya' },
 
   // ── Ghana ─────────────────────────────────────────────────────────────────
-  { name: 'Ghana Events Online',      url: 'https://www.ghanaeventsonline.com/feed/',    country: 'Ghana', city: 'Accra' },
-  { name: 'MyJoyOnline Events',       url: 'https://www.myjoyonline.com/entertainment/feed/', country: 'Ghana', category: 'Entertainment' },
+  { name: 'Ghana Events Online',       url: 'https://www.ghanaeventsonline.com/feed/',        country: 'Ghana', city: 'Accra', eventsOnly: true },
+  { name: 'MyJoyOnline Entertainment', url: 'https://www.myjoyonline.com/entertainment/feed/', country: 'Ghana', category: 'Entertainment' },
+  { name: 'GhanaWeb Entertainment',    url: 'https://www.ghanaweb.com/GhanaHomePage/entertainment/rss.php', country: 'Ghana' },
+  { name: 'Citifmonline Events',       url: 'https://citifmonline.com/tag/events/feed/',      country: 'Ghana', city: 'Accra' },
 
   // ── Tanzania ──────────────────────────────────────────────────────────────
-  { name: 'IPPMedia Events',          url: 'https://www.ippmedia.com/en/lifestyle/feed', country: 'Tanzania' },
+  { name: 'IPPMedia Lifestyle',        url: 'https://www.ippmedia.com/en/lifestyle/feed',     country: 'Tanzania' },
+  { name: 'Citizen Tanzania Events',   url: 'https://www.thecitizen.co.tz/tag/events/rss',   country: 'Tanzania' },
 
   // ── Uganda ────────────────────────────────────────────────────────────────
-  { name: 'Pulse Uganda Events',      url: 'https://www.pulselive.co.ug/entertainment/rss', country: 'Uganda', category: 'Entertainment' },
+  { name: 'Pulse Uganda Events',       url: 'https://www.pulselive.co.ug/entertainment/rss', country: 'Uganda', category: 'Entertainment' },
+  { name: 'Kampala Guide Events',      url: 'https://www.kampala.guide/events/feed/',         country: 'Uganda', city: 'Kampala', eventsOnly: true },
 
   // ── Egypt ─────────────────────────────────────────────────────────────────
-  { name: 'Egyptian Streets Events',  url: 'https://egyptianstreets.com/tag/events/feed/', country: 'Egypt' },
-  { name: 'Cairo 360',                url: 'https://www.cairo360.com/feed/',               country: 'Egypt', city: 'Cairo' },
+  { name: 'Egyptian Streets Events',   url: 'https://egyptianstreets.com/tag/events/feed/',  country: 'Egypt' },
+  { name: 'Cairo 360 Events',          url: 'https://www.cairo360.com/events/feed/',          country: 'Egypt', city: 'Cairo', eventsOnly: true },
+  { name: 'Egypt Independent Events',  url: 'https://egyptindependent.com/tag/events/feed/', country: 'Egypt' },
 
   // ── Morocco ───────────────────────────────────────────────────────────────
-  { name: 'Morocco World News Events',url: 'https://www.moroccoworldnews.com/category/culture/feed/', country: 'Morocco', category: 'Culture' },
+  { name: 'Morocco World News Culture',url: 'https://www.moroccoworldnews.com/category/culture/feed/', country: 'Morocco', category: 'Culture' },
+  { name: 'H24 Info Maroc Events',     url: 'https://www.h24info.ma/tag/evenement/feed/',    country: 'Morocco' },
 
   // ── Ethiopia ──────────────────────────────────────────────────────────────
-  { name: 'Addis Events',             url: 'https://addisevents.com/feed/',                country: 'Ethiopia', city: 'Addis Ababa' },
-  { name: 'Addis Fortune',            url: 'https://addisfortune.news/feed/',              country: 'Ethiopia', city: 'Addis Ababa' },
+  { name: 'Addis Fortune',             url: 'https://addisfortune.news/feed/',                country: 'Ethiopia', city: 'Addis Ababa' },
+  { name: 'Addis Standard Events',     url: 'https://addisstandard.com/tag/events/feed/',    country: 'Ethiopia' },
 
-  // ── Senegal ───────────────────────────────────────────────────────────────
-  { name: 'Dakar Actu Events',        url: 'https://www.dakaractu.com/rss/feed.xml',       country: 'Senegal', city: 'Dakar' },
+  // ── Senegal / West Africa ─────────────────────────────────────────────────
+  { name: 'Seneplus Events',           url: 'https://www.seneplus.com/tag/evenements/rss',   country: 'Senegal', city: 'Dakar' },
+  { name: 'Abidjan Events',            url: 'https://www.abidjan.net/rss/news.asp',          country: "Côte d'Ivoire", city: 'Abidjan' },
 
   // ── Rwanda ────────────────────────────────────────────────────────────────
-  { name: 'KigaliWire Events',        url: 'https://www.kigaliwire.com/feed/',             country: 'Rwanda', city: 'Kigali' },
+  { name: 'KigaliWire Events',         url: 'https://www.kigaliwire.com/feed/',              country: 'Rwanda', city: 'Kigali' },
+  { name: 'New Times Rwanda Events',   url: 'https://www.newtimes.co.rw/section/events/rss', country: 'Rwanda', eventsOnly: true },
 
   // ── Zimbabwe ─────────────────────────────────────────────────────────────
-  { name: 'Zimbabwe Events',          url: 'https://www.zimevents.co.zw/feed/',            country: 'Zimbabwe' },
+  { name: 'Zimbabwe Events',           url: 'https://www.zimevents.co.zw/feed/',             country: 'Zimbabwe', eventsOnly: true },
+  { name: 'ZimPraise Events',          url: 'https://zimpraise.com/feed/',                   country: 'Zimbabwe' },
+
+  // ── Zambia ───────────────────────────────────────────────────────────────
+  { name: 'Lusaka Times Events',       url: 'https://www.lusakatimes.com/tag/events/feed/',  country: 'Zambia', city: 'Lusaka' },
+
+  // ── Cameroon ─────────────────────────────────────────────────────────────
+  { name: 'Cameroon Tribune Events',   url: 'https://www.cameroon-tribune.cm/category/culture/feed/', country: 'Cameroon' },
+
+  // ── Tunisia ──────────────────────────────────────────────────────────────
+  { name: 'Business News Tunisia',     url: 'https://www.businessnews.com.tn/feeds/rss',    country: 'Tunisia' },
 ];
 
 // ── RSS parser ────────────────────────────────────────────────────────────────
@@ -113,23 +136,31 @@ const parser = new Parser({
 function extractImage(item: Record<string, unknown>): string | undefined {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mt = item.mediaThumbnail as any;
-  if (mt?.$?.url) return mt.$.url;
+  if (mt?.$?.url && /^https?:\/\//.test(mt.$.url)) return mt.$.url;
+  if (Array.isArray(mt) && mt[0]?.$?.url) return mt[0].$.url;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mc = item.mediaContent as any;
-  if (mc?.$?.url) return mc.$.url;
+  if (mc?.$?.url && /^https?:\/\//.test(mc.$.url)) return mc.$.url;
+  if (Array.isArray(mc) && mc[0]?.$?.url) return mc[0].$.url;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const enc = item.enclosure as any;
-  if (enc?.url) return enc.url;
-  // fallback: first <img src> in content
-  const html = (item.content as string) || (item['content:encoded'] as string) || '';
-  const m = html.match(/<img[^>]+src=["']([^"']+)["']/i);
-  return m?.[1];
+  if (enc?.url && /image/i.test(enc.type ?? '')) return enc.url;
+  // Search in all HTML fields
+  const htmlFields = ['content:encoded', 'content', 'summary', 'description'];
+  for (const field of htmlFields) {
+    const html = (item[field] as string) || '';
+    if (!html) continue;
+    // Try data-lazy-src, data-src, src in that order
+    const m = html.match(/<img[^>]+(?:data-lazy-src|data-src|src)=["']([^"']+)["']/i);
+    if (m?.[1] && /^https?:\/\//.test(m[1]) && !/1x1|spacer|blank|pixel/i.test(m[1])) return m[1];
+  }
+  return undefined;
 }
 
 // Heuristic: does this RSS item look like an event (not just general news)?
 function looksLikeEvent(title: string, desc: string): boolean {
   const text = (title + ' ' + desc).toLowerCase();
-  return /\b(concert|festival|event|show|exhibition|fair|expo|summit|conference|gala|launch|performance|competition|tournament|workshop|seminar|marathon|race|carnival|parade|ceremony|match|game|screening|film|tour|party|meetup|hackathon|fashion|award|ceremony)\b/.test(text);
+  return /\b(concert|festival|event|show|exhibition|fair|expo|summit|conference|gala|launch|performance|competition|tournament|workshop|seminar|marathon|race|carnival|parade|ceremony|match|game|screening|film|tour|party|meetup|hackathon|fashion|week|award|ceremony|live|night|outdoor|indoor|grand.?prix|championship|league|cup|fete|fêt|foire|spectacle|soirée|bal|gala|symposium|retreat|bootcamp|accelerator|demo.?day|graduation|fundraiser|charity|auction|bazaar|market|open.?day)\b/.test(text);
 }
 
 function guessCategory(title: string, desc: string): string {
@@ -147,16 +178,20 @@ async function scrapeRss(src: RssSource): Promise<DiscoveredEvent[]> {
   try {
     const feed = await parser.parseURL(src.url);
     const results: DiscoveredEvent[] = [];
+    // Prune items older than 60 days from publication
+    const cutoff = Date.now() - 60 * 86400_000;
 
-    for (const item of feed.items.slice(0, 15)) {
+    for (const item of feed.items.slice(0, 20)) {
       const title   = item.title?.trim() || '';
       const link    = item.link || '';
-      const desc    = (item.contentSnippet || item.summary || '').slice(0, 500);
+      const desc    = (item.contentSnippet || item.summary || '').slice(0, 600);
       const pubDate = item.pubDate ? new Date(item.pubDate) : new Date();
       const image   = extractImage(item as unknown as Record<string, unknown>);
 
       if (!title || !link) continue;
-      if (!looksLikeEvent(title, desc)) continue;
+      if (pubDate.getTime() < cutoff) continue; // skip very old items
+      // Skip the looksLikeEvent filter for dedicated event feeds
+      if (!src.eventsOnly && !looksLikeEvent(title, desc)) continue;
 
       // Use pubDate as a proxy for startDate (RSS events rarely have structured dates)
       const startDate = pubDate.toISOString();
@@ -166,7 +201,7 @@ async function scrapeRss(src: RssSource): Promise<DiscoveredEvent[]> {
         title,
         description: desc || undefined,
         startDate,
-        city:        src.city ?? (feed.title?.split(' ')[0] ?? 'TBD'),
+        city:        src.city ?? 'TBD',
         country:     src.country,
         imageUrl:    image,
         sourceUrl:   link,
@@ -176,6 +211,54 @@ async function scrapeRss(src: RssSource): Promise<DiscoveredEvent[]> {
       });
     }
     return results;
+  } catch { return []; }
+}
+
+// ── Ticketmaster Discovery API ────────────────────────────────────────────────
+const TM_KEY = () => process.env.TICKETMASTER_API_KEY;
+
+// Two-letter country codes for African nations on Ticketmaster
+const TM_COUNTRIES = ['ZA', 'NG', 'KE', 'GH', 'EG', 'MA', 'TN', 'ET', 'TZ', 'UG', 'RW', 'CM', 'SN', 'CI'];
+
+const TM_COUNTRY_NAMES: Record<string, string> = {
+  ZA: 'South Africa', NG: 'Nigeria', KE: 'Kenya', GH: 'Ghana', EG: 'Egypt',
+  MA: 'Morocco', TN: 'Tunisia', ET: 'Ethiopia', TZ: 'Tanzania', UG: 'Uganda',
+  RW: 'Rwanda', CM: 'Cameroon', SN: 'Senegal', CI: "Côte d'Ivoire",
+};
+
+async function fetchTicketmaster(countryCode: string): Promise<DiscoveredEvent[]> {
+  const key = TM_KEY();
+  if (!key) return [];
+  try {
+    const qs = new URLSearchParams({
+      countryCode,
+      size: '20',
+      sort: 'date,asc',
+      startDateTime: new Date().toISOString().replace(/\.\d{3}Z$/, 'Z'),
+      apikey: key,
+    });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const data = await httpsGet(`https://app.ticketmaster.com/discovery/v2/events.json?${qs}`) as { _embedded?: { events?: any[] } };
+    const events = data._embedded?.events ?? [];
+    const country = TM_COUNTRY_NAMES[countryCode] ?? countryCode;
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return events.map((e: any) => ({
+      id:          `tm_${e.id}`,
+      title:       e.name ?? '',
+      description: e.info?.slice(0, 400) ?? e.pleaseNote?.slice(0, 400),
+      startDate:   e.dates?.start?.dateTime ?? e.dates?.start?.localDate ?? new Date().toISOString(),
+      venue:       e._embedded?.venues?.[0]?.name,
+      city:        e._embedded?.venues?.[0]?.city?.name ?? '',
+      country,
+      imageUrl:    e.images?.find((i: {ratio?: string}) => i.ratio === '16_9')?.url ?? e.images?.[0]?.url,
+      sourceUrl:   e.url ?? '',
+      sourceName:  'Ticketmaster',
+      category:    e.classifications?.[0]?.genre?.name ?? e.classifications?.[0]?.segment?.name ?? 'Other',
+      isFree:      false,
+      price:       e.priceRanges ? `${e.priceRanges[0]?.min} ${e.priceRanges[0]?.currency}` : undefined,
+      ticketUrl:   e.url,
+    })).filter((e: { title: string; sourceUrl: string }) => e.title && e.sourceUrl);
   } catch { return []; }
 }
 
@@ -282,6 +365,15 @@ async function refreshCache(): Promise<DiscoveredEvent[]> {
       }
     }
 
+    // Ticketmaster (when key is configured) — batch by country
+    if (TM_KEY()) {
+      for (let i = 0; i < TM_COUNTRIES.length; i += 4) {
+        const batch = TM_COUNTRIES.slice(i, i + 4);
+        const results = await Promise.all(batch.map(fetchTicketmaster));
+        results.forEach(r => allItems.push(...r));
+      }
+    }
+
     // Deduplicate by sourceUrl
     const seen = new Set<string>();
     const unique = allItems.filter(e => {
@@ -367,15 +459,23 @@ router.get('/discover', async (req, res) => {
   const country  = req.query.country  ? String(req.query.country)  : '';
   const category = req.query.category ? String(req.query.category) : '';
   const q        = req.query.q        ? String(req.query.q).toLowerCase() : '';
-  const limit    = Math.min(parseInt(String(req.query.limit ?? '50'), 10) || 50, 100);
+  const limit    = Math.min(parseInt(String(req.query.limit ?? '60'), 10) || 60, 200);
   const fresh    = req.query.refresh === '1';
+  // upcoming=1 (default) → only show events from yesterday onward
+  const upcomingOnly = req.query.upcoming !== '0';
 
   if (fresh) cacheExpiry = 0; // force refresh
 
   try {
     let events = await getEvents();
 
-    if (country)  events = events.filter(e => e.country.toLowerCase() === country.toLowerCase());
+    // Default: only upcoming events (started within last 24h or in the future)
+    if (upcomingOnly) {
+      const cutoff = Date.now() - 24 * 60 * 60_000;
+      events = events.filter(e => new Date(e.startDate).getTime() >= cutoff);
+    }
+
+    if (country)  events = events.filter(e => e.country.toLowerCase().includes(country.toLowerCase()) || country.toLowerCase().includes(e.country.toLowerCase()));
     if (category) events = events.filter(e => e.category?.toLowerCase() === category.toLowerCase());
     if (q) {
       const terms = q.split(/\s+/).filter(Boolean);
@@ -384,6 +484,17 @@ router.get('/discover', async (req, res) => {
         return terms.every(t => blob.includes(t));
       });
     }
+
+    // Sort: upcoming first, then chronological
+    const now = Date.now();
+    events.sort((a, b) => {
+      const aT = new Date(a.startDate).getTime();
+      const bT = new Date(b.startDate).getTime();
+      const aFuture = aT >= now;
+      const bFuture = bT >= now;
+      if (aFuture !== bFuture) return aFuture ? -1 : 1;
+      return aT - bT;
+    });
 
     res.json({ total: events.length, events: events.slice(0, limit) });
   } catch (err) {
