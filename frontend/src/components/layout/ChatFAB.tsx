@@ -11,6 +11,7 @@ import { X, Sparkles, Send, MessagesSquare, ArrowRight } from 'lucide-react';
 import { useAuthStore } from '../../store/auth';
 import api from '../../services/api';
 import type { ChatRoom } from '../../types';
+import SeshaaTitle from '../brand/SeshaaTitle';
 
 interface AIMsg { role: 'user' | 'assistant'; content: string; }
 
@@ -36,6 +37,84 @@ function LinkifiedText({ text }: { text: string }) {
   );
 }
 
+interface LMsg { id: string; senderId: string; senderName: string; content: string; createdAt: string; }
+
+function ListingChatPane({ channelId, label, onBack, userId }: { channelId: string; label: string; onBack: () => void; userId: string }) {
+  const [msgs, setMsgs] = useState<LMsg[]>([]);
+  const [input, setInput] = useState('');
+  const [sending, setSending] = useState(false);
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const r = await api.get<LMsg[]>(`/messages/${channelId}`);
+        setMsgs(r.data);
+        bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+      } catch { /* ignore */ }
+    };
+    load();
+    const id = setInterval(load, 5000);
+    return () => clearInterval(id);
+  }, [channelId]);
+
+  const send = async () => {
+    const content = input.trim();
+    if (!content || sending) return;
+    setSending(true);
+    try {
+      await api.post(`/messages/${channelId}`, { content });
+      setInput('');
+      const r = await api.get<LMsg[]>(`/messages/${channelId}`);
+      setMsgs(r.data);
+    } catch { /* ignore */ }
+    setSending(false);
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  return (
+    <>
+      <div className="px-3 py-2 border-b bg-gray-50 flex items-center gap-2 shrink-0">
+        <button onClick={onBack} className="text-gray-400 hover:text-gray-600 text-lg leading-none">‹</button>
+        <span className="text-sm font-semibold text-gray-800 truncate flex-1">{label.replace('🏢 ', '')}</span>
+      </div>
+      <div className="flex-1 overflow-y-auto p-3 space-y-2 overscroll-contain">
+        {msgs.length === 0 && (
+          <div className="text-center py-8 text-gray-400 text-xs">No messages yet. Start the conversation!</div>
+        )}
+        {msgs.map(m => (
+          <div key={m.id} className={`flex ${m.senderId === userId ? 'justify-end' : 'justify-start'}`}>
+            <div className="max-w-[85%]">
+              {m.senderId !== userId && (
+                <p className="text-[10px] text-gray-500 mb-0.5 px-1">{m.senderName}</p>
+              )}
+              <div className={`rounded-2xl px-3 py-2 text-sm ${m.senderId === userId ? 'text-white' : 'bg-gray-100 text-gray-800'}`}
+                style={m.senderId === userId ? { background: 'var(--cp,#008751)' } : {}}>
+                {m.content}
+              </div>
+            </div>
+          </div>
+        ))}
+        <div ref={bottomRef} />
+      </div>
+      <div className="p-3 border-t shrink-0 flex gap-2">
+        <input
+          className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-green-400"
+          placeholder="Message…"
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && send()}
+        />
+        <button onClick={send} disabled={!input.trim() || sending}
+          className="text-white px-3 py-2 rounded-xl disabled:opacity-50 shrink-0"
+          style={{ background: 'var(--cp,#008751)' }}>
+          <Send size={16} />
+        </button>
+      </div>
+    </>
+  );
+}
+
 export default function ChatFAB() {
   const { user } = useAuthStore();
   const { pathname } = useLocation();
@@ -50,6 +129,8 @@ export default function ChatFAB() {
   const [rooms, setRooms]         = useState<ChatRoom[]>([]);
   const [unread, setUnread]       = useState(0);
   const [shareCopied, setShareCopied] = useState('');
+  const [listingChannels, setListingChannels] = useState<{ channelId: string; label: string }[]>([]);
+  const [activeChannel, setActiveChannel] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   // ── Event listeners ───────────────────────────────────────────────────────
@@ -80,14 +161,20 @@ export default function ChatFAB() {
   // Close when navigating
   useEffect(() => { setOpen(false); }, [pathname]);
 
-  // Poll unread DM count
+  // Poll unread DM count and listing channels
   useEffect(() => {
     if (!user) return;
-    const load = () =>
-      api.get('/chat/rooms').then(r => {
-        setRooms(r.data);
-        setUnread(r.data.reduce((s: number, room: ChatRoom) => s + (room.unreadCount || 0), 0));
-      }).catch(() => {});
+    const load = async () => {
+      try {
+        const [roomsRes, chRes] = await Promise.all([
+          api.get('/chat/rooms'),
+          api.get('/messages/channels/list'),
+        ]);
+        setRooms(roomsRes.data);
+        setUnread(roomsRes.data.reduce((s: number, room: ChatRoom) => s + (room.unreadCount || 0), 0));
+        setListingChannels(chRes.data.listingChannels || []);
+      } catch { /* ignore */ }
+    };
     load();
     const id = setInterval(load, 30_000);
     return () => clearInterval(id);
@@ -161,10 +248,14 @@ export default function ChatFAB() {
         className="flex items-center gap-2 px-4 py-3 shrink-0"
         style={{ background: 'var(--cp, #008751)' }}
       >
-        <Sparkles size={16} className="text-white/80 shrink-0" />
-        <span className="font-bold text-white flex-1 text-sm">
-          {view === 'messages' ? 'Messages' : 'Seshaa.ai Support'}
-        </span>
+        {view === 'ai' ? (
+          <Sparkles size={16} className="text-white/80 shrink-0" />
+        ) : (
+          <MessagesSquare size={16} className="text-white/80 shrink-0" />
+        )}
+        <div className="flex-1">
+          <SeshaaTitle staticSuffix={view === 'ai' ? 'ai' : 'chat'} size="sm" />
+        </div>
 
         {/* Toggle to messages / back to AI */}
         {user && view === 'ai' && (
@@ -266,8 +357,18 @@ export default function ChatFAB() {
         </>
       )}
 
+      {/* ── Listing channel chat view ── */}
+      {view === 'messages' && activeChannel && (
+        <ListingChatPane
+          channelId={activeChannel}
+          label={listingChannels.find(c => c.channelId === activeChannel)?.label ?? activeChannel}
+          onBack={() => setActiveChannel(null)}
+          userId={user?.id ?? ''}
+        />
+      )}
+
       {/* ── Messages (DMs) view ── */}
-      {view === 'messages' && (
+      {view === 'messages' && !activeChannel && (
         <>
           {!user ? (
             <div className="flex-1 flex flex-col items-center justify-center gap-3 p-6 text-center">
@@ -316,6 +417,26 @@ export default function ChatFAB() {
                       )}
                     </button>
                   ))
+                )}
+                {listingChannels.length > 0 && (
+                  <div className="border-t border-gray-100">
+                    <p className="px-4 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Business Chats</p>
+                    {listingChannels.map(ch => (
+                      <button
+                        key={ch.channelId}
+                        onClick={() => setActiveChannel(ch.channelId)}
+                        className="w-full text-left px-4 py-2.5 hover:bg-gray-50 flex items-center gap-3"
+                      >
+                        <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shrink-0 text-white bg-emerald-600">
+                          🏢
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-800 truncate">{ch.label.replace('🏢 ', '')}</p>
+                          <p className="text-xs text-gray-400">Community chat</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
                 )}
               </div>
               <div className="p-3 border-t shrink-0">

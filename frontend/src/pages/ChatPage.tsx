@@ -280,6 +280,7 @@ export default function ChatPage() {
   const [tab, setTab]             = useState<Tab>('ai');
   const [fixedChs, setFixed]      = useState<FixedChannel[]>([]);
   const [dmChs, setDms]           = useState<DmChannel[]>([]);
+  const [listingChs, setListingChs] = useState<{ channelId: string; channelType: string; label: string }[]>([]);
   const [active, setActive]       = useState<string | null>(null);
   const [newDmId, setNewDmId]     = useState('');
   const [showNewDm, setShowNewDm] = useState(false);
@@ -290,13 +291,13 @@ export default function ChatPage() {
   useEffect(() => {
     if (!user) return;
     api.get('/messages/channels/list')
-      .then(r => { setFixed(r.data.fixed || []); setDms(r.data.dms || []); setLoaded(true); })
+      .then(r => { setFixed(r.data.fixed || []); setDms(r.data.dms || []); setListingChs(r.data.listingChannels || []); setLoaded(true); })
       .catch(() => setLoaded(true));
     if (isAdmin) api.get('/admin/stats').then(r => setStats(r.data)).catch(() => {});
   }, [user, isAdmin]);
 
   const refreshDms = () => {
-    api.get('/messages/channels/list').then(r => { setFixed(r.data.fixed || []); setDms(r.data.dms || []); }).catch(() => {});
+    api.get('/messages/channels/list').then(r => { setFixed(r.data.fixed || []); setDms(r.data.dms || []); setListingChs(r.data.listingChannels || []); }).catch(() => {});
   };
 
   const startDm = async () => {
@@ -389,6 +390,21 @@ export default function ChatPage() {
                 </button>
               ))}
               {dmOpen && loaded && dmChs.length === 0 && <p className="px-4 py-2 text-xs text-gray-400">No conversations yet</p>}
+              {/* Listing/Business channels */}
+              {tab === 'messages' && listingChs.length > 0 && (
+                <>
+                  <div className="px-3 py-1.5 mt-1">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Business Chats</span>
+                  </div>
+                  {listingChs.map(ch => (
+                    <button key={ch.channelId} onClick={() => setActive(ch.channelId)}
+                      className={`w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 transition-colors ${active === ch.channelId ? 'bg-gray-100' : ''}`}>
+                      <div className="w-7 h-7 rounded-full bg-emerald-100 flex items-center justify-center text-xs shrink-0">🏢</div>
+                      <span className="text-sm font-medium text-gray-700 truncate flex-1">{ch.label.replace('🏢 ', '')}</span>
+                    </button>
+                  ))}
+                </>
+              )}
             </>
           )}
           {tab === 'admin' && hasHub && (
@@ -454,6 +470,18 @@ export default function ChatPage() {
                           <p className="text-xs font-medium text-gray-800 truncate">{dm.channelId.replace('dm:', '').replace(user.id, '').replace(/^:/, '')}</p>
                           <p className="text-[10px] text-gray-400 truncate">{dm.lastMsg}</p>
                         </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {listingChs.length > 0 && (
+                  <div className="w-full max-w-xs space-y-1 text-left mb-4">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-1 mb-1">Business Chats</p>
+                    {listingChs.map(ch => (
+                      <button key={ch.channelId} onClick={() => setActive(ch.channelId)}
+                        className="w-full flex items-center gap-2 px-3 py-2 rounded-xl bg-white border hover:bg-gray-50 transition-colors">
+                        <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-sm shrink-0">🏢</div>
+                        <span className="text-xs font-medium text-gray-800 truncate flex-1">{ch.label.replace('🏢 ', '')}</span>
                       </button>
                     ))}
                   </div>
