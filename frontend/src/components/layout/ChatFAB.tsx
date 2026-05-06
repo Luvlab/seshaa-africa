@@ -1,13 +1,13 @@
 /**
  * ChatFAB — Global chat overlay for Seshaa.
  *
- * • Always-on Seshaa AI assistant (no login required)
- * • DM access (requires login) — full chat is at /messages
- * • Opened from header (desktop) and footer menu (mobile)
+ * Opens as a single window defaulting to Seshaa.ai Support.
+ * Messages list is accessible via the header link.
+ * Starts exactly below the navbar and stops above the bottom tab bar on mobile.
  */
 import { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { MessageCircle, X, Sparkles, Send, MessagesSquare, ArrowRight } from 'lucide-react';
+import { X, Sparkles, Send, MessagesSquare, ArrowRight } from 'lucide-react';
 import { useAuthStore } from '../../store/auth';
 import api from '../../services/api';
 import type { ChatRoom } from '../../types';
@@ -15,23 +15,23 @@ import type { ChatRoom } from '../../types';
 interface AIMsg { role: 'user' | 'assistant'; content: string; }
 
 const SHARE_LINKS = [
-  { label: 'Home', url: 'https://www.seshaa.africa/' },
-  { label: 'Directory', url: 'https://www.seshaa.africa/search' },
-  { label: 'News', url: 'https://www.seshaa.africa/news' },
+  { label: 'Home',        url: 'https://www.seshaa.africa/' },
+  { label: 'Directory',   url: 'https://www.seshaa.africa/search' },
+  { label: 'News',        url: 'https://www.seshaa.africa/news' },
   { label: 'Classifieds', url: 'https://www.seshaa.africa/classifieds' },
-  { label: 'Prices', url: 'https://www.seshaa.africa/prices' },
-  { label: 'Events', url: 'https://www.seshaa.africa/events' },
+  { label: 'Prices',      url: 'https://www.seshaa.africa/prices' },
+  { label: 'Events',      url: 'https://www.seshaa.africa/events' },
 ];
 
 function LinkifiedText({ text }: { text: string }) {
   const parts = text.split(/(https?:\/\/[^\s]+)/g);
   return (
     <>
-      {parts.map((part, i) => (
+      {parts.map((part, i) =>
         /^https?:\/\//.test(part)
           ? <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="underline break-all">{part}</a>
           : <span key={i}>{part}</span>
-      ))}
+      )}
     </>
   );
 }
@@ -40,44 +40,47 @@ export default function ChatFAB() {
   const { user } = useAuthStore();
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const [open, setOpen]       = useState(false);
-  const [tab, setTab]         = useState<'ai' | 'messages'>('ai');
-  const [aiInput, setAiInput] = useState('');
-  const [aiMsgs, setAiMsgs]   = useState<AIMsg[]>([]);
+
+  const [open, setOpen]           = useState(false);
+  // 'ai' = Seshaa AI support (default), 'messages' = DM list
+  const [view, setView]           = useState<'ai' | 'messages'>('ai');
+  const [aiInput, setAiInput]     = useState('');
+  const [aiMsgs, setAiMsgs]       = useState<AIMsg[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
-  const [rooms, setRooms]     = useState<ChatRoom[]>([]);
-  const [unread, setUnread]   = useState(0);
-  const [shareCopied, setShareCopied] = useState<string>('');
+  const [rooms, setRooms]         = useState<ChatRoom[]>([]);
+  const [unread, setUnread]       = useState(0);
+  const [shareCopied, setShareCopied] = useState('');
   const bottomRef = useRef<HTMLDivElement>(null);
 
+  // ── Event listeners ───────────────────────────────────────────────────────
   useEffect(() => {
     const onOpen = (event: Event) => {
       const detail = (event as CustomEvent<{ tab?: 'ai' | 'messages' }>).detail;
-      if (detail?.tab) setTab(detail.tab);
+      // Default to 'ai' unless explicitly set to 'messages'
+      setView(detail?.tab === 'messages' ? 'messages' : 'ai');
       setOpen(true);
     };
     const onToggle = (event: Event) => {
       const detail = (event as CustomEvent<{ tab?: 'ai' | 'messages' }>).detail;
-      if (detail?.tab) setTab(detail.tab);
+      setView(detail?.tab === 'messages' ? 'messages' : 'ai');
       setOpen(v => !v);
     };
     const onClose = () => setOpen(false);
-    window.addEventListener('seshaa:chat-open', onOpen as EventListener);
-    window.addEventListener('seshaa:chat-toggle', onToggle as EventListener);
-    window.addEventListener('seshaa:chat-close', onClose as EventListener);
+
+    window.addEventListener('seshaa:chat-open',   onOpen    as EventListener);
+    window.addEventListener('seshaa:chat-toggle', onToggle  as EventListener);
+    window.addEventListener('seshaa:chat-close',  onClose);
     return () => {
-      window.removeEventListener('seshaa:chat-open', onOpen as EventListener);
-      window.removeEventListener('seshaa:chat-toggle', onToggle as EventListener);
-      window.removeEventListener('seshaa:chat-close', onClose as EventListener);
+      window.removeEventListener('seshaa:chat-open',   onOpen    as EventListener);
+      window.removeEventListener('seshaa:chat-toggle', onToggle  as EventListener);
+      window.removeEventListener('seshaa:chat-close',  onClose);
     };
   }, []);
 
-  useEffect(() => {
-    if (!open) return;
-    setOpen(false);
-  }, [pathname]);
+  // Close when navigating
+  useEffect(() => { setOpen(false); }, [pathname]);
 
-  // Poll unread count every 30 s when user is logged in
+  // Poll unread DM count
   useEffect(() => {
     if (!user) return;
     const load = () =>
@@ -90,10 +93,12 @@ export default function ChatFAB() {
     return () => clearInterval(id);
   }, [user]);
 
+  // Auto-scroll to newest AI message
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [aiMsgs]);
 
+  // ── AI chat send ──────────────────────────────────────────────────────────
   const sendAI = async () => {
     const msg = aiInput.trim();
     if (!msg) return;
@@ -101,7 +106,6 @@ export default function ChatFAB() {
     setAiMsgs(m => [...m, userMsg]);
     setAiInput('');
     setAiLoading(true);
-
     try {
       const res = await fetch(
         `${import.meta.env.VITE_API_URL || 'http://localhost:3001/api'}/ai/chat`,
@@ -115,7 +119,6 @@ export default function ChatFAB() {
       if (!reader) return;
       let text = '';
       setAiMsgs(m => [...m, { role: 'assistant', content: '' }]);
-
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
@@ -137,139 +140,150 @@ export default function ChatFAB() {
     }
   };
 
-  const QUICK = ['Hotels in Nairobi', 'Salons in Lagos', 'Send money to Ghana', 'Hospitals in Accra'];
-
   const shareLink = async (label: string, url: string) => {
-    const msg = `Check this on Seshaa: ${url}`;
-    setAiMsgs(m => [...m, { role: 'user', content: msg }]);
+    setAiMsgs(m => [...m, { role: 'user', content: `Check this on Seshaa: ${url}` }]);
     try {
       await navigator.clipboard.writeText(url);
       setShareCopied(label);
       setTimeout(() => setShareCopied(''), 1400);
-    } catch {
-      // ignore clipboard errors
-    }
+    } catch { /* ignore */ }
   };
 
+  const QUICK = ['Hotels in Nairobi', 'Salons in Lagos', 'Send money to Ghana', 'Hospitals in Accra'];
+
+  if (!open) return null;
+
   return (
-    <>
-      {/* ── Panel ── */}
-      {open && (
-        <div
-          className="fixed chat-overlay z-40 flex flex-col overflow-hidden bg-white border border-gray-200 shadow-2xl md:rounded-2xl"
-        >
-          {/* Header */}
-          <div className="flex items-center gap-2 px-4 py-3 shrink-0" style={{ background: 'var(--cp, #008751)' }}>
-            <MessageCircle size={18} className="text-white shrink-0" />
-            <span className="font-bold text-white flex-1 text-sm">Seshaa Chat</span>
-            <button onClick={() => setOpen(false)} className="text-white/80 hover:text-white">
-              <X size={16} />
-            </button>
-          </div>
+    <div className="fixed chat-overlay z-40 flex flex-col overflow-hidden bg-white md:border md:border-gray-200 md:shadow-2xl md:rounded-2xl">
 
-          {/* Tab bar */}
-          <div className="flex border-b bg-gray-50 shrink-0 text-sm">
-            <button
-              onClick={() => setTab('ai')}
-              className={`flex-1 py-2.5 font-semibold flex items-center justify-center gap-1.5 transition-colors ${
-                tab === 'ai' ? 'text-purple-700 border-b-2 border-purple-500 bg-white' : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              <Sparkles size={13} /> AI Support
-            </button>
-            <button
-              onClick={() => {
-                if (!user) { setOpen(false); navigate('/auth'); return; }
-                setTab('messages');
-              }}
-              className={`flex-1 py-2.5 font-semibold flex items-center justify-center gap-1.5 transition-colors relative ${
-                tab === 'messages' ? 'bg-white border-b-2' : 'text-gray-500 hover:text-gray-700'
-              }`}
-              style={tab === 'messages' ? { color: 'var(--cp)', borderColor: 'var(--cp)' } : {}}
-            >
-              <MessagesSquare size={13} />
-              {user ? 'Messages' : 'Messages (login)'}
-              {unread > 0 && (
-                <span className="absolute top-1.5 right-4 w-4 h-4 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center font-bold">
-                  {unread > 9 ? '9+' : unread}
-                </span>
-              )}
-            </button>
-          </div>
+      {/* ── Header ── */}
+      <div
+        className="flex items-center gap-2 px-4 py-3 shrink-0"
+        style={{ background: 'var(--cp, #008751)' }}
+      >
+        <Sparkles size={16} className="text-white/80 shrink-0" />
+        <span className="font-bold text-white flex-1 text-sm">
+          {view === 'messages' ? 'Messages' : 'Seshaa.ai Support'}
+        </span>
 
-          {/* ── AI panel ── */}
-          {tab === 'ai' && (
-            <>
-              <div className="flex-1 overflow-y-auto p-3 space-y-3">
-                {aiMsgs.length === 0 && (
-                  <div className="text-center py-6 px-2">
-                    <Sparkles size={28} className="mx-auto mb-2 text-purple-400" />
-                    <p className="text-sm font-semibold text-gray-700">Ask Seshaa AI</p>
-                    <p className="text-xs text-gray-400 mt-1">Businesses, hotels, prices, news across Africa</p>
-                    <div className="flex flex-wrap gap-1.5 justify-center mt-3">
-                      {QUICK.map(s => (
-                        <button
-                          key={s}
-                          onClick={() => setAiInput(s)}
-                          className="text-xs bg-purple-50 text-purple-700 px-2.5 py-1 rounded-full border border-purple-200 hover:bg-purple-100"
-                        >
-                          {s}
-                        </button>
-                      ))}
-                    </div>
-                    <div className="mt-4 text-left">
-                      <p className="text-[11px] text-gray-400 mb-1.5">Share Seshaa links</p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {SHARE_LINKS.map(s => (
-                          <button
-                            key={s.label}
-                            onClick={() => shareLink(s.label, s.url)}
-                            className="text-[11px] bg-gray-100 text-gray-700 px-2.5 py-1 rounded-full border border-gray-200 hover:bg-gray-200"
-                          >
-                            {shareCopied === s.label ? `Copied ${s.label}` : s.label}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-                {aiMsgs.map((m, i) => (
-                  <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    <div
-                      className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm leading-relaxed ${
-                        m.role === 'user' ? 'text-white' : 'bg-gray-100 text-gray-800'
-                      }`}
-                      style={m.role === 'user' ? { background: 'var(--cp, #008751)' } : {}}
+        {/* Toggle to messages / back to AI */}
+        {user && view === 'ai' && (
+          <button
+            onClick={() => setView('messages')}
+            className="flex items-center gap-1 text-white/75 hover:text-white text-xs font-medium px-2 py-1 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+          >
+            <MessagesSquare size={12} />
+            DMs
+            {unread > 0 && (
+              <span className="ml-0.5 bg-red-500 text-white text-[9px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center">
+                {unread > 9 ? '9+' : unread}
+              </span>
+            )}
+          </button>
+        )}
+        {view === 'messages' && (
+          <button
+            onClick={() => setView('ai')}
+            className="flex items-center gap-1 text-white/75 hover:text-white text-xs font-medium px-2 py-1 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+          >
+            <Sparkles size={12} /> AI
+          </button>
+        )}
+
+        <button onClick={() => setOpen(false)} className="text-white/80 hover:text-white ml-1">
+          <X size={16} />
+        </button>
+      </div>
+
+      {/* ── AI Support view ── */}
+      {view === 'ai' && (
+        <>
+          <div className="flex-1 overflow-y-auto p-3 space-y-3 overscroll-contain">
+            {aiMsgs.length === 0 && (
+              <div className="text-center py-6 px-2">
+                <Sparkles size={28} className="mx-auto mb-2 text-purple-400" />
+                <p className="text-sm font-semibold text-gray-700">Ask Seshaa AI</p>
+                <p className="text-xs text-gray-400 mt-1">Businesses, hotels, prices, news across Africa</p>
+                <div className="flex flex-wrap gap-1.5 justify-center mt-3">
+                  {QUICK.map(s => (
+                    <button
+                      key={s}
+                      onClick={() => setAiInput(s)}
+                      className="text-xs bg-purple-50 text-purple-700 px-2.5 py-1 rounded-full border border-purple-200 hover:bg-purple-100"
                     >
-                      {m.content ? <LinkifiedText text={m.content} /> : <span className="text-gray-400 animate-pulse">…</span>}
-                    </div>
+                      {s}
+                    </button>
+                  ))}
+                </div>
+                <div className="mt-4 text-left">
+                  <p className="text-[11px] text-gray-400 mb-1.5">Share Seshaa links</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {SHARE_LINKS.map(s => (
+                      <button
+                        key={s.label}
+                        onClick={() => shareLink(s.label, s.url)}
+                        className="text-[11px] bg-gray-100 text-gray-700 px-2.5 py-1 rounded-full border border-gray-200 hover:bg-gray-200"
+                      >
+                        {shareCopied === s.label ? `✓ ${s.label}` : s.label}
+                      </button>
+                    ))}
                   </div>
-                ))}
-                <div ref={bottomRef} />
+                </div>
               </div>
-              <div className="p-3 border-t shrink-0 flex gap-2">
-                <input
-                  className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-purple-400"
-                  placeholder="Ask anything about Africa…"
-                  value={aiInput}
-                  onChange={e => setAiInput(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && sendAI()}
-                />
-                <button
-                  onClick={sendAI}
-                  disabled={!aiInput.trim() || aiLoading}
-                  className="bg-purple-600 text-white px-3 py-2 rounded-xl hover:bg-purple-700 disabled:opacity-50 shrink-0"
+            )}
+            {aiMsgs.map((m, i) => (
+              <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                <div
+                  className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm leading-relaxed ${
+                    m.role === 'user' ? 'text-white' : 'bg-gray-100 text-gray-800'
+                  }`}
+                  style={m.role === 'user' ? { background: 'var(--cp, #008751)' } : {}}
                 >
-                  <Send size={16} />
-                </button>
+                  {m.content
+                    ? <LinkifiedText text={m.content} />
+                    : <span className="text-gray-400 animate-pulse">…</span>}
+                </div>
               </div>
-            </>
-          )}
+            ))}
+            <div ref={bottomRef} />
+          </div>
+          <div className="p-3 border-t shrink-0 flex gap-2">
+            <input
+              className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-purple-400"
+              placeholder="Ask anything about Africa…"
+              value={aiInput}
+              onChange={e => setAiInput(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && sendAI()}
+            />
+            <button
+              onClick={sendAI}
+              disabled={!aiInput.trim() || aiLoading}
+              className="bg-purple-600 text-white px-3 py-2 rounded-xl hover:bg-purple-700 disabled:opacity-50 shrink-0"
+            >
+              <Send size={16} />
+            </button>
+          </div>
+        </>
+      )}
 
-          {/* ── Messages panel ── */}
-          {tab === 'messages' && user && (
+      {/* ── Messages (DMs) view ── */}
+      {view === 'messages' && (
+        <>
+          {!user ? (
+            <div className="flex-1 flex flex-col items-center justify-center gap-3 p-6 text-center">
+              <MessagesSquare size={32} className="text-gray-300" />
+              <p className="text-sm text-gray-500">Sign in to view your messages</p>
+              <button
+                onClick={() => { setOpen(false); navigate('/auth'); }}
+                className="px-5 py-2.5 rounded-xl text-white font-semibold text-sm"
+                style={{ background: 'var(--cp, #008751)' }}
+              >
+                Sign in
+              </button>
+            </div>
+          ) : (
             <>
-              <div className="flex-1 overflow-y-auto divide-y divide-gray-50">
+              <div className="flex-1 overflow-y-auto divide-y divide-gray-50 overscroll-contain">
                 {rooms.length === 0 ? (
                   <div className="text-center text-gray-400 p-6 text-sm">
                     <MessagesSquare size={28} className="mx-auto mb-2 opacity-30" />
@@ -280,11 +294,13 @@ export default function ChatFAB() {
                   rooms.slice(0, 10).map(room => (
                     <button
                       key={room.id}
-                      onClick={() => { setOpen(false); navigate(`/messages`); }}
+                      onClick={() => { setOpen(false); navigate('/messages'); }}
                       className="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-3"
                     >
-                      <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shrink-0 text-white"
-                        style={{ background: 'var(--cp, #008751)' }}>
+                      <div
+                        className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shrink-0 text-white"
+                        style={{ background: 'var(--cp, #008751)' }}
+                      >
                         {(room.name || 'U').charAt(0).toUpperCase()}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -313,8 +329,8 @@ export default function ChatFAB() {
               </div>
             </>
           )}
-        </div>
+        </>
       )}
-    </>
+    </div>
   );
 }

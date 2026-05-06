@@ -246,6 +246,7 @@ export interface SearchFilters {
   minRating?: number;
   submittedById?: string;
   tier?: string;
+  tag?: string;        // filter by tag name (e.g. "diaspora", "black-owned")
 }
 
 export interface SearchResult {

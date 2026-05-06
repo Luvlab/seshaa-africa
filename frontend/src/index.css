@@ -221,16 +221,24 @@ svg.lucide {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
+/* ── Mobile menu overlay — GPU-composited for smooth scroll ─────────────── */
+.mobile-menu-overlay {
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  will-change: scroll-position;
+}
+
 .chat-overlay {
-  top: 56px; /* mobile: header only */
+  /* mobile: flush below navbar, flush above bottom tab bar — both heights measured by JS */
+  top: var(--nav-h, 56px);
   left: 0;
   right: 0;
-  bottom: calc(env(safe-area-inset-bottom) + 66px);
+  bottom: var(--tab-h, 60px);
 }
 
 @media (min-width: 768px) {
+  /* desktop: full height below navbar, no bottom tab bar */
   .chat-overlay {
-    top: 92px; /* desktop: header (56px) + tab strip (36px) */
     bottom: 0;
   }
 }
@@ -240,6 +248,17 @@ svg.lucide {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #999; }
+
+/* ── Scrollbar hide utilities (used on horizontal chip / tab rows) ───────── */
+.scrollbar-none,
+.scrollbar-hide {
+  scrollbar-width: none;        /* Firefox */
+  -ms-overflow-style: none;     /* IE/Edge */
+}
+.scrollbar-none::-webkit-scrollbar,
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;                /* Chrome/Safari/WebKit */
+}
 
 /* ── Input / select polish — no double border, no blue glow ─────────────── */
 input, select, textarea {

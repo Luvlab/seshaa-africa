@@ -1,19 +1,69 @@
-import { useState, useMemo, useRef, useLayoutEffect } from 'react';
+import { useState, useEffect, useMemo, useRef, useLayoutEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Search, Menu, X, MessageCircle, Bell, User, ChevronDown, Sparkles, Globe,
   Home, Newspaper, Tag, BarChart2, Megaphone, PartyPopper,
   Star, Briefcase, Languages, Settings, Globe2, Archive,
-  ShoppingBag, Radio, Car, Package, Truck,
+  ShoppingBag, Radio, Car, Package, Truck, Plus,
+  Wifi, Monitor, Smartphone, Tablet,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/auth';
 import { useThemeStore } from '../../store/theme';
+import { adminApi } from '../../services/api';
 import SeshaaTitle from '../brand/SeshaaTitle';
 import CountryPicker from './CountryPicker';
 import { LANGUAGES } from '../../i18n';
 import clsx from 'clsx';
 import type { PortalType } from '../../types';
+
+// ── Helpers used in the mobile menu stats panel ────────────────────────────────
+function fmtNum(n: number): string {
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
+  if (n >= 1_000)     return (n / 1_000).toFixed(1)     + 'K';
+  return String(n);
+}
+
+interface MenuDevice {
+  os: string; browser: string; device: string;
+  screenW: number; screenH: number;
+  connection: string; timezone: string; language: string;
+}
+
+function gatherMenuDevice(): MenuDevice {
+  const ua  = navigator.userAgent;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const nav = navigator as any;
+  const conn = nav.connection || nav.mozConnection || nav.webkitConnection;
+  let os = 'Unknown', browser = 'Browser', device = 'desktop';
+  if (/Windows NT 10/.test(ua))  os = 'Windows 10/11';
+  else if (/Mac OS X/.test(ua))  os = 'macOS';
+  else if (/Android/.test(ua))   os = 'Android';
+  else if (/iPhone|iPad/.test(ua)) os = 'iOS';
+  else if (/Linux/.test(ua))     os = 'Linux';
+  if (/Edg\//.test(ua))          browser = 'Edge';
+  else if (/Chrome\//.test(ua))  browser = 'Chrome';
+  else if (/Safari\//.test(ua))  browser = 'Safari';
+  else if (/Firefox\//.test(ua)) browser = 'Firefox';
+  if (/Mobi|Android.*Mobile/.test(ua)) device = 'mobile';
+  else if (/Tablet|iPad|Android/.test(ua)) device = 'tablet';
+  return {
+    os, browser, device,
+    screenW: screen.width, screenH: screen.height,
+    connection: conn?.effectiveType ?? (conn?.type ?? '—'),
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    language: navigator.language || '—',
+  };
+}
+
+function MenuDevRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between gap-2 py-1 border-b border-white/10 last:border-0">
+      <span className="text-[10px] text-white/50 shrink-0 w-16">{label}</span>
+      <span className="text-[10px] text-white font-semibold truncate text-right">{value}</span>
+    </div>
+  );
+}
 
 // Maps route prefixes → the suffix shown in the navbar title logo
 const PAGE_SUFFIX_MAP: [string, string][] = [
@@ -50,34 +100,36 @@ const PORTAL_LABELS: Record<PortalType, string> = {
   admin: 'Admin',
 };
 
+// Icon component type — lets us render at any size (desktop vs mobile grid)
+type IconComp = React.ComponentType<{ size?: number; className?: string }>;
+
 interface Tab {
   id: string;
   path: string;
   label: string;
-  icon: React.ReactNode;
-  roles?: string[];  // if set, only show for these roles
+  Icon: IconComp;
+  roles?: string[];
 }
 
 const ALL_TABS: Tab[] = [
-  { id: 'home',        path: '/',           label: 'Home',        icon: <Home         size={15} /> },
-  { id: 'search',      path: '/search',     label: 'Directory',   icon: <Search       size={15} /> },
-  { id: 'news',        path: '/news',       label: 'News',        icon: <Newspaper    size={15} /> },
-  { id: 'classifieds', path: '/classifieds',label: 'Classifieds', icon: <Tag          size={15} /> },
-  { id: 'prices',      path: '/prices',     label: 'Prices',      icon: <BarChart2    size={15} /> },
-  { id: 'merch',       path: '/merch',      label: 'Merch',       icon: <ShoppingBag  size={15} /> },
-  { id: 'radio',       path: '/radio',      label: 'Radio',       icon: <Radio        size={15} /> },
-  { id: 'advertise',   path: '/advertise',  label: 'Advertise',   icon: <Megaphone    size={15} /> },
-  { id: 'events',      path: '/events',     label: 'Events',      icon: <PartyPopper  size={15} /> },
-  { id: 'ambassador',  path: '/ambassador', label: 'Ambassador',  icon: <Star         size={15} />, roles: ['AMBASSADOR', 'ADMIN'] },
-  { id: 'salesrep',    path: '/salesrep',   label: 'Sales',       icon: <Briefcase    size={15} />, roles: ['SALES_REP', 'ADMIN'] },
-  { id: 'translate',   path: '/translate',  label: 'Translate',   icon: <Languages    size={15} /> },
-  { id: 'admin',       path: '/admin',      label: 'Admin',       icon: <Settings     size={15} />, roles: ['ADMIN'] },
-  { id: 'diaspora',    path: '/diaspora',   label: 'Diaspora',    icon: <Globe2       size={15} /> },
-  { id: 'ride',        path: '/ride',       label: 'Ride',        icon: <Car          size={15} /> },
-  { id: 'delivery',    path: '/delivery',   label: 'Delivery',    icon: <Package      size={15} /> },
-  { id: 'transport',   path: '/transport',  label: 'Transport',   icon: <Truck        size={15} /> },
-  // Travels removed from nav — it's a category inside Search/Directory
-  { id: 'archive',     path: '/archive',    label: 'Archive',     icon: <Archive      size={15} /> },
+  { id: 'home',        path: '/',           label: 'Home',        Icon: Home },
+  { id: 'search',      path: '/search',     label: 'Directory',   Icon: Search },
+  { id: 'news',        path: '/news',       label: 'News',        Icon: Newspaper },
+  { id: 'classifieds', path: '/classifieds',label: 'Classifieds', Icon: Tag },
+  { id: 'prices',      path: '/prices',     label: 'Prices',      Icon: BarChart2 },
+  { id: 'merch',       path: '/merch',      label: 'Merch',       Icon: ShoppingBag },
+  { id: 'radio',       path: '/radio',      label: 'Radio',       Icon: Radio },
+  { id: 'events',      path: '/events',     label: 'Events',      Icon: PartyPopper },
+  { id: 'translate',   path: '/translate',  label: 'Translate',   Icon: Languages },
+  { id: 'diaspora',    path: '/diaspora',   label: 'Diaspora',    Icon: Globe2 },
+  { id: 'ride',        path: '/ride',       label: 'Ride',        Icon: Car },
+  { id: 'delivery',    path: '/delivery',   label: 'Delivery',    Icon: Package },
+  { id: 'transport',   path: '/transport',  label: 'Transport',   Icon: Truck },
+  { id: 'archive',     path: '/archive',    label: 'Archive',     Icon: Archive },
+  { id: 'advertise',   path: '/advertise',  label: 'Advertise',   Icon: Megaphone },
+  { id: 'ambassador',  path: '/ambassador', label: 'Ambassador',  Icon: Star,     roles: ['AMBASSADOR', 'ADMIN'] },
+  { id: 'salesrep',    path: '/salesrep',   label: 'Sales',       Icon: Briefcase, roles: ['SALES_REP', 'ADMIN'] },
+  { id: 'admin',       path: '/admin',      label: 'Admin',       Icon: Settings,  roles: ['ADMIN'] },
 ];
 
 export default function Navbar() {
@@ -92,6 +144,11 @@ export default function Navbar() {
   const [searchQ, setSearchQ] = useState('');
   const [countryPickerOpen, setCountryPickerOpen] = useState(false);
   const navRef = useRef<HTMLElement>(null);
+
+  // Mobile menu stats panel state
+  const [menuStats, setMenuStats] = useState<{ listings: number; users: number; countries: number; classifieds: number } | null>(null);
+  const [menuDevice, setMenuDevice] = useState<MenuDevice | null>(null);
+  const [menuIp, setMenuIp] = useState<string>('');
 
   // Keep --nav-h in sync with actual navbar height.
   // useLayoutEffect fires synchronously before browser paint → no flicker.
@@ -159,12 +216,38 @@ export default function Navbar() {
     window.dispatchEvent(new Event('seshaa:chat-close'));
   };
 
+  const closeMenu = () => setMobileOpen(false);
+
+  // Close mobile menu when chat is opened from bottom bar or anywhere
+  useEffect(() => {
+    const handler = () => setMobileOpen(false);
+    window.addEventListener('seshaa:mobile-menu-close', handler);
+    window.addEventListener('seshaa:chat-open', handler);
+    return () => {
+      window.removeEventListener('seshaa:mobile-menu-close', handler);
+      window.removeEventListener('seshaa:chat-open', handler);
+    };
+  }, []);
+
+  // Load stats + device info when the mobile menu opens
+  useEffect(() => {
+    if (!mobileOpen) return;
+    adminApi.getPublicStats().then(r => setMenuStats(r.data)).catch(() => {});
+    setMenuDevice(gatherMenuDevice());
+    if (!menuIp) {
+      fetch('https://api.ipify.org?format=json')
+        .then(r => r.json())
+        .then((d: { ip: string }) => setMenuIp(d.ip))
+        .catch(() => {});
+    }
+  }, [mobileOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <nav ref={navRef} className="fixed top-0 left-0 right-0 z-50 shadow-md" style={{ backgroundColor: 'var(--cp)' }}>
       {/* ── Main header row — full viewport width, 56px fixed height ── */}
       <div className="w-full px-4 sm:px-6 h-14 flex items-center gap-3">
 
-        {/* Seshaa animated title — min-width holds stable settled width; no clipping */}
+        {/* Seshaa animated title */}
         <Link
           to="/"
           className="shrink-0 flex h-full items-center self-stretch origin-left scale-[0.84] -translate-y-[1px] sm:scale-100 sm:translate-y-0"
@@ -188,7 +271,7 @@ export default function Navbar() {
           <ChevronDown size={10} />
         </button>
 
-        {/* Search bar — grows to fill available space */}
+        {/* Search bar — grows to fill available space (desktop only) */}
         <div className="flex-1 hidden md:flex items-center bg-white/15 hover:bg-white/25 rounded-full px-3.5 py-1.5 gap-2 transition-colors h-9">
           <Search size={15} className="text-white/70 shrink-0" />
           <input
@@ -211,7 +294,7 @@ export default function Navbar() {
           </button>
         </div>
 
-        {/* Right controls — all vertically centered via parent items-center */}
+        {/* Right controls */}
         <div className="flex items-center gap-1.5 ms-auto">
           {/* Language */}
           <div className="relative">
@@ -307,7 +390,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Tab strip — desktop, full width, explicit h-9=36px so --nav-h fallback (92px) is accurate */}
+      {/* ── Desktop tab strip ── full width, h-9 = 36px ── */}
       <div className="hidden md:flex items-center bg-black/15 border-t border-white/10 h-9">
         <div className="w-full h-full px-4 sm:px-6 flex items-center gap-0.5 overflow-x-auto scrollbar-none">
           {visibleTabs.map(tab => {
@@ -315,6 +398,7 @@ export default function Navbar() {
               ? location.pathname === '/'
               : location.pathname.startsWith(tab.path);
             const isDiaspora = tab.id === 'diaspora';
+            const { Icon } = tab;
             return (
               <Link
                 key={tab.id}
@@ -333,7 +417,7 @@ export default function Navbar() {
                 {isDiaspora && !isActive && (
                   <span className="absolute inset-0 rounded-t-lg border border-yellow-400/20 pointer-events-none" />
                 )}
-                <span className="leading-none">{tab.icon}</span>
+                <Icon size={15} />
                 {tab.label}
                 {isActive && (
                   <span className={clsx(
@@ -347,37 +431,189 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile menu */}
+      {/* ── Mobile full-screen menu overlay ── */}
       {mobileOpen && (
-        <div className="md:hidden bg-black/30 backdrop-blur-sm px-4 pb-4 space-y-1 border-t border-white/10">
-          <div className="flex items-center bg-white/20 rounded-full px-4 py-2 gap-2 mt-2">
-            <Search size={15} className="text-white/70" />
-            <input
-              className="bg-transparent text-white placeholder-white/60 outline-none flex-1 text-sm"
-              placeholder={t('search.placeholder')}
-              onKeyDown={handleSearch}
-            />
-          </div>
-          {visibleTabs.map(tab => (
+        <div
+          className="md:hidden mobile-menu-overlay fixed left-0 right-0 z-40 overflow-y-auto overscroll-contain"
+          style={{
+            top: '56px',
+            bottom: 0,
+            background: 'var(--cp)',
+            WebkitOverflowScrolling: 'touch',
+          }}
+        >
+          {/* Inner: pb-24 clears the 64px tab bar + safe area */}
+          <div className="px-4 pt-4 pb-24 space-y-4">
+
+            {/* Search */}
+            <div className="flex items-center bg-black/20 rounded-xl px-4 py-2.5 gap-2">
+              <Search size={15} className="text-white/60 shrink-0" />
+              <input
+                className="bg-transparent text-white placeholder-white/50 outline-none flex-1 text-sm"
+                placeholder={t('search.placeholder')}
+                onKeyDown={handleSearch}
+              />
+            </div>
+
+            {/* Add Listing CTA */}
             <Link
-              key={tab.id}
-              to={tab.path}
-              className="flex items-center gap-3 py-2.5 px-2 text-white/90 hover:text-white rounded-lg hover:bg-white/10 text-sm"
-              onClick={() => setMobileOpen(false)}
+              to="/add-listing"
+              className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl font-bold text-sm shadow-md active:opacity-80 transition-opacity"
+              style={{ backgroundColor: 'rgba(255,255,255,0.95)', color: 'var(--cp)' }}
+              onClick={closeMenu}
             >
-              <span className="leading-none">{tab.icon}</span> {tab.label}
+              <Plus size={16} />
+              List Your Business — Free
             </Link>
-          ))}
-          <hr className="border-white/20 my-2" />
-          {user ? (
-            <button className="block py-2 text-sm text-white/80 hover:text-white text-left" onClick={logout}>
-              {t('auth.logout')} ({user.name})
-            </button>
-          ) : (
-            <Link to="/auth" className="block py-2 text-sm text-white/90 hover:text-white" onClick={() => setMobileOpen(false)}>
-              {t('auth.login')} / {t('auth.register')}
-            </Link>
-          )}
+
+            {/* Nav grid — 4 columns of square icon tiles */}
+            <div className="grid grid-cols-4 gap-2">
+              {visibleTabs.map(tab => {
+                const isActive = tab.path === '/'
+                  ? location.pathname === '/'
+                  : location.pathname.startsWith(tab.path);
+                const { Icon } = tab;
+                return (
+                  <Link
+                    key={tab.id}
+                    to={tab.path}
+                    onClick={closeMenu}
+                    className={clsx(
+                      'aspect-square flex flex-col items-center justify-center gap-1 rounded-2xl transition-all duration-150 active:scale-95',
+                      isActive
+                        ? 'bg-white/30 text-white'
+                        : 'bg-black/20 text-white/80 hover:bg-black/30'
+                    )}
+                  >
+                    <Icon size={40} />
+                    <span className="text-[10px] font-semibold leading-none text-center px-1 line-clamp-1">
+                      {tab.label}
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+
+            {/* Divider + Auth section */}
+            <div className="border-t border-white/20 pt-4">
+              {user ? (
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                      <User size={16} className="text-white" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-white truncate">{user.name}</p>
+                      <p className="text-xs text-white/60 truncate">{user.email}</p>
+                      <p className="text-[10px] text-white/40 truncate capitalize">{user.role?.toLowerCase().replace('_', ' ')}</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 shrink-0">
+                    <Link
+                      to="/profile"
+                      onClick={closeMenu}
+                      className="text-xs text-white/80 hover:text-white px-3 py-2 rounded-xl bg-white/10 font-semibold"
+                    >
+                      Profile
+                    </Link>
+                    <button
+                      className="text-xs text-white/80 hover:text-white px-3 py-2 rounded-xl bg-white/10 font-semibold"
+                      onClick={() => { logout(); closeMenu(); }}
+                    >
+                      {t('auth.logout')}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <Link
+                  to="/auth"
+                  className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl font-bold text-sm bg-white/15 text-white hover:bg-white/25 transition-colors"
+                  onClick={closeMenu}
+                >
+                  <User size={16} />
+                  {t('auth.login')} / {t('auth.register')}
+                </Link>
+              )}
+            </div>
+
+            {/* ── App Stats ─────────────────────────────────────────────── */}
+            <div className="border-t border-white/20 pt-4 space-y-3">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">
+                Seshaa by the numbers
+              </p>
+              {menuStats ? (
+                <>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { v: fmtNum(menuStats.listings),    l: 'Listings',    c: 'text-emerald-300' },
+                      { v: String(menuStats.countries),   l: 'Countries',   c: 'text-sky-300' },
+                      { v: fmtNum(menuStats.users),       l: 'Members',     c: 'text-violet-300' },
+                      { v: fmtNum(menuStats.classifieds), l: 'Classifieds', c: 'text-amber-300' },
+                    ].map(s => (
+                      <div key={s.l} className="bg-black/25 rounded-xl p-3 text-center">
+                        <p className={`text-2xl font-black leading-none ${s.c}`}>{s.v}</p>
+                        <p className="text-[10px] text-white/55 font-medium mt-1">{s.l}</p>
+                      </div>
+                    ))}
+                  </div>
+                  {/* Activity bar chart — decorative 7-bar sparkline */}
+                  <div>
+                    <p className="text-[10px] text-white/35 mb-1.5">Activity (last 7 days)</p>
+                    <div className="flex items-end gap-1 h-10">
+                      {[0.38, 0.55, 0.47, 0.82, 0.68, 0.79, 1].map((h, i) => (
+                        <div
+                          key={i}
+                          className={`flex-1 rounded-t-sm transition-all ${i === 6 ? 'bg-white/70' : 'bg-white/25'}`}
+                          style={{ height: `${h * 100}%` }}
+                        />
+                      ))}
+                    </div>
+                    <div className="flex justify-between mt-0.5">
+                      {['M','T','W','T','F','S','S'].map((d,i) => (
+                        <span key={i} className="flex-1 text-center text-[8px] text-white/25">{d}</span>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="grid grid-cols-2 gap-2">
+                  {[0,1,2,3].map(i => (
+                    <div key={i} className="bg-black/25 rounded-xl p-3 h-14 animate-pulse" />
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* ── Your Session / Visitor Data ──────────────────────────── */}
+            <div className="border-t border-white/20 pt-4 pb-2 space-y-3">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">
+                Your session
+              </p>
+              {menuDevice ? (
+                <div className="bg-black/25 rounded-xl p-3 space-y-0.5">
+                  {/* Device type icon row */}
+                  <div className="flex items-center gap-2 mb-2">
+                    {menuDevice.device === 'mobile'  && <Smartphone size={14} className="text-emerald-300 shrink-0" />}
+                    {menuDevice.device === 'tablet'  && <Tablet     size={14} className="text-sky-300 shrink-0" />}
+                    {menuDevice.device === 'desktop' && <Monitor    size={14} className="text-violet-300 shrink-0" />}
+                    <span className="text-xs font-bold text-white capitalize">{menuDevice.device}</span>
+                    <span className="text-xs text-white/50">·</span>
+                    <span className="text-xs text-white/70">{menuDevice.browser}</span>
+                    <Wifi size={12} className={`ml-auto shrink-0 ${menuDevice.connection !== '—' ? 'text-emerald-400' : 'text-white/30'}`} />
+                  </div>
+                  {menuIp && <MenuDevRow label="IP" value={menuIp} />}
+                  <MenuDevRow label="OS" value={menuDevice.os} />
+                  <MenuDevRow label="Screen" value={`${menuDevice.screenW}×${menuDevice.screenH}`} />
+                  <MenuDevRow label="Network" value={menuDevice.connection !== '—' ? menuDevice.connection.toUpperCase() : 'Unknown'} />
+                  <MenuDevRow label="Language" value={menuDevice.language} />
+                  <MenuDevRow label="Timezone" value={menuDevice.timezone} />
+                </div>
+              ) : (
+                <div className="bg-black/25 rounded-xl p-3 h-28 animate-pulse" />
+              )}
+            </div>
+
+          </div>
         </div>
       )}
 

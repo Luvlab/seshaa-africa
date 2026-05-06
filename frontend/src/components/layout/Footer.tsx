@@ -38,7 +38,7 @@ export default function Footer() {
   };
 
   return (
-    <footer className="w-full bg-gray-900 text-gray-300 mt-16">
+    <footer className="w-full bg-gray-900 text-gray-300">
 
       {/* ── Main link columns ─────────────────────────────────────────── */}
       <div className="w-full px-4 sm:px-6 lg:px-10 pt-10 pb-6

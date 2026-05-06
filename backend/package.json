@@ -31,6 +31,7 @@
     "@vercel/blob": "^2.3.3",
     "@vercel/node": "^5.7.13",
     "bcryptjs": "^3.0.3",
+    "cheerio": "^1.2.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",

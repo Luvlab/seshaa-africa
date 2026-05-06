@@ -40,12 +40,15 @@ export default function SearchPage() {
   const [params, setParams] = useSearchParams();
   const { countryCode } = useThemeStore();
 
+  // If ?tag= is in URL, don't auto-apply country (diaspora tags cross all countries)
+  const initialTag = params.get('tag') || '';
   const [filters, setFilters] = useState<SearchFilters>({
     q: params.get('q') || '',
-    country: resolveCountry(params.get('country') || countryCode || ''),
+    country: initialTag ? '' : resolveCountry(params.get('country') || countryCode || ''),
     city: params.get('city') || '',
     category: params.get('category') || '',
     type: (params.get('type') as SearchFilters['type']) || undefined,
+    tag: initialTag || undefined,
     page: 1,
     limit: 20,
   });
@@ -85,23 +88,26 @@ export default function SearchPage() {
 
   // Sync URL params → filters when navigating here (e.g. hero search, country card)
   useEffect(() => {
-    const qParam       = params.get('q')       || '';
-    const cityParam    = params.get('city')    || '';
-    const countryParam = resolveCountry(params.get('country') || '');
+    const qParam        = params.get('q')        || '';
+    const cityParam     = params.get('city')     || '';
+    const countryParam  = resolveCountry(params.get('country') || '');
     const categoryParam = params.get('category') || '';
+    const tagParam      = params.get('tag')      || '';
     setFilters(prev => {
       const same =
         prev.q        === qParam &&
         prev.city     === cityParam &&
-        (prev.country || '') === countryParam &&
-        (prev.category || '') === categoryParam;
+        (prev.country  || '') === countryParam &&
+        (prev.category || '') === categoryParam &&
+        (prev.tag      || '') === tagParam;
       if (same) return prev;
-      return { ...prev, q: qParam, city: cityParam, country: countryParam, category: categoryParam, page: 1 };
+      return { ...prev, q: qParam, city: cityParam, country: countryParam, category: categoryParam, tag: tagParam || undefined, page: 1 };
     });
   }, [params]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Header country picker → always update search country
+  // Header country picker → always update search country, UNLESS we're filtering by tag
   useEffect(() => {
+    if (filters.tag) return; // don't override when tag filter is active
     const name = resolveCountry(countryCode || '');
     setFilters(prev => {
       if ((prev.country || '') === name) return prev;
@@ -245,8 +251,8 @@ export default function SearchPage() {
         {/* Results */}
         <div className="flex-1">
           {loading ? (
-            <div className="grid sm:grid-cols-2 gap-4">
-              {Array.from({ length: 6 }).map((_, i) => (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {Array.from({ length: 8 }).map((_, i) => (
                 <div key={i} className="bg-white rounded-xl h-32 animate-pulse border" />
               ))}
             </div>
@@ -262,11 +268,11 @@ export default function SearchPage() {
                   <Plus size={13} /> Add a Place
                 </a>
               </div>
-              <div className="grid sm:grid-cols-2 gap-4 min-w-0">
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 min-w-0">
                 {listings.map((l, i) => (
                   <React.Fragment key={l.id}>
                     <div className="min-w-0 overflow-hidden"><ListingCard listing={l} /></div>
-                    {(i + 1) % 8 === 0 && <div className="sm:col-span-2"><AdBanner tier="BANNER" country={filters.country} city={filters.city} /></div>}
+                    {(i + 1) % 8 === 0 && <div className="sm:col-span-2 lg:col-span-3 xl:col-span-4"><AdBanner tier="BANNER" country={filters.country} city={filters.city} /></div>}
                   </React.Fragment>
                 ))}
               </div>

@@ -512,7 +512,7 @@ export default function DiasporaPage() {
               <Plus size={16} /> Add an African Place
             </button>
             <button
-              onClick={() => navigate('/search?tags=diaspora')}
+              onClick={() => navigate('/search?tag=diaspora')}
               className="inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-white/15 border border-white/30 text-white font-bold rounded-2xl hover:bg-white/20 transition-colors text-sm"
             >
               <Globe2 size={16} /> Browse Diaspora Places

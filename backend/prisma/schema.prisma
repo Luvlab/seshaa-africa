@@ -589,6 +589,28 @@ model RadioTrack {
   @@index([submittedById])
 }
 
+// ─── User Behaviour Events ───────────────────────────────────────────────────
+// Tracks pageviews, searches, listing views, clicks, admin actions, etc.
+// Written fire-and-forget from the analytics routes.
+model UserEvent {
+  id          String   @id @default(uuid())
+  userId      String?
+  sessionId   String?
+  eventType   String                // pageview | search | listing_view | click | scroll | session_start | session_end | admin_action
+  path        String?
+  target      String?               // element clicked / action name
+  value       String?               // search query / scroll pct / admin action detail
+  metadata    Json?
+  country     String?
+  device      String?               // mobile | tablet | desktop
+  createdAt   DateTime @default(now())
+
+  @@index([eventType, createdAt(sort: Desc)])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([country, createdAt(sort: Desc)])
+  @@index([sessionId])
+}
+
 // ─── News Archive ─────────────────────────────────────────────────────────────
 // Stores scraped news headlines persistently so old articles remain searchable.
 // Written by archiveItems() in news.ts on every cache refresh.

@@ -35,7 +35,7 @@ const ListingSchema = z.object({
 
 // GET /listings - search & browse
 router.get('/', optionalAuth, async (req: AuthRequest, res: Response) => {
-  const { q, city, country, category, type, submittedById, tier, page = '1', limit = '20' } = req.query as Record<string, string>;
+  const { q, city, country, category, type, submittedById, tier, tag, page = '1', limit = '20' } = req.query as Record<string, string>;
   const skip = (parseInt(page) - 1) * parseInt(limit);
 
   const where: Record<string, unknown> = { active: true };
@@ -45,6 +45,8 @@ router.get('/', optionalAuth, async (req: AuthRequest, res: Response) => {
   if (type) where.type = type;
   if (tier) where.tier = tier;
   if (submittedById) where.submittedById = submittedById;
+  // Tag filter — show listings that have a tag matching the given name
+  if (tag) where.tags = { some: { name: { contains: tag, mode: 'insensitive' } } };
   if (q) {
     const { terms, categoryHint } = expandQuery(q);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

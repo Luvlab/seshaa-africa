@@ -3,17 +3,46 @@
   "short_name": "Seshaa",
   "description": "Africa's business directory — all 54 countries",
   "theme_color": "#008751",
-  "background_color": "#FFF8EE",
+  "background_color": "#008751",
   "display": "standalone",
-  "orientation": "portrait",
+  "display_override": ["standalone", "minimal-ui", "browser"],
+  "orientation": "portrait-primary",
   "scope": "/",
-  "start_url": "/",
+  "start_url": "/?source=pwa",
+  "id": "/",
+  "categories": ["business", "travel", "lifestyle"],
+  "lang": "en",
+  "dir": "ltr",
   "icons": [
     {
       "src": "/favicon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
     }
-  ]
+  ],
+  "shortcuts": [
+    {
+      "name": "Search Directory",
+      "short_name": "Search",
+      "description": "Find businesses across Africa",
+      "url": "/search",
+      "icons": [{ "src": "/favicon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "Add Listing",
+      "short_name": "List",
+      "description": "List your business for free",
+      "url": "/add-listing",
+      "icons": [{ "src": "/favicon.svg", "sizes": "any" }]
+    }
+  ],
+  "screenshots": [],
+  "prefer_related_applications": false
 }

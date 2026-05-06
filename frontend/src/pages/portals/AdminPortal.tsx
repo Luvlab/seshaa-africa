@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, List, Megaphone, TrendingUp, Shield, DollarSign, Award,
@@ -33,7 +33,17 @@ interface Financials {
   loanFund: { totalAllocated: number; totalDisbursed: number; totalRepaid: number; available: number; totalApplications: number };
   net: { estimated: number };
 }
-interface PendingListing { id: string; name: string; city: string; country: string; category?: string; phone?: string; createdAt: string; }
+interface PendingListing {
+  id: string; name: string; type?: string;
+  city: string; country: string; region?: string;
+  category?: string; subcategory?: string;
+  phone?: string; phone2?: string; email?: string;
+  address?: string; website?: string; whatsapp?: string;
+  description?: string; logoUrl?: string;
+  openingHours?: string;
+  verified: boolean; active: boolean;
+  createdAt: string;
+}
 interface PendingPayout  { id: string; amount: number; method: string; ambassador: { user: { name: string; phone: string; country: string } } }
 interface LoanApp        { id: string; amount: number; purpose: string; status: string; createdAt: string; user: { name: string; phone: string; country: string } }
 
@@ -127,6 +137,11 @@ export default function AdminPortal() {
   const [stats, setStats]                 = useState<Stats>({ listings: 0, users: 0, ads: 0, salesReps: 0, pendingListings: 0 });
   const [financials, setFinancials]       = useState<Financials | null>(null);
   const [pendingListings, setPendingListings] = useState<PendingListing[]>([]);
+  const [expandedListingId, setExpandedListingId] = useState<string | null>(null);
+  const [editingListingId, setEditingListingId]   = useState<string | null>(null);
+  const [listingEditForm, setListingEditForm]     = useState<Partial<PendingListing>>({});
+  const [listingEditMsg, setListingEditMsg]       = useState('');
+  const [listingEditSaving, setListingEditSaving] = useState(false);
   const [pendingPayouts, setPendingPayouts]   = useState<PendingPayout[]>([]);
   const [loanApps, setLoanApps]           = useState<LoanApp[]>([]);
   const [tab, setTab]                     = useState<Tab>('overview');
@@ -142,6 +157,7 @@ export default function AdminPortal() {
   interface HeroSlide {
     id: string; advertiser: string; targetUrl: string; imageUrl?: string | null;
     mediaType?: string; mediaUrl?: string; youtubeId?: string;
+    startTime?: number; endTime?: number;
     overlayTitle?: string; overlaySubtitle?: string; ctaText?: string;
     clientEmail?: string; clientPhone?: string; clientCountry?: string;
     paymentStatus?: string; paymentAmount?: number; invoiceRef?: string;
@@ -151,6 +167,7 @@ export default function AdminPortal() {
   type SlideForm = Omit<HeroSlide, 'id' | 'impressions' | 'clicks'>;
   const BLANK_SLIDE: SlideForm = {
     advertiser: '', targetUrl: '/advertise', mediaType: 'youtube', mediaUrl: '', youtubeId: '',
+    startTime: 0, endTime: 0,
     overlayTitle: '', overlaySubtitle: '', ctaText: 'Learn More',
     clientEmail: '', clientPhone: '', clientCountry: '',
     paymentStatus: 'unpaid', paymentAmount: 0, invoiceRef: '', notes: '',
@@ -163,6 +180,9 @@ export default function AdminPortal() {
   const [slideForm, setSlideForm]         = useState<SlideForm>(BLANK_SLIDE);
   const [slideSaving, setSlideSaving]     = useState(false);
   const [slideMsg, setSlideMsg]           = useState('');
+  const [ytMeta, setYtMeta]               = useState<{ title: string; author: string; thumbnail: string } | null>(null);
+  const [ytMetaLoading, setYtMetaLoading] = useState(false);
+  const ytDebounceRef                     = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // User analytics state
   interface UserAnalytics {
@@ -184,6 +204,8 @@ export default function AdminPortal() {
     countryBreakdown:{ country: string; count: string }[];
     eventsPerDay:    { day: string; count: string }[];
     activeHours:     { hour: number; count: string }[];
+    adminActions?:   { target: string; count: string }[];
+    adminTabVisits?: { target: string; count: string }[];
   }
   interface PrognosisData {
     daily:    { day: string; count: string }[];
@@ -207,6 +229,12 @@ export default function AdminPortal() {
   const [scrapeMsg, setScrapeMsg]         = useState('');
   const [scrapingAll, setScrapingAll]     = useState(false);
   const [enriching, setEnriching]         = useState(false);
+  // Black-owned scraper
+  const [blackOwnedInfo, setBlackOwnedInfo] = useState<{ cities: number; byRegion: Record<string, number>; yelpKeyConfigured: boolean } | null>(null);
+  const [blackOwnedRunning, setBlackOwnedRunning] = useState(false);
+  const [blackOwnedMsg, setBlackOwnedMsg] = useState('');
+  const [blackOwnedSource, setBlackOwnedSource] = useState<'all' | 'yelp' | 'html'>('all');
+  const [blackOwnedRegion, setBlackOwnedRegion] = useState<string>('all');
 
   // Sales reps state
   interface SalesRepEntry {
@@ -243,6 +271,10 @@ export default function AdminPortal() {
   const [logoSuffixColor, setLogoSuffixColor] = useState(() => localStorage.getItem('seshaa-logo-suffix-color') ?? '');
   const [logoFont,         setLogoFont]        = useState(() => localStorage.getItem('seshaa-logo-font') ?? 'default');
   const [customFontName,   setCustomFontName]  = useState(() => localStorage.getItem('seshaa-logo-font-name') ?? '');
+  const [tickerSpeed, setTickerSpeed] = useState<number>(() => {
+    const v = localStorage.getItem('seshaa_ticker_speed');
+    return v ? Math.max(20, Math.min(200, parseInt(v))) : 60;
+  });
   const [customCss,     setCustomCss]     = useState(() => localStorage.getItem('seshaa-custom-css') ?? '');
   const [cssSaved,      setCssSaved]      = useState(false);
   const [openRouterApiKey, setOpenRouterApiKey] = useState('');
@@ -410,10 +442,44 @@ export default function AdminPortal() {
   const verifyListing = async (id: string) => {
     await adminApi.verifyListing(id);
     setPendingListings(p => p.filter(l => l.id !== id));
+    if (expandedListingId === id) setExpandedListingId(null);
+    if (editingListingId === id) setEditingListingId(null);
   };
   const rejectListing = async (id: string) => {
     await adminApi.rejectListing(id);
     setPendingListings(p => p.filter(l => l.id !== id));
+    if (expandedListingId === id) setExpandedListingId(null);
+    if (editingListingId === id) setEditingListingId(null);
+  };
+  const startEditListing = (l: PendingListing) => {
+    setEditingListingId(l.id);
+    setExpandedListingId(l.id);
+    setListingEditForm({
+      name: l.name, type: l.type,
+      city: l.city, country: l.country, region: l.region ?? '',
+      category: l.category ?? '', subcategory: l.subcategory ?? '',
+      phone: l.phone ?? '', phone2: l.phone2 ?? '',
+      email: l.email ?? '', address: l.address ?? '',
+      website: l.website ?? '', whatsapp: l.whatsapp ?? '',
+      description: l.description ?? '', openingHours: l.openingHours ?? '',
+    });
+    setListingEditMsg('');
+  };
+  const saveListingEdit = async () => {
+    if (!editingListingId) return;
+    setListingEditSaving(true);
+    setListingEditMsg('');
+    try {
+      const updated = await adminApi.updateListing(editingListingId, listingEditForm as Record<string, unknown>);
+      setPendingListings(p => p.map(l => l.id === editingListingId ? { ...l, ...updated.data } : l));
+      setEditingListingId(null);
+      setListingEditMsg('');
+    } catch (err: unknown) {
+      const axErr = err as { response?: { data?: { error?: string } } };
+      setListingEditMsg(`✗ ${axErr?.response?.data?.error || 'Save failed'}`);
+    } finally {
+      setListingEditSaving(false);
+    }
   };
   const approvePayout = async (id: string) => {
     await adminApi.approvePayout(id);
@@ -462,9 +528,58 @@ export default function AdminPortal() {
       setShowSlideForm(false);
       setEditingSlide(null);
       setSlideForm(BLANK_SLIDE);
-    } catch { setSlideMsg('✗ Save failed — check fields'); }
-    finally { setSlideSaving(false); }
+      setYtMeta(null);
+    } catch (err: unknown) {
+      const axErr = err as { response?: { data?: { error?: string; detail?: string } } };
+      const detail = axErr?.response?.data?.detail || axErr?.response?.data?.error || String(err);
+      setSlideMsg(`✗ Save failed: ${detail}`);
+    } finally { setSlideSaving(false); }
   };
+
+  // Extract bare YouTube video ID from any URL format
+  const extractYtId = (url: string): string => {
+    if (!url) return '';
+    const m = url.match(/[?&]v=([A-Za-z0-9_-]{11})/) ||
+              url.match(/youtu\.be\/([A-Za-z0-9_-]{11})/) ||
+              url.match(/embed\/([A-Za-z0-9_-]{11})/) ||
+              url.match(/shorts\/([A-Za-z0-9_-]{11})/) ||
+              url.match(/live\/([A-Za-z0-9_-]{11})/);
+    if (m) return m[1];
+    if (/^[A-Za-z0-9_-]{11}$/.test(url.trim())) return url.trim();
+    return '';
+  };
+
+  // Load metadata immediately (for edit mode — no auto-fill, no debounce)
+  const loadYoutubeMeta = useCallback(async (url: string) => {
+    if (!url.trim()) { setYtMeta(null); return; }
+    setYtMetaLoading(true);
+    try {
+      const r = await adminApi.getYoutubeMeta(url);
+      setYtMeta({ title: r.data.title, author: r.data.author, thumbnail: r.data.thumbnail });
+    } catch { setYtMeta(null); }
+    finally { setYtMetaLoading(false); }
+  }, []);
+
+  // Auto-fetch + auto-fill when URL is typed (debounced 600ms, for new slides)
+  const fetchYoutubeMeta = useCallback((url: string) => {
+    if (ytDebounceRef.current) clearTimeout(ytDebounceRef.current);
+    if (!url.trim()) { setYtMeta(null); return; }
+    ytDebounceRef.current = setTimeout(async () => {
+      setYtMetaLoading(true);
+      try {
+        const r = await adminApi.getYoutubeMeta(url);
+        const { title, author, thumbnail } = r.data;
+        setYtMeta({ title, author, thumbnail });
+        // Auto-fill only empty fields
+        setSlideForm(f => ({
+          ...f,
+          overlayTitle: f.overlayTitle || title,
+          advertiser:   f.advertiser   || author,
+        }));
+      } catch { setYtMeta(null); }
+      finally { setYtMetaLoading(false); }
+    }, 600);
+  }, []);
 
   const deleteSlide = async (id: string) => {
     if (!confirm('Delete this slide? This cannot be undone.')) return;
@@ -485,6 +600,8 @@ export default function AdminPortal() {
       mediaType: slide.mediaType ?? 'youtube',
       mediaUrl: slide.mediaUrl ?? '',
       youtubeId: slide.youtubeId ?? '',
+      startTime: slide.startTime ?? 0,
+      endTime: slide.endTime ?? 0,
       overlayTitle: slide.overlayTitle ?? '',
       overlaySubtitle: slide.overlaySubtitle ?? '',
       ctaText: slide.ctaText ?? '',
@@ -497,7 +614,14 @@ export default function AdminPortal() {
       notes: slide.notes ?? '',
       active: slide.active,
     });
-    setShowSlideForm(true);
+    // Load YouTube metadata immediately for existing slides
+    const mt = slide.mediaType ?? 'youtube';
+    if (mt === 'youtube') {
+      const url = slide.youtubeId || slide.mediaUrl || '';
+      if (url) loadYoutubeMeta(url);
+    } else {
+      setYtMeta(null);
+    }
   };
 
   const triggerScrape = async (city: string, country: string) => {
@@ -539,6 +663,26 @@ export default function AdminPortal() {
     } finally {
       setEnriching(false);
     }
+  };
+
+  const triggerBlackOwnedScrape = async () => {
+    setBlackOwnedRunning(true);
+    setBlackOwnedMsg('');
+    try {
+      const r = await adminApi.scrapeBlackOwned({ source: blackOwnedSource, region: blackOwnedRegion });
+      setBlackOwnedMsg(`✓ ${r.data.message}`);
+    } catch {
+      setBlackOwnedMsg('✗ Scrape failed — check server logs');
+    } finally {
+      setBlackOwnedRunning(false);
+    }
+  };
+
+  const loadBlackOwnedInfo = async () => {
+    try {
+      const r = await adminApi.blackOwnedCities();
+      setBlackOwnedInfo(r.data);
+    } catch { /* silent */ }
   };
 
   const toggleLogo = (id: LogoId) => {
@@ -681,6 +825,243 @@ export default function AdminPortal() {
   const totalRev = financials ? financials.revenue.totalProSubscriptions + financials.revenue.adRevenue : 0;
   const totalCosts = financials ? financials.costs.salesCommissionsPaid + financials.costs.ambassadorPayoutsPaid : 0;
 
+  // ── Hero Slide Form (rendered inline inside list item OR at top for "Add New") ──
+  const renderSlideForm = () => (
+    <div className="bg-gray-950 border border-orange-500/30 rounded-2xl p-5 mb-5">
+      <div className="flex items-center justify-between mb-4">
+        <h4 className="font-bold text-orange-300 text-sm flex items-center gap-2">
+          {editingSlide ? <Edit2 size={14} /> : <Plus size={14} />}
+          {editingSlide ? `Editing: ${editingSlide.advertiser}` : 'New Hero Slide'}
+        </h4>
+        <button onClick={() => { setShowSlideForm(false); setEditingSlide(null); setSlideMsg(''); setYtMeta(null); }}
+          className="p-1 text-gray-500 hover:text-white"><X size={16} /></button>
+      </div>
+
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* Media section */}
+        <div className="sm:col-span-2 lg:col-span-3">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-gray-600 mb-2">📺 Media</p>
+          <div className="flex gap-2 mb-3">
+            {(['youtube', 'image', 'video', 'default'] as const).map(type => (
+              <button key={type} onClick={() => setSlideForm(f => ({ ...f, mediaType: type }))}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${slideForm.mediaType === type ? 'bg-orange-500 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}>
+                {type === 'youtube' ? '▶ YouTube' : type === 'image' ? '🖼 Image/GIF' : type === 'video' ? '🎬 Video' : '🎨 Default'}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Live Preview ── */}
+        <div className="sm:col-span-2 lg:col-span-3">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-gray-600 mb-2">👁 Preview</p>
+          <div className="relative w-full rounded-xl overflow-hidden bg-gray-900 border border-gray-800" style={{ aspectRatio: '16/9' }}>
+            {slideForm.mediaType === 'youtube' && (() => {
+              const vid = extractYtId(slideForm.youtubeId || slideForm.mediaUrl || '');
+              return vid ? (
+                <iframe
+                  key={vid}
+                  src={`https://www.youtube.com/embed/${vid}?controls=1&rel=0&modestbranding=1${slideForm.startTime ? `&start=${slideForm.startTime}` : ''}${slideForm.endTime ? `&end=${slideForm.endTime}` : ''}`}
+                  className="absolute inset-0 w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  frameBorder="0" allowFullScreen
+                />
+              ) : (
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-gray-600">
+                  <span className="text-3xl">▶</span>
+                  <p className="text-xs">Paste a YouTube URL to preview</p>
+                </div>
+              );
+            })()}
+            {slideForm.mediaType === 'image' && (
+              slideForm.mediaUrl ? (
+                <img src={slideForm.mediaUrl} alt="slide preview" className="absolute inset-0 w-full h-full object-cover" />
+              ) : (
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-gray-600">
+                  <span className="text-3xl">🖼</span>
+                  <p className="text-xs">Paste an image URL to preview</p>
+                </div>
+              )
+            )}
+            {slideForm.mediaType === 'video' && (
+              slideForm.mediaUrl ? (
+                <video src={slideForm.mediaUrl} className="absolute inset-0 w-full h-full object-cover" controls muted playsInline />
+              ) : (
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-gray-600">
+                  <span className="text-3xl">🎬</span>
+                  <p className="text-xs">Paste a video URL (.mp4) to preview</p>
+                </div>
+              )
+            )}
+            {slideForm.mediaType === 'default' && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2"
+                style={{ background: 'linear-gradient(135deg, #008751 0%, #1a1a2e 100%)' }}>
+                <p className="text-white/60 text-sm font-bold">seshaa.</p>
+                <p className="text-white/40 text-xs">Brand gradient — no media file needed</p>
+              </div>
+            )}
+          </div>
+          {/* Metadata strip — shown for youtube */}
+          {slideForm.mediaType === 'youtube' && ytMeta && (
+            <div className="mt-2 flex items-center gap-3 bg-gray-900 border border-gray-700 rounded-xl p-2">
+              {ytMeta.thumbnail && (
+                <img src={ytMeta.thumbnail} alt="thumb" className="w-20 h-12 rounded-lg object-cover shrink-0 border border-gray-700" />
+              )}
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-white truncate">{ytMeta.title}</p>
+                <p className="text-xs text-gray-400 truncate">by {ytMeta.author}</p>
+                <p className="text-[10px] text-green-400 mt-0.5">✓ Metadata loaded from YouTube</p>
+              </div>
+            </div>
+          )}
+          {slideForm.mediaType === 'youtube' && ytMetaLoading && (
+            <p className="text-xs text-orange-400 mt-2 animate-pulse">⏳ Fetching video metadata…</p>
+          )}
+        </div>
+
+        {slideForm.mediaType === 'youtube' && (
+          <>
+            <div className="sm:col-span-2 lg:col-span-2">
+              <label className="text-xs font-semibold text-gray-400 block mb-1">YouTube URL or Video ID</label>
+              <input className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white"
+                placeholder="https://www.youtube.com/watch?v=VIDEO_ID  or  VIDEO_ID"
+                value={slideForm.youtubeId || slideForm.mediaUrl}
+                onChange={e => {
+                  const val = e.target.value;
+                  setSlideForm(f => ({ ...f, youtubeId: val, mediaUrl: val }));
+                  fetchYoutubeMeta(val);
+                }} />
+              <p className="text-xs text-gray-600 mt-1">Metadata + preview auto-load above when URL is pasted</p>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-gray-400 block mb-1">▶ Start (seconds)</label>
+              <input type="number" min="0" step="1"
+                className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white"
+                placeholder="0"
+                value={slideForm.startTime || ''}
+                onChange={e => setSlideForm(f => ({ ...f, startTime: Number(e.target.value) || 0 }))} />
+              <p className="text-xs text-gray-600 mt-1">Video in-point</p>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-gray-400 block mb-1">⏹ End (seconds)</label>
+              <input type="number" min="0" step="1"
+                className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white"
+                placeholder="0 = full video"
+                value={slideForm.endTime || ''}
+                onChange={e => setSlideForm(f => ({ ...f, endTime: Number(e.target.value) || 0 }))} />
+              <p className="text-xs text-gray-600 mt-1">Video out-point (0 = play to end)</p>
+            </div>
+          </>
+        )}
+        {(slideForm.mediaType === 'image' || slideForm.mediaType === 'video') && (
+          <div className="sm:col-span-2 lg:col-span-2">
+            <label className="text-xs font-semibold text-gray-400 block mb-1">{slideForm.mediaType === 'image' ? 'Image / GIF URL' : 'Video URL (mp4)'}</label>
+            <input className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white"
+              placeholder={slideForm.mediaType === 'image' ? 'https://cdn.example.com/banner.gif' : 'https://cdn.example.com/ad.mp4'}
+              value={slideForm.mediaUrl}
+              onChange={e => setSlideForm(f => ({ ...f, mediaUrl: e.target.value }))} />
+          </div>
+        )}
+
+        {/* Content */}
+        <div className="sm:col-span-2 lg:col-span-3">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-gray-600 mb-2 mt-1">📝 Content</p>
+        </div>
+        {[
+          { key: 'advertiser',      label: 'Advertiser / Client Name *', placeholder: 'e.g. Stanbic Bank Uganda' },
+          { key: 'overlayTitle',    label: 'Overlay Title',              placeholder: 'e.g. Uganda Tourism Board' },
+          { key: 'overlaySubtitle', label: 'Overlay Subtitle',           placeholder: 'e.g. Come experience the Pearl of Africa' },
+          { key: 'ctaText',         label: 'CTA Button Text',            placeholder: 'e.g. Book Now' },
+          { key: 'targetUrl',       label: 'CTA Link URL',               placeholder: 'https://example.com/offer' },
+        ].map(f => (
+          <div key={f.key}>
+            <label className="text-xs font-semibold text-gray-400 block mb-1">{f.label}</label>
+            <input className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white"
+              placeholder={f.placeholder}
+              value={(slideForm as Record<string, string | number | boolean>)[f.key] as string || ''}
+              onChange={e => setSlideForm(f2 => ({ ...f2, [f.key]: e.target.value }))} />
+          </div>
+        ))}
+
+        {/* Client info */}
+        <div className="sm:col-span-2 lg:col-span-3">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-gray-600 mb-2 mt-1">👤 Client Info</p>
+        </div>
+        {[
+          { key: 'clientEmail',   label: 'Client Email',   placeholder: 'client@company.com' },
+          { key: 'clientPhone',   label: 'Client Phone',   placeholder: '+234 800 000 0000' },
+          { key: 'clientCountry', label: 'Client Country', placeholder: 'Nigeria' },
+        ].map(f => (
+          <div key={f.key}>
+            <label className="text-xs font-semibold text-gray-400 block mb-1">{f.label}</label>
+            <input className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white"
+              placeholder={f.placeholder}
+              value={(slideForm as Record<string, string | number | boolean>)[f.key] as string || ''}
+              onChange={e => setSlideForm(f2 => ({ ...f2, [f.key]: e.target.value }))} />
+          </div>
+        ))}
+
+        {/* Payment */}
+        <div className="sm:col-span-2 lg:col-span-3">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-gray-600 mb-2 mt-1">💳 Payment</p>
+        </div>
+        <div>
+          <label className="text-xs font-semibold text-gray-400 block mb-1">Payment Status</label>
+          <select className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white"
+            value={slideForm.paymentStatus}
+            onChange={e => setSlideForm(f => ({ ...f, paymentStatus: e.target.value }))}>
+            <option value="unpaid">⚠️ Unpaid</option>
+            <option value="pending">🕐 Pending / Invoice sent</option>
+            <option value="partial">💛 Partially paid</option>
+            <option value="paid">✅ Paid</option>
+            <option value="overdue">🔴 Overdue</option>
+            <option value="comp">🎁 Complimentary</option>
+          </select>
+        </div>
+        <div>
+          <label className="text-xs font-semibold text-gray-400 block mb-1">Campaign Value ($)</label>
+          <input type="number" className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white"
+            placeholder="0.00" min={0} step={10}
+            value={slideForm.paymentAmount || ''}
+            onChange={e => setSlideForm(f => ({ ...f, paymentAmount: parseFloat(e.target.value) || 0 }))} />
+        </div>
+        <div>
+          <label className="text-xs font-semibold text-gray-400 block mb-1">Invoice Ref / Ref #</label>
+          <input className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white"
+            placeholder="INV-2026-001"
+            value={slideForm.invoiceRef || ''}
+            onChange={e => setSlideForm(f => ({ ...f, invoiceRef: e.target.value }))} />
+        </div>
+        <div className="sm:col-span-2 lg:col-span-3">
+          <label className="text-xs font-semibold text-gray-400 block mb-1">Internal Notes</label>
+          <textarea className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white resize-none" rows={2}
+            placeholder="e.g. Agreed 3-month run, renewal call April 2026…"
+            value={slideForm.notes || ''}
+            onChange={e => setSlideForm(f => ({ ...f, notes: e.target.value }))} />
+        </div>
+
+        <div className="sm:col-span-2 lg:col-span-3 flex items-center gap-3">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" className="w-4 h-4 accent-orange-500"
+              checked={slideForm.active}
+              onChange={e => setSlideForm(f => ({ ...f, active: e.target.checked }))} />
+            <span className="text-sm text-gray-300">Active (show in homepage slideshow)</span>
+          </label>
+        </div>
+
+        <div className="sm:col-span-2 lg:col-span-3 flex gap-3">
+          <button onClick={saveSlide} disabled={slideSaving}
+            className="flex-1 py-3 bg-orange-500 hover:bg-orange-400 text-white font-bold rounded-xl text-sm disabled:opacity-50">
+            {slideSaving ? 'Saving…' : editingSlide ? '✓ Update Slide' : '+ Add Slide to Slideshow'}
+          </button>
+          <button onClick={() => { setShowSlideForm(false); setEditingSlide(null); setSlideMsg(''); setYtMeta(null); }}
+            className="px-4 py-3 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl text-sm">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-gray-950 text-white">
 
@@ -735,7 +1116,7 @@ export default function AdminPortal() {
         {/* Tab bar */}
         <div className="flex gap-1 overflow-x-auto bg-gray-900 rounded-xl p-1 mb-6 border border-gray-800 scrollbar-none">
           {TABS.map(t => (
-            <button key={t.key} onClick={() => setTab(t.key)}
+            <button key={t.key} onClick={() => { setTab(t.key); analyticsApi.event('admin_action', { target: `tab:${t.key}`, path: '/admin' }).catch(() => {}); }}
               className={`flex items-center gap-1.5 px-3 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-colors relative ${
                 tab === t.key
                   ? 'bg-white text-gray-900 shadow'
@@ -1145,33 +1526,208 @@ export default function AdminPortal() {
         {/* ── LISTINGS ── */}
         {tab === 'listings' && (
           <div className="bg-gray-900 rounded-2xl border border-gray-800 p-5">
-            <h3 className="font-bold text-white mb-4">Pending Verification ({pendingListings.length})</h3>
+            <div className="flex items-center justify-between mb-1">
+              <h3 className="font-bold text-white flex items-center gap-2">
+                <List size={16} className="text-yellow-400" strokeWidth={1.5} />
+                Pending Verification
+                <span className="ml-1 px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-400 text-xs font-black">{pendingListings.length}</span>
+              </h3>
+            </div>
+            <p className="text-xs text-gray-500 mb-4">
+              These listings were submitted but need review before going live. Check for missing info, edit if needed, then verify or reject.
+            </p>
             {pendingListings.length === 0 ? (
               <div className="text-center py-12 text-gray-600">
                 <CheckCircle size={36} className="mx-auto mb-3 opacity-40" />
                 <p className="text-sm">All caught up — no pending listings</p>
               </div>
             ) : (
-              <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
-                {pendingListings.map(l => (
-                  <div key={l.id} className="flex items-start justify-between p-3 border border-gray-800 rounded-xl bg-gray-950">
-                    <div className="min-w-0 flex-1">
-                      <p className="font-semibold text-sm text-white">{l.name}</p>
-                      <p className="text-xs text-gray-500">{l.city}, {l.country} · {l.category}</p>
-                      {l.phone && <p className="text-xs text-gray-500">{l.phone}</p>}
+              <div className="space-y-3">
+                {pendingListings.map(l => {
+                  // ── "Why pending" analysis ──
+                  const missing: string[] = [];
+                  if (!l.phone && !l.email) missing.push('No contact info');
+                  if (!l.category) missing.push('No category');
+                  if (!l.description) missing.push('No description');
+                  if (!l.address) missing.push('No address');
+
+                  const isExpanded = expandedListingId === l.id;
+                  const isEditing  = editingListingId === l.id;
+
+                  return (
+                    <div key={l.id} className="border border-gray-700 rounded-2xl bg-gray-950 overflow-hidden">
+                      {/* ── Card header ── */}
+                      <div className="p-4">
+                        <div className="flex items-start gap-3">
+                          {/* Icon */}
+                          <div className="w-9 h-9 rounded-xl bg-yellow-500/10 text-yellow-400 flex items-center justify-center shrink-0 mt-0.5">
+                            <List size={16} strokeWidth={1.5} />
+                          </div>
+
+                          {/* Main info */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="min-w-0">
+                                <p className="font-bold text-white text-sm truncate">{l.name}</p>
+                                <p className="text-xs text-gray-400 mt-0.5">
+                                  {l.city}, {l.country}{l.region ? ` · ${l.region}` : ''}
+                                  {l.category ? ` · ${l.category}` : ''}
+                                  {l.subcategory ? ` / ${l.subcategory}` : ''}
+                                </p>
+                              </div>
+                              {/* Action buttons */}
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                <button
+                                  onClick={() => {
+                                    setExpandedListingId(isExpanded ? null : l.id);
+                                    if (isExpanded) setEditingListingId(null);
+                                  }}
+                                  className="p-1.5 rounded-lg bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
+                                  title="View details">
+                                  <Info size={14} />
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    if (isEditing) { setEditingListingId(null); }
+                                    else { startEditListing(l); }
+                                  }}
+                                  className={`p-1.5 rounded-lg transition-colors ${isEditing ? 'bg-orange-500/30 text-orange-300' : 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30'}`}
+                                  title={isEditing ? 'Close editor' : 'Edit before verifying'}>
+                                  <Edit2 size={14} />
+                                </button>
+                                <button onClick={() => verifyListing(l.id)}
+                                  className="p-1.5 rounded-lg bg-green-500/20 text-green-400 hover:bg-green-500/30 transition-colors"
+                                  title="Verify listing">
+                                  <CheckCircle size={14} strokeWidth={1.5} />
+                                </button>
+                                <button onClick={() => rejectListing(l.id)}
+                                  className="p-1.5 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors"
+                                  title="Reject listing">
+                                  <X size={14} strokeWidth={1.5} />
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Missing fields badges */}
+                            {missing.length > 0 && (
+                              <div className="flex flex-wrap gap-1.5 mt-2">
+                                {missing.map(m => (
+                                  <span key={m} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 text-[10px] font-semibold">
+                                    ⚠ {m}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                            {missing.length === 0 && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-green-500/10 border border-green-500/20 text-green-400 text-[10px] font-semibold mt-2">
+                                ✓ Looks complete
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* ── Expanded detail view ── */}
+                      {isExpanded && !isEditing && (
+                        <div className="border-t border-gray-800 px-4 pb-4 pt-3 space-y-2">
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-gray-600 mb-2">📋 Full Details</p>
+                          <div className="grid sm:grid-cols-2 gap-x-6 gap-y-1.5 text-xs">
+                            {[
+                              { label: 'Type', value: l.type },
+                              { label: 'Category', value: l.category },
+                              { label: 'Subcategory', value: l.subcategory },
+                              { label: 'Phone', value: l.phone },
+                              { label: 'Phone 2', value: l.phone2 },
+                              { label: 'Email', value: l.email },
+                              { label: 'Address', value: l.address },
+                              { label: 'Region', value: l.region },
+                              { label: 'Website', value: l.website },
+                              { label: 'WhatsApp', value: l.whatsapp },
+                              { label: 'Opening Hours', value: l.openingHours },
+                              { label: 'Submitted', value: new Date(l.createdAt).toLocaleDateString() },
+                            ].map(({ label, value }) => value ? (
+                              <div key={label} className="flex gap-2">
+                                <span className="text-gray-600 shrink-0 w-24">{label}</span>
+                                <span className="text-gray-300 truncate">{value}</span>
+                              </div>
+                            ) : null)}
+                          </div>
+                          {l.description && (
+                            <div className="mt-2 p-2.5 bg-gray-900 rounded-xl border border-gray-800">
+                              <p className="text-[10px] font-bold uppercase tracking-wider text-gray-600 mb-1">Description</p>
+                              <p className="text-xs text-gray-400">{l.description}</p>
+                            </div>
+                          )}
+                          <button onClick={() => startEditListing(l)}
+                            className="mt-2 w-full py-2 text-xs font-semibold bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 rounded-xl transition-colors">
+                            ✏ Edit this listing before verifying
+                          </button>
+                        </div>
+                      )}
+
+                      {/* ── Inline edit form ── */}
+                      {isEditing && (
+                        <div className="border-t border-orange-500/20 px-4 pb-4 pt-3">
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-gray-600 mb-3">✏ Edit Listing</p>
+                          {listingEditMsg && (
+                            <p className="mb-3 text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl px-3 py-2">{listingEditMsg}</p>
+                          )}
+                          <div className="grid sm:grid-cols-2 gap-3">
+                            {([
+                              { key: 'name',         label: 'Business Name *', placeholder: 'e.g. Mama Ngina Hotel' },
+                              { key: 'category',     label: 'Category',        placeholder: 'e.g. Hotel' },
+                              { key: 'subcategory',  label: 'Subcategory',     placeholder: 'e.g. Boutique' },
+                              { key: 'phone',        label: 'Phone',           placeholder: '+256 700 000 000' },
+                              { key: 'phone2',       label: 'Phone 2',         placeholder: '+256 700 000 001' },
+                              { key: 'email',        label: 'Email',           placeholder: 'contact@business.com' },
+                              { key: 'address',      label: 'Address',         placeholder: '12 Main St, CBD' },
+                              { key: 'city',         label: 'City *',          placeholder: 'Kampala' },
+                              { key: 'country',      label: 'Country *',       placeholder: 'Uganda' },
+                              { key: 'region',       label: 'Region',          placeholder: 'Central' },
+                              { key: 'website',      label: 'Website',         placeholder: 'https://...' },
+                              { key: 'whatsapp',     label: 'WhatsApp',        placeholder: '+256 700 000 000' },
+                              { key: 'openingHours', label: 'Opening Hours',   placeholder: 'Mon–Sat 8am–6pm' },
+                            ] as { key: keyof PendingListing; label: string; placeholder: string }[]).map(f => (
+                              <div key={f.key}>
+                                <label className="text-xs font-semibold text-gray-400 block mb-1">{f.label}</label>
+                                <input
+                                  className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white"
+                                  placeholder={f.placeholder}
+                                  value={(listingEditForm[f.key] as string) || ''}
+                                  onChange={e => setListingEditForm(prev => ({ ...prev, [f.key]: e.target.value }))}
+                                />
+                              </div>
+                            ))}
+                            <div className="sm:col-span-2">
+                              <label className="text-xs font-semibold text-gray-400 block mb-1">Description</label>
+                              <textarea
+                                className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white resize-none"
+                                rows={3}
+                                placeholder="Describe the business…"
+                                value={(listingEditForm.description as string) || ''}
+                                onChange={e => setListingEditForm(prev => ({ ...prev, description: e.target.value }))}
+                              />
+                            </div>
+                          </div>
+                          <div className="flex gap-2 mt-4">
+                            <button onClick={saveListingEdit} disabled={listingEditSaving}
+                              className="flex-1 py-2.5 bg-orange-500 hover:bg-orange-400 text-white font-bold rounded-xl text-sm disabled:opacity-50">
+                              {listingEditSaving ? 'Saving…' : '✓ Save Changes'}
+                            </button>
+                            <button onClick={() => { verifyListing(l.id); }} disabled={listingEditSaving}
+                              className="flex-1 py-2.5 bg-green-600 hover:bg-green-500 text-white font-bold rounded-xl text-sm disabled:opacity-50">
+                              ✓ Save & Verify
+                            </button>
+                            <button onClick={() => { setEditingListingId(null); setListingEditMsg(''); }}
+                              className="px-4 py-2.5 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl text-sm">
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    <div className="flex gap-2 ml-3 shrink-0">
-                      <button onClick={() => verifyListing(l.id)}
-                        className="p-2 rounded-lg bg-green-500/20 text-green-400 hover:bg-green-500/30">
-                        <CheckCircle size={16} strokeWidth={1.5} />
-                      </button>
-                      <button onClick={() => rejectListing(l.id)}
-                        className="p-2 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30">
-                        <X size={16} strokeWidth={1.5} />
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -1374,151 +1930,8 @@ export default function AdminPortal() {
                 </div>
               )}
 
-              {/* ── Add / Edit Form ── */}
-              {showSlideForm && (
-                <div className="bg-gray-950 border border-orange-500/30 rounded-2xl p-5 mb-5">
-                  <div className="flex items-center justify-between mb-4">
-                    <h4 className="font-bold text-orange-300 text-sm flex items-center gap-2">
-                      {editingSlide ? <Edit2 size={14} /> : <Plus size={14} />}
-                      {editingSlide ? `Editing: ${editingSlide.advertiser}` : 'New Hero Slide'}
-                    </h4>
-                    <button onClick={() => { setShowSlideForm(false); setEditingSlide(null); setSlideMsg(''); }}
-                      className="p-1 text-gray-500 hover:text-white"><X size={16} /></button>
-                  </div>
-
-                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {/* Media section */}
-                    <div className="sm:col-span-2 lg:col-span-3">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-gray-600 mb-2">📺 Media</p>
-                      <div className="flex gap-2 mb-3">
-                        {(['youtube', 'image', 'video', 'default'] as const).map(type => (
-                          <button key={type} onClick={() => setSlideForm(f => ({ ...f, mediaType: type }))}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${slideForm.mediaType === type ? 'bg-orange-500 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}>
-                            {type === 'youtube' ? '▶ YouTube' : type === 'image' ? '🖼 Image/GIF' : type === 'video' ? '🎬 Video' : '🎨 Default'}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {slideForm.mediaType === 'youtube' && (
-                      <div className="sm:col-span-2 lg:col-span-2">
-                        <label className="text-xs font-semibold text-gray-400 block mb-1">YouTube URL or Video ID</label>
-                        <input className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white"
-                          placeholder="https://www.youtube.com/watch?v=VIDEO_ID  or  VIDEO_ID"
-                          value={slideForm.youtubeId || slideForm.mediaUrl}
-                          onChange={e => setSlideForm(f => ({ ...f, youtubeId: e.target.value, mediaUrl: e.target.value }))} />
-                        <p className="text-xs text-gray-600 mt-1">Paste any YouTube link — video ID or full URL both work</p>
-                      </div>
-                    )}
-                    {(slideForm.mediaType === 'image' || slideForm.mediaType === 'video') && (
-                      <div className="sm:col-span-2 lg:col-span-2">
-                        <label className="text-xs font-semibold text-gray-400 block mb-1">{slideForm.mediaType === 'image' ? 'Image / GIF URL' : 'Video URL (mp4)'}</label>
-                        <input className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white"
-                          placeholder={slideForm.mediaType === 'image' ? 'https://cdn.example.com/banner.gif' : 'https://cdn.example.com/ad.mp4'}
-                          value={slideForm.mediaUrl}
-                          onChange={e => setSlideForm(f => ({ ...f, mediaUrl: e.target.value }))} />
-                      </div>
-                    )}
-
-                    {/* Content */}
-                    <div className="sm:col-span-2 lg:col-span-3">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-gray-600 mb-2 mt-1">📝 Content</p>
-                    </div>
-                    {[
-                      { key: 'advertiser',      label: 'Advertiser / Client Name *', placeholder: 'e.g. Stanbic Bank Uganda' },
-                      { key: 'overlayTitle',    label: 'Overlay Title',              placeholder: 'e.g. Uganda Tourism Board' },
-                      { key: 'overlaySubtitle', label: 'Overlay Subtitle',           placeholder: 'e.g. Come experience the Pearl of Africa' },
-                      { key: 'ctaText',         label: 'CTA Button Text',            placeholder: 'e.g. Book Now' },
-                      { key: 'targetUrl',       label: 'CTA Link URL',               placeholder: 'https://example.com/offer' },
-                    ].map(f => (
-                      <div key={f.key}>
-                        <label className="text-xs font-semibold text-gray-400 block mb-1">{f.label}</label>
-                        <input className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white"
-                          placeholder={f.placeholder}
-                          value={(slideForm as Record<string, string | number | boolean>)[f.key] as string || ''}
-                          onChange={e => setSlideForm(f2 => ({ ...f2, [f.key]: e.target.value }))} />
-                      </div>
-                    ))}
-
-                    {/* Client info */}
-                    <div className="sm:col-span-2 lg:col-span-3">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-gray-600 mb-2 mt-1">👤 Client Info</p>
-                    </div>
-                    {[
-                      { key: 'clientEmail',   label: 'Client Email',   placeholder: 'client@company.com' },
-                      { key: 'clientPhone',   label: 'Client Phone',   placeholder: '+234 800 000 0000' },
-                      { key: 'clientCountry', label: 'Client Country', placeholder: 'Nigeria' },
-                    ].map(f => (
-                      <div key={f.key}>
-                        <label className="text-xs font-semibold text-gray-400 block mb-1">{f.label}</label>
-                        <input className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white"
-                          placeholder={f.placeholder}
-                          value={(slideForm as Record<string, string | number | boolean>)[f.key] as string || ''}
-                          onChange={e => setSlideForm(f2 => ({ ...f2, [f.key]: e.target.value }))} />
-                      </div>
-                    ))}
-
-                    {/* Payment */}
-                    <div className="sm:col-span-2 lg:col-span-3">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-gray-600 mb-2 mt-1">💳 Payment</p>
-                    </div>
-                    <div>
-                      <label className="text-xs font-semibold text-gray-400 block mb-1">Payment Status</label>
-                      <select className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white"
-                        value={slideForm.paymentStatus}
-                        onChange={e => setSlideForm(f => ({ ...f, paymentStatus: e.target.value }))}>
-                        <option value="unpaid">⚠️ Unpaid</option>
-                        <option value="pending">🕐 Pending / Invoice sent</option>
-                        <option value="partial">💛 Partially paid</option>
-                        <option value="paid">✅ Paid</option>
-                        <option value="overdue">🔴 Overdue</option>
-                        <option value="comp">🎁 Complimentary</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="text-xs font-semibold text-gray-400 block mb-1">Campaign Value ($)</label>
-                      <input type="number" className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white"
-                        placeholder="0.00" min={0} step={10}
-                        value={slideForm.paymentAmount || ''}
-                        onChange={e => setSlideForm(f => ({ ...f, paymentAmount: parseFloat(e.target.value) || 0 }))} />
-                    </div>
-                    <div>
-                      <label className="text-xs font-semibold text-gray-400 block mb-1">Invoice Ref / Ref #</label>
-                      <input className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white"
-                        placeholder="INV-2026-001"
-                        value={slideForm.invoiceRef || ''}
-                        onChange={e => setSlideForm(f => ({ ...f, invoiceRef: e.target.value }))} />
-                    </div>
-                    <div className="sm:col-span-2 lg:col-span-3">
-                      <label className="text-xs font-semibold text-gray-400 block mb-1">Internal Notes</label>
-                      <textarea className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white resize-none" rows={2}
-                        placeholder="e.g. Agreed 3-month run, renewal call April 2026…"
-                        value={slideForm.notes || ''}
-                        onChange={e => setSlideForm(f => ({ ...f, notes: e.target.value }))} />
-                    </div>
-
-                    <div className="sm:col-span-2 lg:col-span-3 flex items-center gap-3">
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" className="w-4 h-4 accent-orange-500"
-                          checked={slideForm.active}
-                          onChange={e => setSlideForm(f => ({ ...f, active: e.target.checked }))} />
-                        <span className="text-sm text-gray-300">Active (show in homepage slideshow)</span>
-                      </label>
-                    </div>
-
-                    <div className="sm:col-span-2 lg:col-span-3 flex gap-3">
-                      <button onClick={saveSlide} disabled={slideSaving}
-                        className="flex-1 py-3 bg-orange-500 hover:bg-orange-400 text-white font-bold rounded-xl text-sm disabled:opacity-50">
-                        {slideSaving ? 'Saving…' : editingSlide ? '✓ Update Slide' : '+ Add Slide to Slideshow'}
-                      </button>
-                      <button onClick={() => { setShowSlideForm(false); setEditingSlide(null); }}
-                        className="px-4 py-3 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl text-sm">
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
+              {/* ── Add Form (Add New only — edit opens inline in list item below) ── */}
+              {showSlideForm && !editingSlide && renderSlideForm()}
 
               {/* ── Slides list ── */}
               {!slidesLoaded ? (
@@ -1578,8 +1991,16 @@ export default function AdminPortal() {
                                   title={slide.active ? 'Hide slide' : 'Show slide'}>
                                   {slide.active ? <Eye size={14} /> : <EyeOff size={14} />}
                                 </button>
-                                <button onClick={() => startEditSlide(slide)}
-                                  className="p-1.5 rounded-lg bg-blue-500/20 text-blue-400 hover:bg-blue-500/30">
+                                <button
+                                  onClick={() => {
+                                    if (editingSlide?.id === slide.id) {
+                                      setEditingSlide(null); setYtMeta(null); setSlideMsg('');
+                                    } else {
+                                      startEditSlide(slide);
+                                    }
+                                  }}
+                                  className={`p-1.5 rounded-lg transition-colors ${editingSlide?.id === slide.id ? 'bg-orange-500/30 text-orange-300' : 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30'}`}
+                                  title={editingSlide?.id === slide.id ? 'Close editor' : 'Edit slide'}>
                                   <Edit2 size={14} />
                                 </button>
                                 <button onClick={() => deleteSlide(slide.id)}
@@ -1610,10 +2031,16 @@ export default function AdminPortal() {
                               )}
                             </div>
                             {slide.notes && (
-                              <p className="mt-1.5 text-xs text-gray-600 italic border-l-2 border-gray-700 pl-2">{slide.notes}</p>
+                              <p className="mt-1.5 text-xs text-gray-600 italic border-l-2 border-gray-700 pl-2 truncate max-w-sm">{slide.notes}</p>
                             )}
                           </div>
                         </div>
+                        {/* ── Inline edit form — accordion opens below this card ── */}
+                        {editingSlide?.id === slide.id && (
+                          <div className="mt-3 border-t border-orange-500/20 pt-3">
+                            {renderSlideForm()}
+                          </div>
+                        )}
                       </div>
                     );
                   })}
@@ -1721,6 +2148,95 @@ export default function AdminPortal() {
                   className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white rounded-xl text-sm font-semibold transition-colors">
                   {enriching ? <><RefreshCw size={14} className="animate-spin" /> Enriching…</> : '💰 Enrich Prices from Websites'}
                 </button>
+              </div>
+
+              {/* ── Black-Owned Business Scraper ── */}
+              <div className="mt-6 pt-5 border-t border-gray-800">
+                <div className="flex items-center justify-between mb-1">
+                  <h4 className="font-bold text-white flex items-center gap-2 text-sm">
+                    ✊🏾 Black-Owned Business Scraper
+                    <span className="px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 text-[10px] font-bold">Diaspora</span>
+                  </h4>
+                  <button onClick={loadBlackOwnedInfo} className="text-xs text-gray-500 hover:text-gray-300 underline">
+                    Check status
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500 mb-3">
+                  Pulls Black-owned businesses from Yelp (<code className="text-orange-400">black_owned</code> attribute) + HTML directories across 80+ diaspora cities.
+                  Covers US, UK, Canada, Caribbean, Brazil, Europe, UAE, and more. Tagged <code className="text-green-400">black-owned</code> + <code className="text-green-400">diaspora</code>.
+                </p>
+
+                {blackOwnedInfo && (
+                  <div className="mb-3 p-3 bg-gray-950 rounded-xl border border-gray-800 text-xs">
+                    <div className="flex flex-wrap gap-3 mb-2">
+                      <span className="text-gray-400">Cities in scope: <strong className="text-white">{blackOwnedInfo.cities}</strong></span>
+                      <span className={blackOwnedInfo.yelpKeyConfigured ? 'text-green-400' : 'text-yellow-400'}>
+                        Yelp API: {blackOwnedInfo.yelpKeyConfigured ? '✓ Configured' : '⚠ Not set (add YELP_API_KEY to env)'}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {Object.entries(blackOwnedInfo.byRegion).map(([region, count]) => (
+                        <span key={region} className="px-2 py-0.5 bg-gray-800 text-gray-400 rounded-md">{region}: {count} cities</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {blackOwnedMsg && (
+                  <div className={`mb-3 p-3 rounded-xl text-xs font-medium ${blackOwnedMsg.startsWith('✓') ? 'bg-green-500/10 border border-green-500/20 text-green-400' : 'bg-red-500/10 border border-red-500/20 text-red-400'}`}>
+                    {blackOwnedMsg}
+                  </div>
+                )}
+
+                <div className="flex flex-wrap items-center gap-3 mb-3">
+                  <div>
+                    <label className="text-[10px] font-bold uppercase text-gray-600 block mb-1">Source</label>
+                    <select
+                      value={blackOwnedSource}
+                      onChange={e => setBlackOwnedSource(e.target.value as typeof blackOwnedSource)}
+                      className="bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white">
+                      <option value="all">All sources</option>
+                      <option value="yelp">Yelp only</option>
+                      <option value="html">HTML directories only</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold uppercase text-gray-600 block mb-1">Region</label>
+                    <select
+                      value={blackOwnedRegion}
+                      onChange={e => setBlackOwnedRegion(e.target.value)}
+                      className="bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white">
+                      <option value="all">All regions (full planet)</option>
+                      <option value="us">United States</option>
+                      <option value="uk">United Kingdom</option>
+                      <option value="ca">Canada</option>
+                      <option value="caribbean">Caribbean</option>
+                      <option value="brazil">Brazil</option>
+                      <option value="eu">Europe</option>
+                      <option value="au">Australia</option>
+                      <option value="asia">Asia / UAE</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <button onClick={triggerBlackOwnedScrape} disabled={blackOwnedRunning}
+                    className="flex items-center gap-2 px-5 py-2.5 bg-green-700 hover:bg-green-600 disabled:opacity-50 text-white rounded-xl text-sm font-bold transition-colors">
+                    {blackOwnedRunning
+                      ? <><RefreshCw size={14} className="animate-spin" /> Running in background…</>
+                      : <>✊🏾 Scrape Black-Owned Businesses</>}
+                  </button>
+                  <button onClick={() => adminApi.scrapeBlackOwned({ source: blackOwnedSource, region: blackOwnedRegion, dryRun: true }).then(r => setBlackOwnedMsg(`ℹ Dry run: ${r.data.message}`)).catch(() => setBlackOwnedMsg('✗ Failed'))}
+                    className="px-4 py-2.5 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl text-sm font-semibold transition-colors">
+                    Dry Run (count only)
+                  </button>
+                </div>
+                <p className="text-[10px] text-gray-600 mt-2">
+                  Runs in the background — check server logs for progress. Listings appear in the directory tagged <em>black-owned</em> + <em>diaspora</em> and need admin verification before going live.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-gray-800">
                 <button onClick={() => adminApi.scrapeCounts().then(r => { setScrapeCounts(r.data.counts || []); setScrapeTotal(r.data.total || 0); }).catch(() => {})}
                   className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl text-sm font-semibold transition-colors">
                   <RefreshCw size={14} /> Refresh Counts
@@ -1866,6 +2382,50 @@ export default function AdminPortal() {
                     Reset to defaults
                   </button>
                   {cssFontMsg && <span className="text-xs text-pink-300">{cssFontMsg}</span>}
+                </div>
+              </div>
+            </div>
+
+            {/* ── News Ticker Speed ─────────────────────────────────── */}
+            <div className="bg-gray-900 rounded-2xl border border-gray-800 p-5">
+              <h3 className="font-bold text-white mb-1 flex items-center gap-2">
+                <Activity size={16} className="text-yellow-400" strokeWidth={1.5} /> News Ticker Speed
+              </h3>
+              <p className="text-xs text-gray-500 mb-5">
+                Controls how fast the LIVE headline ticker scrolls across the news page.
+                Lower = faster. Change takes effect on next page load.
+              </p>
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Scroll duration</label>
+                  <span className="text-xs text-gray-300 tabular-nums font-mono">
+                    {tickerSpeed}s {tickerSpeed <= 30 ? '(very fast)' : tickerSpeed <= 60 ? '(fast)' : tickerSpeed <= 100 ? '(normal)' : '(slow)'}
+                  </span>
+                </div>
+                <input type="range" min={20} max={200} step={5} value={tickerSpeed}
+                  onChange={e => setTickerSpeed(parseInt(e.target.value))}
+                  className="w-full accent-yellow-400 h-1.5 cursor-pointer" />
+                <div className="flex justify-between text-[10px] text-gray-600 mt-0.5">
+                  <span>20s (fastest)</span><span>200s (slowest)</span>
+                </div>
+                <div className="flex items-center gap-3 mt-4">
+                  <button
+                    onClick={() => {
+                      localStorage.setItem('seshaa_ticker_speed', String(tickerSpeed));
+                      setCssFontMsg('✓ Ticker speed saved.');
+                      setTimeout(() => setCssFontMsg(''), 2000);
+                    }}
+                    className="px-4 py-2 bg-yellow-600 hover:bg-yellow-500 text-white text-xs font-bold rounded-xl transition-colors"
+                  >
+                    Save Speed
+                  </button>
+                  <button
+                    onClick={() => { setTickerSpeed(60); localStorage.setItem('seshaa_ticker_speed', '60'); }}
+                    className="text-xs text-gray-500 hover:text-gray-300 underline"
+                  >
+                    Reset to default (60s)
+                  </button>
+                  {cssFontMsg && <span className="text-xs text-yellow-300">{cssFontMsg}</span>}
                 </div>
               </div>
             </div>
@@ -2359,14 +2919,37 @@ export default function AdminPortal() {
 
         {/* ── Behaviour Analytics tab ──────────────────────────────────── */}
         {tab === 'analytics' && (
-          <div className="p-6 space-y-8 max-w-5xl mx-auto">
-            <h2 className="text-xl font-bold text-white flex items-center gap-2">
-              <Activity size={20} className="text-purple-400" /> User Behaviour Analytics
-            </h2>
+          <div className="p-6 space-y-8 w-full">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                <Activity size={20} className="text-purple-400" /> User Behaviour Analytics
+              </h2>
+              <button
+                onClick={() => {
+                  setBehaviourStats(null); setPrognosisData(null); setSessionData(null);
+                  setAnalyticsLoading(true);
+                  Promise.all([analyticsApi.admin(), analyticsApi.prognosis(), analyticsApi.sessions()])
+                    .then(([s, p, se]) => { setBehaviourStats(s.data as BehaviourStats); setPrognosisData(p.data as PrognosisData); setSessionData(se.data as SessionData); })
+                    .catch(() => {}).finally(() => setAnalyticsLoading(false));
+                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl text-xs font-semibold transition-colors">
+                <RefreshCw size={13} className={analyticsLoading ? 'animate-spin' : ''} />
+                Refresh
+              </button>
+            </div>
 
             {analyticsLoading && (
               <div className="flex items-center justify-center py-20">
                 <div className="w-10 h-10 border-4 border-t-transparent border-purple-500 rounded-full animate-spin" />
+              </div>
+            )}
+
+            {!analyticsLoading && !behaviourStats && (
+              <div className="text-center py-20 text-gray-600">
+                <Activity size={36} className="mx-auto mb-3 opacity-30" strokeWidth={1} />
+                <p className="text-sm font-medium">No analytics data yet</p>
+                <p className="text-xs mt-1">Events will appear here once users start browsing Seshaa.</p>
+                <p className="text-xs mt-1 text-gray-700">The <code className="text-purple-500">UserEvent</code> table is now created and ready.</p>
               </div>
             )}
 
@@ -2508,6 +3091,36 @@ export default function AdminPortal() {
                     })}
                   </div>
                 </div>
+
+                {/* ── Admin Behaviour Section ── */}
+                {((behaviourStats.adminActions?.length ?? 0) > 0 || (behaviourStats.adminTabVisits?.length ?? 0) > 0) && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-gray-800/50 rounded-2xl p-5 border border-purple-500/20">
+                      <p className="text-sm font-semibold text-white mb-1 flex items-center gap-2">
+                        <Shield size={14} className="text-red-400" /> Admin Tab Usage (30d)
+                      </p>
+                      <p className="text-xs text-gray-500 mb-3">Which tabs you visit most</p>
+                      {(behaviourStats.adminTabVisits ?? []).map(a => (
+                        <div key={a.target} className="flex items-center gap-2 mb-1.5">
+                          <span className="text-xs text-gray-300 capitalize flex-1 truncate">{a.target.replace('tab:', '')}</span>
+                          <span className="text-xs tabular-nums text-purple-400 font-semibold">{a.count}×</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="bg-gray-800/50 rounded-2xl p-5 border border-purple-500/20">
+                      <p className="text-sm font-semibold text-white mb-1 flex items-center gap-2">
+                        <Activity size={14} className="text-purple-400" /> All Admin Actions (30d)
+                      </p>
+                      <p className="text-xs text-gray-500 mb-3">Every tracked admin button press</p>
+                      {(behaviourStats.adminActions ?? []).slice(0, 10).map(a => (
+                        <div key={a.target} className="flex items-center gap-2 mb-1.5">
+                          <span className="text-xs text-gray-300 font-mono flex-1 truncate">{a.target}</span>
+                          <span className="text-xs tabular-nums text-purple-400 font-semibold">{a.count}×</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </>
             )}
 
@@ -2633,7 +3246,7 @@ export default function AdminPortal() {
           </div>
         )}
         {tab === 'banking' && (
-          <div className="p-6 space-y-10 max-w-5xl mx-auto">
+          <div className="p-6 space-y-10 w-full">
 
             {/* ── Header ── */}
             <div className="flex items-start justify-between gap-4">

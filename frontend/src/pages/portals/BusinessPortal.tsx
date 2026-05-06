@@ -1037,7 +1037,7 @@ export default function BusinessPortal() {
       </div>
 
       {/* Tab strip */}
-      <div className="flex border-b mb-7 gap-0 overflow-x-auto">
+      <div className="flex border-b mb-7 gap-0 overflow-x-auto scrollbar-none">
         {TABS.map(tab => (
           <button
             key={tab.id}

@@ -348,59 +348,119 @@ const ALL_SOURCES: Source[] = [
 ];
 
 // Category → source filter logic
+// Specialty categories (tech/health/sports/etc.) use ONLY explicitly-tagged sources
+// so each tab shows content from that domain, not a mix of general headlines.
+// 'general' and 'politics' pull from all un-tagged sources (most political news is
+// filed in general outlets rather than dedicated political feeds).
 const CATEGORY_MAP: Record<string, (s: Source) => boolean> = {
   general:       (s) => !s.category || s.category === 'general',
   politics:      (s) => !s.category || s.category === 'politics',
-  business:      (s) => !s.category || s.category === 'business',
-  technology:    (s) => s.category === 'technology' || (!s.category && ['Nigeria','Ghana','South Africa','Kenya','Pan-Africa'].includes(s.country)),
-  health:        (s) => s.category === 'health' || !s.category,
-  sports:        (s) => s.category === 'sports' || !s.category,
-  entertainment: (s) => s.category === 'entertainment' || !s.category,
-  agriculture:   (s) => s.category === 'agriculture' || !s.category,
-  finance:       (s) => s.category === 'finance' || s.category === 'business' || !s.category,
+  business:      (s) => s.category === 'business',
+  technology:    (s) => s.category === 'technology',
+  health:        (s) => s.category === 'health',
+  sports:        (s) => s.category === 'sports',
+  entertainment: (s) => s.category === 'entertainment',
+  agriculture:   (s) => s.category === 'agriculture',
+  finance:       (s) => s.category === 'finance' || s.category === 'business',
   travel:        (s) => s.category === 'travel',
 };
 
-// Extra specialty sources per category
+// Extra specialty sources per category — these feed entire specialty tabs
 const SPECIALTY_SOURCES: Record<string, Source[]> = {
   technology: [
     { name: 'Disrupt Africa', url: 'https://disrupt-africa.com/feed/', country: 'Pan-Africa' },
     { name: 'Wimbart', url: 'https://wimbart.com/feed/', country: 'Pan-Africa' },
     { name: 'Africa Tech Summit', url: 'https://www.africatechsummit.com/feed/', country: 'Pan-Africa' },
     { name: 'Tele.net Africa', url: 'https://telecoms.com/feed/?cat=africa', country: 'Pan-Africa' },
+    { name: 'Digit Africa', url: 'https://digitafrica.co/feed/', country: 'Pan-Africa' },
+    { name: 'Africa Tech', url: 'https://africatech.news/feed/', country: 'Pan-Africa' },
+    { name: 'Startups Africa', url: 'https://startups.ng/feed/', country: 'Nigeria' },
+    { name: 'WeeTracker', url: 'https://weetracker.com/feed/', country: 'Pan-Africa' },
+    { name: 'Techish KE', url: 'https://techish.co.ke/feed/', country: 'Kenya' },
+    { name: 'The Nerve Africa', url: 'https://www.thenerveafrica.com/feed/', country: 'Pan-Africa' },
+    { name: 'TechLoy', url: 'https://www.techloy.com/feed/', country: 'Pan-Africa' },
+    { name: 'Space in Africa', url: 'https://spaceinafrica.com/feed/', country: 'Pan-Africa' },
   ],
   health: [
     { name: 'AllAfrica Health', url: 'https://allafrica.com/tools/headlines/rdf/health/headlines.rdf', country: 'Pan-Africa' },
     { name: 'Devex Africa Health', url: 'https://www.devex.com/news/health-rss.xml', country: 'Pan-Africa' },
     { name: 'Africa Health Org', url: 'https://www.africa-health.com/feed/', country: 'Pan-Africa' },
+    { name: 'WHO AFRO News', url: 'https://www.afro.who.int/rss.xml', country: 'Pan-Africa' },
+    { name: 'Africa CDC', url: 'https://africacdc.org/feed/', country: 'Pan-Africa' },
+    { name: 'Global Health Africa', url: 'https://globalhealthafrica.com/feed/', country: 'Pan-Africa' },
+    { name: 'Pulse Health NG', url: 'https://www.pulse.ng/lifestyle/health/feed/', country: 'Nigeria' },
+    { name: 'Health Africa', url: 'https://healthafrica.com.ng/feed/', country: 'Nigeria' },
+    { name: 'Medscape Africa', url: 'https://www.medscape.com/cx/rssfeeds/2669.xml', country: 'Pan-Africa' },
   ],
   sports: [
     { name: 'AllAfrica Sports', url: 'https://allafrica.com/tools/headlines/rdf/sport/headlines.rdf', country: 'Pan-Africa' },
-    { name: 'Pulse Sports', url: 'https://www.pulse.ng/sports/feed/', country: 'Nigeria' },
+    { name: 'Pulse Sports NG', url: 'https://www.pulse.ng/sports/feed/', country: 'Nigeria' },
     { name: 'KickOff SA', url: 'https://www.kickoff.com/rss', country: 'South Africa' },
     { name: 'CAF Online', url: 'https://www.cafonline.com/rss.xml', country: 'Pan-Africa' },
     { name: 'SuperSport', url: 'https://supersport.com/football/feed/', country: 'Pan-Africa' },
+    { name: 'Complete Sports NG', url: 'https://completesports.com/feed/', country: 'Nigeria' },
+    { name: 'SportsPesa News', url: 'https://blog.sportpesa.com/feed/', country: 'Kenya' },
+    { name: 'Soccer Laduma SA', url: 'https://www.soccerladuma.co.za/rss/index', country: 'South Africa' },
+    { name: 'Brila FM', url: 'https://www.brila.net/feed/', country: 'Nigeria' },
+    { name: 'GHANAsoccernet', url: 'https://ghanasoccernet.com/feed/', country: 'Ghana' },
+    { name: 'CafOnline Sports', url: 'https://www.cafonline.com/rss-news', country: 'Pan-Africa' },
+    { name: 'Sports Africa GH', url: 'https://www.sportsafrika.net/feed/', country: 'Pan-Africa' },
+    { name: 'Footy Africa', url: 'https://footyafrica.com/feed/', country: 'Pan-Africa' },
+    { name: 'African Sports', url: 'https://africansports.net/feed/', country: 'Pan-Africa' },
   ],
   agriculture: [
     { name: 'AllAfrica Agriculture', url: 'https://allafrica.com/tools/headlines/rdf/agric/headlines.rdf', country: 'Pan-Africa' },
     { name: 'Farmers Review Africa', url: 'https://farmersreviewafrica.com/feed/', country: 'Pan-Africa' },
     { name: 'Agrilinks', url: 'https://www.agrilinks.org/rss.xml', country: 'Pan-Africa' },
     { name: 'Africa Agriculture', url: 'https://africaagriculture.net/feed/', country: 'Pan-Africa' },
+    { name: 'FAO Africa', url: 'https://www.fao.org/africa/news/en/rss.xml', country: 'Pan-Africa' },
+    { name: 'Agri Investor Africa', url: 'https://www.agriinvestor.com/feed/', country: 'Pan-Africa' },
+    { name: 'AgroPages Africa', url: 'https://agropage.net/rss.xml', country: 'Pan-Africa' },
+    { name: 'Farm Africa Blog', url: 'https://www.farmafrica.org/feed', country: 'Pan-Africa' },
+    { name: 'Africa Food Journal', url: 'https://africafoodjournal.com/feed/', country: 'Pan-Africa' },
+    { name: 'Kenya Farmers', url: 'https://farmersportal.co.ke/feed/', country: 'Kenya' },
+    { name: 'AgriRoots Africa', url: 'https://agrirootsafrica.com/feed/', country: 'Pan-Africa' },
   ],
   entertainment: [
     { name: 'Afrobeats Intelligence', url: 'https://www.afrobeatsintelligence.com/feed/', country: 'Pan-Africa' },
     { name: 'WillisWorld', url: 'https://www.willisworld.co.za/feed/', country: 'South Africa' },
     { name: 'JustNaija', url: 'https://www.justnaija.com/feed/', country: 'Nigeria' },
     { name: 'Zim Hip Hop', url: 'https://www.zimhiphop.com/feed/', country: 'Zimbabwe' },
+    { name: 'Native Magazine', url: 'https://nativemagazine.com/feed/', country: 'Nigeria' },
+    { name: 'Afropop Worldwide', url: 'https://www.afropop.org/feed/', country: 'Pan-Africa' },
+    { name: 'Zambia Entertainment', url: 'https://entertainmentzambia.com/feed/', country: 'Zambia' },
+    { name: 'Ghana Showbiz', url: 'https://www.pulse.com.gh/entertainment/feed/', country: 'Ghana' },
+    { name: 'FilmAfrica', url: 'https://filmafrica.co.za/feed/', country: 'South Africa' },
+    { name: 'Nollywood Films', url: 'https://nollywood.net/feed/', country: 'Nigeria' },
+    { name: 'Cinema Escapist Africa', url: 'https://www.cinescapist.com/africa/feed/', country: 'Pan-Africa' },
+    { name: 'African HipHop', url: 'https://africanhiphop.com/feed/', country: 'Pan-Africa' },
+    { name: 'Konbini Africa', url: 'https://www.konbini.com/en/africa/feed/', country: 'Pan-Africa' },
+  ],
+  finance: [
+    { name: 'Nairametrics', url: 'https://nairametrics.com/feed/', country: 'Nigeria' },
+    { name: 'Fin24', url: 'https://www.news24.com/fin24/rss', country: 'South Africa' },
+    { name: 'Moneyweb SA', url: 'https://www.moneyweb.co.za/feed/', country: 'South Africa' },
+    { name: 'Africa Finance', url: 'https://africafinance.org/feed/', country: 'Pan-Africa' },
+    { name: 'Invest Africa', url: 'https://www.investafrica.com/feed/', country: 'Pan-Africa' },
+    { name: 'DealMakers Africa', url: 'https://www.dealmakersmag.co.za/feed/', country: 'South Africa' },
+    { name: 'AllAfrica Finance', url: 'https://allafrica.com/tools/headlines/rdf/economy/headlines.rdf', country: 'Pan-Africa' },
+    { name: 'African Banker', url: 'https://www.africanbankermag.com/feed/', country: 'Pan-Africa' },
+    { name: 'This Is Africa Finance', url: 'https://thisisafrica.me/feed/', country: 'Pan-Africa' },
+    { name: 'IC Publications Finance', url: 'https://www.icpublications.com/feed/', country: 'Pan-Africa' },
   ],
   travel: [
     { name: 'Africa Geographic', url: 'https://africageographic.com/blog/feed/', country: 'Pan-Africa' },
     { name: 'Travel Africa', url: 'https://www.travelafricamag.com/feed/', country: 'Pan-Africa' },
-    { name: 'Nomadic Matt', url: 'https://www.nomadicmatt.com/category/africa/feed/', country: 'Pan-Africa' },
+    { name: 'Nomadic Matt Africa', url: 'https://www.nomadicmatt.com/category/africa/feed/', country: 'Pan-Africa' },
     { name: 'Africa Tourism', url: 'https://www.africa-tourism.com/feed/', country: 'Pan-Africa' },
     { name: 'Wild Africa', url: 'https://wildafrica.net/feed/', country: 'Pan-Africa' },
     { name: 'Migrationology Africa', url: 'https://migrationology.com/category/africa/feed/', country: 'Pan-Africa' },
     { name: 'The Discoverer Africa', url: 'https://www.thediscoverer.com/blog/africa/feed/', country: 'Pan-Africa' },
+    { name: 'Responsible Travel', url: 'https://www.responsibletravel.com/copy/rss', country: 'Pan-Africa' },
+    { name: 'Lonely Planet Africa', url: 'https://www.lonelyplanet.com/africa.rss', country: 'Pan-Africa' },
+    { name: 'Afar Africa', url: 'https://www.afar.com/magazine/africa/rss', country: 'Pan-Africa' },
+    { name: 'SafariBookings Blog', url: 'https://blog.safaribookings.com/feed/', country: 'Pan-Africa' },
+    { name: 'Visit Africa', url: 'https://visitafrica.site/feed/', country: 'Pan-Africa' },
   ],
 };
 
@@ -503,12 +563,19 @@ async function fetchCategory(category: string): Promise<NewsItem[]> {
   const specialty = SPECIALTY_SOURCES[category] || [];
 
   // For general — spread across countries; cap at 60 sources to avoid timeout
-  // Sort general sources to ensure country diversity before slicing
   const generalSources = ALL_SOURCES.filter(s => !s.category || s.category === 'general');
   const shuffledGeneral = generalSources.sort(() => Math.random() - 0.5).slice(0, 60);
-  const selected = category === 'general'
-    ? shuffledGeneral
-    : [...baseSources.slice(0, 25), ...specialty];
+
+  // For specialty categories: use explicitly-tagged sources + specialty-only feeds.
+  // De-dupe by URL so the same feed isn't fetched twice.
+  const seenUrls = new Set<string>();
+  const combined = [...baseSources, ...specialty].filter(s => {
+    if (seenUrls.has(s.url)) return false;
+    seenUrls.add(s.url);
+    return true;
+  });
+
+  const selected = category === 'general' ? shuffledGeneral : combined;
 
   // MAX articles any single source may contribute to the final feed
   const MAX_PER_SOURCE_IN_FEED = 3;

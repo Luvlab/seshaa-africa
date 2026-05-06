@@ -85,7 +85,7 @@ export default function AdvertiserPortal() {
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-8">
+    <div className="w-full px-4 sm:px-6 lg:px-10 py-8">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
         <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center">
@@ -98,7 +98,7 @@ export default function AdvertiserPortal() {
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b mb-6 gap-1">
+      <div className="flex border-b mb-6 gap-1 overflow-x-auto scrollbar-none">
         {([
           { id: 'new', label: 'New Campaign', icon: <Plus size={15}/> },
           { id: 'campaigns', label: 'My Campaigns', icon: <BarChart3 size={15}/> },
@@ -107,7 +107,7 @@ export default function AdvertiserPortal() {
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
-            className={`flex items-center gap-1.5 px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors ${
+            className={`flex items-center gap-1.5 px-4 py-3 text-sm font-medium border-b-2 -mb-px whitespace-nowrap transition-colors ${
               tab === t.id ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
           >

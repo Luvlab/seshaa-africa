@@ -1,6 +1,7 @@
 /**
  * Seshaa Radio — Footer Player
- * Fixed 72 px bar at the bottom. Only renders when a track is loaded.
+ * Fixed bar at the bottom. Only renders when a track is loaded.
+ * Shows a full seekable waveform above the controls.
  * Sits above MobileTabBar (z-50 < z-60 for mobile nav).
  */
 import { useEffect, useRef, useState } from 'react';
@@ -10,6 +11,7 @@ import {
   X, Radio,
 } from 'lucide-react';
 import { radioApi } from '../../services/api';
+import Waveform from './Waveform';
 
 function fmtTime(s: number) {
   const m = Math.floor(s / 60);
@@ -46,7 +48,8 @@ export default function FooterPlayer() {
   const handleLoaded = () => {
     const audio = audioRef.current;
     if (!audio) return;
-    setDuration(audio.duration || currentTrack?.duration || 0);
+    const d = audio.duration;
+    setDuration(isFinite(d) ? d : currentTrack?.duration || 0);
   };
 
   // ── Elapsed time updates ──────────────────────────────────────────────────
@@ -61,16 +64,16 @@ export default function FooterPlayer() {
     }
   };
 
-  // ── Seek ──────────────────────────────────────────────────────────────────
-  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = parseFloat(e.target.value);
-    if (audioRef.current) audioRef.current.currentTime = val;
-    setElapsed(val);
+  // ── Seek via waveform click ───────────────────────────────────────────────
+  const handleSeek = (time: number) => {
+    if (audioRef.current && isFinite(duration) && duration > 0) {
+      audioRef.current.currentTime = time;
+    }
+    setElapsed(time);
   };
 
   if (!currentTrack) return null;
 
-  const pct = duration > 0 ? (elapsed / duration) * 100 : 0;
   const image = currentTrack.image || '';
 
   return (
@@ -80,6 +83,7 @@ export default function FooterPlayer() {
         ref={audioRef}
         src={currentTrack.audio}
         onLoadedMetadata={handleLoaded}
+        onDurationChange={handleLoaded}
         onTimeUpdate={handleTimeUpdate}
         onEnded={next}
         preload="metadata"
@@ -88,40 +92,41 @@ export default function FooterPlayer() {
       {/* Player bar */}
       <div
         className="fixed bottom-0 left-0 right-0 z-50 flex flex-col"
-        style={{ height: 72, background: 'linear-gradient(to right, #0f172a, #1e293b)' }}
+        style={{ background: 'linear-gradient(to right, #0f172a, #1e293b)' }}
       >
-        {/* Progress bar — thin line at top */}
-        <div className="relative w-full h-1 bg-white/10 shrink-0">
-          <div
-            className="absolute inset-y-0 left-0 bg-emerald-400 transition-all"
-            style={{ width: `${pct}%` }}
-          />
-          <input
-            type="range" min={0} max={duration || 1} step={0.5} value={elapsed}
-            onChange={handleSeek}
-            className="absolute inset-0 w-full opacity-0 cursor-pointer h-1"
+        {/* ── Waveform (full width, seekable) ─────────────────────────── */}
+        <div className="w-full px-2 pt-2 pb-0">
+          <Waveform
+            trackId={currentTrack.id}
+            elapsed={elapsed}
+            duration={duration}
+            onSeek={handleSeek}
+            height={36}
+            bars={100}
+            playedColor="#10b981"
+            unplayedColor="rgba(255,255,255,0.15)"
           />
         </div>
 
-        {/* Main row */}
-        <div className="flex items-center gap-3 px-3 flex-1 min-w-0">
+        {/* ── Controls row ─────────────────────────────────────────────── */}
+        <div className="flex items-center gap-3 px-3 py-2 min-w-0">
 
           {/* Art + track info */}
           <div className="flex items-center gap-2.5 min-w-0 flex-1">
             <div className="relative shrink-0">
               {image
-                ? <img src={image} alt="" className="w-10 h-10 rounded-lg object-cover" />
-                : <div className="w-10 h-10 rounded-lg bg-emerald-700 flex items-center justify-center">
-                    <Radio size={18} className="text-emerald-300" />
+                ? <img src={image} alt="" className="w-9 h-9 rounded-lg object-cover" />
+                : <div className="w-9 h-9 rounded-lg bg-emerald-700 flex items-center justify-center">
+                    <Radio size={16} className="text-emerald-300" />
                   </div>
               }
               {playing && (
-                <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-400 rounded-full border-2 border-slate-900 animate-pulse" />
+                <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-400 rounded-full border-2 border-slate-900 animate-pulse" />
               )}
             </div>
             <div className="min-w-0">
               <p className="text-xs font-bold text-white truncate leading-tight">{currentTrack.name}</p>
-              <p className="text-[11px] text-white/50 truncate">{currentTrack.artist}</p>
+              <p className="text-[10px] text-white/50 truncate">{currentTrack.artist}</p>
             </div>
           </div>
 
@@ -133,26 +138,26 @@ export default function FooterPlayer() {
           {/* Controls */}
           <div className="flex items-center gap-1 shrink-0">
             <button onClick={prev} className="p-1.5 text-white/60 hover:text-white transition-colors">
-              <SkipBack size={16} />
+              <SkipBack size={15} />
             </button>
             <button
               onClick={playing ? pause : resume}
-              className="w-9 h-9 rounded-full bg-emerald-500 hover:bg-emerald-400 flex items-center justify-center transition-colors shadow-lg"
+              className="w-8 h-8 rounded-full bg-emerald-500 hover:bg-emerald-400 flex items-center justify-center transition-colors shadow-lg"
             >
               {playing
-                ? <Pause size={16} className="text-white" />
-                : <Play  size={16} className="text-white ml-0.5" />
+                ? <Pause size={15} className="text-white" />
+                : <Play  size={15} className="text-white ml-0.5" />
               }
             </button>
             <button onClick={next} className="p-1.5 text-white/60 hover:text-white transition-colors">
-              <SkipForward size={16} />
+              <SkipForward size={15} />
             </button>
           </div>
 
           {/* Volume (desktop only) */}
           <div className="hidden md:flex items-center gap-1.5 shrink-0">
             <button onClick={toggleMute} className="text-white/50 hover:text-white transition-colors">
-              {muted || volume === 0 ? <VolumeX size={14} /> : <Volume2 size={14} />}
+              {muted || volume === 0 ? <VolumeX size={13} /> : <Volume2 size={13} />}
             </button>
             <input
               type="range" min={0} max={1} step={0.02} value={muted ? 0 : volume}
@@ -163,7 +168,7 @@ export default function FooterPlayer() {
 
           {/* Close */}
           <button onClick={close} className="p-1.5 text-white/40 hover:text-white transition-colors shrink-0">
-            <X size={15} />
+            <X size={14} />
           </button>
         </div>
       </div>

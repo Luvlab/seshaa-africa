@@ -4,11 +4,12 @@ import { useTranslation } from 'react-i18next';
 import {
   Search, Zap, Users, Building2, Landmark, Heart, Sparkles, Volume2, VolumeX,
   Utensils, HeartPulse, GraduationCap, Banknote, Bus, BedDouble,
-  Laptop, Scissors, Wrench, Wheat, Church, HardHat,
+  Laptop, Scissors, Wrench, Wheat, Church, HardHat, Download,
 } from 'lucide-react';
 import { adminApi } from '../services/api';
 import VisitorDashboard from '../components/home/VisitorDashboard';
 import { useThemeStore } from '../store/theme';
+import { usePWAInstall } from '../hooks/usePWAInstall';
 
 // ── Hero slide type ─────────────────────────────────────────────────────────
 interface HeroSlide {
@@ -23,6 +24,8 @@ interface HeroSlide {
   ctaText?: string;
   targetUrl?: string;
   ctaUrl?: string;
+  startTime?: number;   // video in-point (seconds)
+  endTime?: number;     // video out-point (seconds)
 }
 
 // ── Fallback hardcoded slides (used when no DB slides configured) ──────────
@@ -34,9 +37,18 @@ const FALLBACK_SLIDES: HeroSlide[] = [
   { youtubeId: 'h3yRY3OwJlc', advertiser: 'MTN Uganda',            ctaUrl: '/advertise', mediaType: 'youtube' },
 ];
 
-function ytSrc(videoId: string, muted: boolean) {
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function ytSrc(videoId: string, muted: boolean, startTime?: number, endTime?: number) {
   const origin = typeof window !== 'undefined' ? window.location.origin : 'https://www.seshaa.africa';
-  return [
+  const parts = [
     `https://www.youtube.com/embed/${videoId}`,
     `?autoplay=1`,
     `&mute=${muted ? 1 : 0}`,
@@ -51,7 +63,10 @@ function ytSrc(videoId: string, muted: boolean) {
     `&iv_load_policy=3`,
     `&enablejsapi=1`,
     `&origin=${encodeURIComponent(origin)}`,
-  ].join('');
+  ];
+  if (startTime != null && startTime > 0) parts.push(`&start=${Math.round(startTime)}`);
+  if (endTime != null && endTime > 0)   parts.push(`&end=${Math.round(endTime)}`);
+  return parts.join('');
 }
 
 // Extract YouTube video ID from a full URL or embed URL or bare ID
@@ -178,8 +193,9 @@ export default function HomePage() {
   const [aiMode, setAiMode]       = useState(false);
   const [muted, setMuted]         = useState(true);
   const [slideIdx, setSlideIdx]   = useState(0);
-  const [heroSlides, setHeroSlides] = useState<HeroSlide[]>(FALLBACK_SLIDES);
+  const [heroSlides, setHeroSlides] = useState<HeroSlide[]>(() => shuffle(FALLBACK_SLIDES));
   const searchBoxRef = useRef<HTMLDivElement>(null);
+  const { isInstallable, install } = usePWAInstall();
 
   // Load live hero slides from DB; fall back to hardcoded if empty
   useEffect(() => {
@@ -190,7 +206,7 @@ export default function HomePage() {
         const youtubeId = mediaType === 'youtube' ? extractYoutubeId(source) : s.youtubeId;
         return { ...s, mediaType, youtubeId, mediaUrl: source };
       }).filter((s) => s.mediaType !== 'youtube' || Boolean(s.youtubeId));
-      if (slides.length > 0) setHeroSlides(slides);
+      if (slides.length > 0) setHeroSlides(shuffle(slides));
     }).catch(() => { /* keep fallback */ });
   }, []);
 
@@ -211,7 +227,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="bg-gray-50">
 
       {/* ── HERO ── */}
       {(() => {
@@ -237,7 +253,7 @@ export default function HomePage() {
               ) : (
                 <iframe
                   key={`${slideIdx}-${ytId}-${muted}`}
-                  src={ytSrc(ytId, muted)}
+                  src={ytSrc(ytId, muted, slide?.startTime, slide?.endTime)}
                   title={`Hero Ad - ${slide?.advertiser}`}
                   frameBorder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -254,7 +270,7 @@ export default function HomePage() {
                 />
               )}
             </div>
-            <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 3, background: 'linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.72) 100%)' }} />
+            {/* no darkening overlay — keep background fully visible */}
 
             {/* ── Hero content overlay ─────────────────────────────────────
                 Mobile: search sits at the VERY TOP of the hero (pt-2) so it
@@ -336,6 +352,18 @@ export default function HomePage() {
                       onClick={() => setSlideIdx(i)} aria-label={`Slide ${i + 1}`} />
                   ))}
                 </div>
+              )}
+              {/* PWA install button — appears bottom-right when installable */}
+              {isInstallable && (
+                <button
+                  onClick={install}
+                  className="flex items-center gap-1.5 px-3 py-2 bg-white/90 hover:bg-white text-gray-900 rounded-full text-xs font-bold backdrop-blur-sm shadow-lg transition-all active:scale-95 shrink-0"
+                  title="Install Seshaa app"
+                >
+                  <Download size={13} />
+                  <span className="hidden sm:inline">Install App</span>
+                  <span className="sm:hidden">Install</span>
+                </button>
               )}
               {mediaType === 'youtube' && (
                 <button className="p-2 bg-black/40 text-white rounded-full backdrop-blur-sm hover:bg-black/60 shrink-0"

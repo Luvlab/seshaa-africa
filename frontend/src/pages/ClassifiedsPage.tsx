@@ -239,7 +239,7 @@ export default function ClassifiedsPage() {
   const handleSearch = (e: React.FormEvent) => { e.preventDefault(); load(); };
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-6">
+    <div className="w-full px-4 sm:px-6 lg:px-10 py-6">
       <SafetyBanner />
 
       {/* Search + Post Ad */}
@@ -308,7 +308,7 @@ export default function ClassifiedsPage() {
       </div>
 
       {loading ? (
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {[1,2,3,4].map(i => (
             <div key={i} className="bg-white rounded-2xl border p-4 flex gap-3 animate-pulse">
               <div className="w-20 h-20 bg-gray-200 rounded-xl shrink-0"/>
@@ -330,7 +330,7 @@ export default function ClassifiedsPage() {
           </button>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {items.map(item => <ClassifiedCard key={item.id} item={item}/>)}
         </div>
       )}

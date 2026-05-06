@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useRef, useLayoutEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, Search, MessageCircle, PartyPopper, User } from 'lucide-react';
 import { useAuthStore } from '../../store/auth';
@@ -17,6 +17,20 @@ export default function MobileTabBar() {
   const location = useLocation();
   const { user } = useAuthStore();
   const { countryCode } = useThemeStore();
+  const tabBarRef = useRef<HTMLElement>(null);
+
+  // Keep --tab-h in sync with actual tab bar height (including safe-area padding).
+  // Mirrors the same pattern used for --nav-h in Navbar.
+  useLayoutEffect(() => {
+    const update = () => {
+      if (tabBarRef.current) {
+        document.documentElement.style.setProperty('--tab-h', tabBarRef.current.offsetHeight + 'px');
+      }
+    };
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
 
   const colors = useMemo(() => {
     if (typeof window === 'undefined') {
@@ -41,11 +55,13 @@ export default function MobileTabBar() {
   }));
 
   const openChatPanel = () => {
-    window.dispatchEvent(new CustomEvent('seshaa:chat-toggle', { detail: { tab: 'messages' } }));
+    // Close the hamburger menu first, then open AI chat
+    window.dispatchEvent(new Event('seshaa:mobile-menu-close'));
+    window.dispatchEvent(new CustomEvent('seshaa:chat-toggle', { detail: { tab: 'ai' } }));
   };
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 w-screen max-w-full overflow-hidden border-t"
+    <nav ref={tabBarRef} className="md:hidden fixed bottom-0 left-0 right-0 z-50 w-screen max-w-full overflow-hidden border-t"
       style={{ backgroundColor: 'var(--cp)', borderTopColor: colors.border, paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
       <div className="flex w-full items-stretch">
         {tabs.map(tab => (

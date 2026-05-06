@@ -2,6 +2,7 @@ import { Router, Response } from 'express';
 import prisma from '../db';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { scrapeCity, AFRICAN_CITIES } from '../scraper/osm';
+import { scrapeBlackOwned, DIASPORA_CITIES } from '../scraper/blackowned';
 
 const router = Router();
 
@@ -114,6 +115,42 @@ router.post('/listings/:id/verify', requireAuth, adminOnly, async (req, res) => 
 router.post('/listings/:id/reject', requireAuth, adminOnly, async (req, res) => {
   await prisma.listing.update({ where: { id: req.params.id as string }, data: { active: false } });
   res.json({ success: true });
+});
+
+// PATCH /admin/listings/:id — edit listing fields before or after verification
+router.patch('/listings/:id', requireAuth, adminOnly, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      name, phone, phone2, email, address, city, country, region,
+      category, subcategory, description, website, whatsapp,
+      logoUrl, openingHours, verified, active,
+    } = req.body;
+
+    const data: Record<string, unknown> = {};
+    if (name !== undefined)         data.name = name;
+    if (phone !== undefined)        data.phone = phone;
+    if (phone2 !== undefined)       data.phone2 = phone2;
+    if (email !== undefined)        data.email = email;
+    if (address !== undefined)      data.address = address;
+    if (city !== undefined)         data.city = city;
+    if (country !== undefined)      data.country = country;
+    if (region !== undefined)       data.region = region;
+    if (category !== undefined)     data.category = category;
+    if (subcategory !== undefined)  data.subcategory = subcategory;
+    if (description !== undefined)  data.description = description;
+    if (website !== undefined)      data.website = website;
+    if (whatsapp !== undefined)     data.whatsapp = whatsapp;
+    if (logoUrl !== undefined)      data.logoUrl = logoUrl;
+    if (openingHours !== undefined) data.openingHours = openingHours;
+    if (verified !== undefined)     data.verified = verified;
+    if (active !== undefined)       data.active = active;
+
+    const listing = await prisma.listing.update({ where: { id }, data });
+    res.json(listing);
+  } catch (err) {
+    res.status(500).json({ error: 'Update failed', detail: String(err) });
+  }
 });
 
 // GET /admin/users
@@ -416,6 +453,40 @@ router.post('/scrape/enrich', requireAuth, adminOnly, async (_req: AuthRequest, 
   })();
 });
 
+// ─── Black-Owned Business Scraper ────────────────────────────────────────────
+
+// GET /admin/scrape/blackowned/cities — list of diaspora cities we can scrape
+router.get('/scrape/blackowned/cities', requireAuth, adminOnly, (_req, res) => {
+  const summary = DIASPORA_CITIES.reduce<Record<string, number>>((acc, c) => {
+    acc[c.region] = (acc[c.region] || 0) + 1;
+    return acc;
+  }, {});
+  res.json({ cities: DIASPORA_CITIES.length, byRegion: summary, yelpKeyConfigured: !!process.env.YELP_API_KEY });
+});
+
+// POST /admin/scrape/blackowned — background scrape, returns immediately
+// Body: { source?: 'yelp'|'html'|'all', region?: 'us'|'uk'|'ca'|'au'|'eu'|'caribbean'|'brazil'|'asia'|'all', dryRun?: boolean }
+router.post('/scrape/blackowned', requireAuth, adminOnly, async (req, res) => {
+  const { source = 'all', region = 'all', dryRun = false } = req.body as {
+    source?: string; region?: string; dryRun?: boolean;
+  };
+
+  res.json({ ok: true, message: `Black-owned scraper started (source=${source} region=${region} dryRun=${dryRun})` });
+
+  void (async () => {
+    try {
+      await scrapeBlackOwned({
+        source: source as Parameters<typeof scrapeBlackOwned>[0]['source'],
+        region:  region  as Parameters<typeof scrapeBlackOwned>[0]['region'],
+        dryRun,
+        onProgress: (msg) => console.log(msg),
+      });
+    } catch (e) {
+      console.error('Black-owned scraper error:', e);
+    }
+  })();
+});
+
 // ─── Sales Rep Management ─────────────────────────────────────────────────────
 
 // GET /admin/salesreps — list all reps (pending + active)
@@ -505,6 +576,53 @@ router.post('/hero', requireAuth, adminOnly, async (req: AuthRequest, res) => {
   }
 });
 
+// ─── YouTube metadata fetch (oEmbed, no API key needed) ───────────────────────
+// GET /admin/youtube-meta?url=VIDEO_URL_OR_ID
+router.get('/youtube-meta', requireAuth, adminOnly, async (req, res) => {
+  const raw = (req.query.url as string || '').trim();
+  if (!raw) return res.status(400).json({ error: 'url param required' });
+
+  // Extract bare video ID from any YouTube URL format
+  function extractId(s: string): string {
+    const m =
+      s.match(/[?&]v=([A-Za-z0-9_-]{11})/) ||
+      s.match(/youtu\.be\/([A-Za-z0-9_-]{11})/) ||
+      s.match(/embed\/([A-Za-z0-9_-]{11})/) ||
+      s.match(/shorts\/([A-Za-z0-9_-]{11})/) ||
+      s.match(/live\/([A-Za-z0-9_-]{11})/);
+    if (m) return m[1];
+    if (/^[A-Za-z0-9_-]{11}$/.test(s)) return s;
+    return '';
+  }
+
+  const videoId = extractId(raw);
+  if (!videoId) return res.status(400).json({ error: 'Could not extract YouTube video ID' });
+
+  try {
+    const oembedUrl = `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`;
+    const r = await fetch(oembedUrl, { headers: { 'User-Agent': 'Seshaa/1.0' } });
+    if (!r.ok) return res.status(502).json({ error: `YouTube oEmbed returned ${r.status}` });
+    const data = await r.json() as {
+      title?: string; author_name?: string; thumbnail_url?: string;
+      width?: number; height?: number;
+    };
+
+    // Prefer maxresdefault, fall back to hqdefault
+    const thumbnail = `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`;
+
+    res.json({
+      videoId,
+      title:     data.title      || '',
+      author:    data.author_name || '',
+      thumbnail: data.thumbnail_url ? thumbnail : (data.thumbnail_url || ''),
+      embedUrl:  `https://www.youtube.com/embed/${videoId}`,
+    });
+  } catch (err) {
+    console.error('YouTube meta fetch error:', err);
+    res.status(500).json({ error: 'Failed to fetch YouTube metadata', detail: String(err) });
+  }
+});
+
 // ─── Hero Slides (slideshow ad campaign manager) ──────────────────────────────
 
 // GET /admin/hero-slides — all hero slides (incl. inactive)
@@ -522,83 +640,106 @@ router.get('/hero-slides', requireAuth, adminOnly, async (_req, res) => {
 
 // POST /admin/hero-slides — create a new hero slide
 router.post('/hero-slides', requireAuth, adminOnly, async (req: AuthRequest, res) => {
-  const {
-    mediaType = 'youtube', mediaUrl = '', youtubeId = '',
-    overlayTitle = '', overlaySubtitle = '', ctaText = 'Learn More',
-    ctaUrl = '/advertise', advertiser = '',
-    clientEmail = '', clientPhone = '', clientCountry = '',
-    paymentStatus = 'unpaid', paymentAmount = 0, invoiceRef = '',
-    notes = '', active = true,
-  } = req.body;
+  try {
+    const {
+      mediaType = 'youtube', mediaUrl = '', youtubeId = '',
+      startTime = 0, endTime = 0,
+      overlayTitle = '', overlaySubtitle = '', ctaText = 'Learn More',
+      ctaUrl, targetUrl, advertiser = '',
+      clientEmail = '', clientPhone = '', clientCountry = '',
+      paymentStatus = 'unpaid', paymentAmount = 0, invoiceRef = '',
+      notes = '', active = true,
+    } = req.body;
 
-  const extra = JSON.stringify({ mediaType, mediaUrl, youtubeId, overlayTitle, overlaySubtitle, ctaText, clientEmail, clientPhone, clientCountry, paymentStatus, paymentAmount, invoiceRef, notes });
+    const resolvedCtaUrl = ctaUrl || targetUrl || '/advertise';
+    const extra = JSON.stringify({ mediaType, mediaUrl, youtubeId, startTime: Number(startTime) || 0, endTime: Number(endTime) || 0, overlayTitle, overlaySubtitle, ctaText, ctaUrl: resolvedCtaUrl, clientEmail, clientPhone, clientCountry, paymentStatus, paymentAmount, invoiceRef, notes });
 
-  const slide = await prisma.ad.create({
-    data: {
-      title: overlayTitle || advertiser || 'Hero Slide',
-      description: extra,
-      imageUrl: mediaUrl || youtubeId,
-      targetUrl: ctaUrl,
-      advertiser: advertiser,
-      contactPhone: clientPhone,
-      packageId: 'hero-slide',
-      tier: 'PREMIUM',
-      startDate: new Date(),
-      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-      budget: paymentAmount || 0,
-      active: Boolean(active),
-    },
-  });
-  const extra2 = JSON.parse(slide.description || '{}');
-  res.json({ ...slide, ...extra2 });
+    const slide = await prisma.ad.create({
+      data: {
+        title: overlayTitle || advertiser || 'Hero Slide',
+        description: extra,
+        imageUrl: mediaUrl || youtubeId || null,
+        targetUrl: resolvedCtaUrl,
+        advertiser: advertiser || 'Seshaa',
+        contactPhone: clientPhone || null,
+        packageId: 'hero-slide',
+        tier: 'PREMIUM',
+        startDate: new Date(),
+        endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+        budget: Number(paymentAmount) || 0,
+        active: Boolean(active),
+        // required non-nullable arrays — must be explicit
+        countries: [],
+        targetKeywords: [],
+        targetInterests: [],
+      },
+    });
+    const extra2 = JSON.parse(slide.description || '{}');
+    res.json({ ...slide, ...extra2 });
+  } catch (err) {
+    console.error('Hero slide create error:', err);
+    res.status(500).json({ error: 'Failed to create hero slide', detail: String(err) });
+  }
 });
 
 // PUT /admin/hero-slides/:id — update a hero slide
 router.put('/hero-slides/:id', requireAuth, adminOnly, async (req, res) => {
-  const id = req.params.id as string;
-  const {
-    mediaType, mediaUrl, youtubeId, overlayTitle, overlaySubtitle, ctaText, ctaUrl,
-    advertiser, clientEmail, clientPhone, clientCountry,
-    paymentStatus, paymentAmount, invoiceRef, notes, active,
-  } = req.body;
+  try {
+    const id = req.params.id as string;
+    const {
+      mediaType, mediaUrl, youtubeId, startTime, endTime,
+      overlayTitle, overlaySubtitle, ctaText,
+      ctaUrl, targetUrl,  // accept both names
+      advertiser, clientEmail, clientPhone, clientCountry,
+      paymentStatus, paymentAmount, invoiceRef, notes, active,
+    } = req.body;
 
-  const current = await prisma.ad.findUnique({ where: { id } });
-  if (!current) return res.status(404).json({ error: 'Not found' });
+    const resolvedCtaUrl = ctaUrl ?? targetUrl;
 
-  let currentExtra: Record<string, unknown> = {};
-  try { currentExtra = JSON.parse(current.description || '{}'); } catch { /* ok */ }
+    const current = await prisma.ad.findUnique({ where: { id } });
+    if (!current) return res.status(404).json({ error: 'Not found' });
 
-  const merged = {
-    ...currentExtra,
-    ...(mediaType !== undefined ? { mediaType } : {}),
-    ...(mediaUrl !== undefined ? { mediaUrl } : {}),
-    ...(youtubeId !== undefined ? { youtubeId } : {}),
-    ...(overlayTitle !== undefined ? { overlayTitle } : {}),
-    ...(overlaySubtitle !== undefined ? { overlaySubtitle } : {}),
-    ...(ctaText !== undefined ? { ctaText } : {}),
-    ...(clientEmail !== undefined ? { clientEmail } : {}),
-    ...(clientPhone !== undefined ? { clientPhone } : {}),
-    ...(clientCountry !== undefined ? { clientCountry } : {}),
-    ...(paymentStatus !== undefined ? { paymentStatus } : {}),
-    ...(paymentAmount !== undefined ? { paymentAmount } : {}),
-    ...(invoiceRef !== undefined ? { invoiceRef } : {}),
-    ...(notes !== undefined ? { notes } : {}),
-  };
+    let currentExtra: Record<string, unknown> = {};
+    try { currentExtra = JSON.parse(current.description || '{}'); } catch { /* ok */ }
 
-  const slide = await prisma.ad.update({
-    where: { id },
-    data: {
-      title: (overlayTitle ?? currentExtra.overlayTitle ?? advertiser ?? current.title) as string,
-      description: JSON.stringify(merged),
-      imageUrl: mediaUrl ?? currentExtra.mediaUrl as string ?? current.imageUrl,
-      targetUrl: ctaUrl ?? current.targetUrl,
-      advertiser: advertiser ?? current.advertiser,
-      contactPhone: clientPhone ?? current.contactPhone,
-      budget: paymentAmount ?? current.budget,
-      active: active !== undefined ? Boolean(active) : current.active,
-    },
-  });
-  res.json({ ...slide, ...JSON.parse(slide.description || '{}') });
+    const merged = {
+      ...currentExtra,
+      ...(mediaType !== undefined ? { mediaType } : {}),
+      ...(mediaUrl !== undefined ? { mediaUrl } : {}),
+      ...(youtubeId !== undefined ? { youtubeId } : {}),
+      ...(startTime !== undefined ? { startTime: Number(startTime) || 0 } : {}),
+      ...(endTime !== undefined ? { endTime: Number(endTime) || 0 } : {}),
+      ...(overlayTitle !== undefined ? { overlayTitle } : {}),
+      ...(overlaySubtitle !== undefined ? { overlaySubtitle } : {}),
+      ...(ctaText !== undefined ? { ctaText } : {}),
+      ...(resolvedCtaUrl !== undefined ? { ctaUrl: resolvedCtaUrl } : {}),
+      ...(clientEmail !== undefined ? { clientEmail } : {}),
+      ...(clientPhone !== undefined ? { clientPhone } : {}),
+      ...(clientCountry !== undefined ? { clientCountry } : {}),
+      ...(paymentStatus !== undefined ? { paymentStatus } : {}),
+      ...(paymentAmount !== undefined ? { paymentAmount } : {}),
+      ...(invoiceRef !== undefined ? { invoiceRef } : {}),
+      ...(notes !== undefined ? { notes } : {}),
+    };
+
+    const slide = await prisma.ad.update({
+      where: { id },
+      data: {
+        title: (overlayTitle ?? currentExtra.overlayTitle ?? advertiser ?? current.title) as string,
+        description: JSON.stringify(merged),
+        imageUrl: mediaUrl ?? currentExtra.mediaUrl as string ?? current.imageUrl,
+        targetUrl: resolvedCtaUrl ?? current.targetUrl,
+        advertiser: advertiser ?? current.advertiser,
+        contactPhone: clientPhone ?? current.contactPhone,
+        budget: paymentAmount !== undefined ? Number(paymentAmount) : current.budget,
+        active: active !== undefined ? Boolean(active) : current.active,
+      },
+    });
+    res.json({ ...slide, ...JSON.parse(slide.description || '{}') });
+  } catch (err) {
+    console.error('Hero slide update error:', err);
+    res.status(500).json({ error: 'Failed to update hero slide', detail: String(err) });
+  }
 });
 
 // DELETE /admin/hero-slides/:id — remove a hero slide

@@ -39,11 +39,12 @@ import DeliveryPage from './pages/DeliveryPage';
 import TransportPage from './pages/TransportPage';
 
 // Detail/modal pages — still lazy-loaded (rarely visited)
-const ListingDetail = lazy(() => import('./pages/ListingDetail'));
-const VerifyPage = lazy(() => import('./pages/VerifyPage'));
-const AuthPage = lazy(() => import('./pages/AuthPage'));
-const ProfilePage = lazy(() => import('./pages/ProfilePage'));
-const CountryPage = lazy(() => import('./pages/CountryPage'));
+const ListingDetail    = lazy(() => import('./pages/ListingDetail'));
+const VerifyPage       = lazy(() => import('./pages/VerifyPage'));
+const AuthPage         = lazy(() => import('./pages/AuthPage'));
+const ProfilePage      = lazy(() => import('./pages/ProfilePage'));
+const CountryPage      = lazy(() => import('./pages/CountryPage'));
+const NewsArticlePage  = lazy(() => import('./pages/NewsArticlePage'));
 
 // Tab paths — all kept mounted simultaneously
 const TAB_PATHS = [
@@ -156,6 +157,7 @@ function TabContainer() {
         <Suspense fallback={<Spinner />}>
           <Routes>
             <Route path="/listing/:id" element={<ListingDetail />} />
+            <Route path="/news/article" element={<NewsArticlePage />} />
             <Route path="/verify/:code" element={<VerifyPage />} />
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/profile" element={<ProfilePage />} />

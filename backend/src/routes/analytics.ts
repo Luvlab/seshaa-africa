@@ -74,6 +74,7 @@ router.get('/admin', requireAuth, async (req: AuthRequest, res: Response) => {
   const [
     totalEvents, pageviews7d, searches7d, topPages, topSearches,
     deviceBreakdown, countryBreakdown, eventsPerDay, activeHours,
+    adminActions, adminTabVisits,
   ] = await Promise.all([
     // Total events
     prisma.$queryRawUnsafe<{ count: string }[]>(`SELECT COUNT(*) as count FROM "UserEvent"`),
@@ -117,6 +118,18 @@ router.get('/admin', requireAuth, async (req: AuthRequest, res: Response) => {
        WHERE "createdAt" > NOW() - INTERVAL '7 days'
        GROUP BY hour ORDER BY hour ASC`
     ),
+    // Admin actions (last 30d)
+    prisma.$queryRawUnsafe<{ target: string; count: string }[]>(
+      `SELECT target, COUNT(*) as count FROM "UserEvent"
+       WHERE "eventType"='admin_action' AND target IS NOT NULL AND "createdAt" > NOW() - INTERVAL '30 days'
+       GROUP BY target ORDER BY count DESC LIMIT 20`
+    ),
+    // Admin tab visits (last 30d) — tab:xxx targets
+    prisma.$queryRawUnsafe<{ target: string; count: string }[]>(
+      `SELECT target, COUNT(*) as count FROM "UserEvent"
+       WHERE "eventType"='admin_action' AND target LIKE 'tab:%' AND "createdAt" > NOW() - INTERVAL '30 days'
+       GROUP BY target ORDER BY count DESC`
+    ),
   ]);
 
   res.json({
@@ -131,6 +144,8 @@ router.get('/admin', requireAuth, async (req: AuthRequest, res: Response) => {
     countryBreakdown,
     eventsPerDay,
     activeHours,
+    adminActions,
+    adminTabVisits,
   });
 });
 

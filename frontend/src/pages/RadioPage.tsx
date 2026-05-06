@@ -7,6 +7,7 @@ import { radioApi } from '../services/api';
 import type { LiveStation } from '../services/api';
 import { useRadioStore } from '../store/radio';
 import type { RadioTrack } from '../store/radio';
+import Waveform from '../components/radio/Waveform';
 import {
   Play, Pause, Music, Radio, Headphones, Plus, ExternalLink,
   CheckCircle, Loader2, UploadCloud, Signal, ChevronLeft, ChevronRight,
@@ -74,8 +75,10 @@ const DECADES = [
 
 // ── Shared TrackRow ───────────────────────────────────────────────────────────
 function TrackRow({ track, playlist, index }: { track: RadioTrack; playlist: RadioTrack[]; index: number }) {
-  const { currentTrack, playing, play, pause, resume } = useRadioStore();
+  const { currentTrack, playing, elapsed, play, pause, resume } = useRadioStore();
   const isActive = currentTrack?.id === track.id;
+  // Store duration from audio element via store; fallback to track metadata
+  const duration = (isActive ? (useRadioStore.getState() as any)._duration : track.duration) || track.duration || 0;
 
   const handlePlay = () => {
     if (isActive) { playing ? pause() : resume(); }
@@ -84,55 +87,71 @@ function TrackRow({ track, playlist, index }: { track: RadioTrack; playlist: Rad
 
   return (
     <div
-      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-colors group ${
+      className={`px-3 py-2.5 rounded-xl cursor-pointer transition-colors group ${
         isActive ? 'bg-emerald-50 border border-emerald-100' : 'hover:bg-gray-50'
       }`}
       onClick={handlePlay}
     >
-      <div className="w-7 shrink-0 flex items-center justify-center">
-        {isActive && playing
-          ? <Pause size={14} className="text-emerald-600" />
-          : isActive
-            ? <Play  size={14} className="text-emerald-600 ml-0.5" />
-            : <span className="text-xs text-gray-400 group-hover:hidden">{index + 1}</span>
+      {/* Main row */}
+      <div className="flex items-center gap-3">
+        <div className="w-7 shrink-0 flex items-center justify-center">
+          {isActive && playing
+            ? <Pause size={14} className="text-emerald-600" />
+            : isActive
+              ? <Play  size={14} className="text-emerald-600 ml-0.5" />
+              : <span className="text-xs text-gray-400 group-hover:hidden">{index + 1}</span>
+          }
+          {!isActive && <Play size={14} className="text-emerald-500 ml-0.5 hidden group-hover:block" />}
+        </div>
+
+        {track.image
+          ? <img src={track.image} alt="" className="w-9 h-9 rounded-lg object-cover shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+          : <div className="w-9 h-9 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
+              <Music size={14} className="text-emerald-600" />
+            </div>
         }
-        {!isActive && <Play size={14} className="text-emerald-500 ml-0.5 hidden group-hover:block" />}
+
+        <div className="flex-1 min-w-0">
+          <p className={`text-sm font-semibold truncate ${isActive ? 'text-emerald-700' : 'text-gray-800'}`}>
+            {track.name}
+          </p>
+          <p className="text-xs text-gray-500 truncate flex items-center gap-1.5">
+            {track.artist}
+            {track.year && <span className="text-gray-400 font-medium">{track.year}</span>}
+          </p>
+        </div>
+
+        {track.shareUrl && (
+          <a href={track.shareUrl} target="_blank" rel="noopener noreferrer"
+            className="shrink-0 opacity-0 group-hover:opacity-60 hover:!opacity-100 transition-opacity text-gray-400"
+            onClick={e => e.stopPropagation()}
+          >
+            <ExternalLink size={13} />
+          </a>
+        )}
+
+        <span onClick={e => e.stopPropagation()}>
+          <FavoriteButton id={track.id} type="track" name={`${track.name} – ${track.artist}`} size={14}
+            className="opacity-0 group-hover:opacity-100 transition-opacity" />
+        </span>
+
+        {track.duration ? (
+          <span className="text-xs text-gray-400 shrink-0 tabular-nums">{fmtDur(track.duration)}</span>
+        ) : null}
       </div>
 
-      {track.image
-        ? <img src={track.image} alt="" className="w-9 h-9 rounded-lg object-cover shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-        : <div className="w-9 h-9 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
-            <Music size={14} className="text-emerald-600" />
-          </div>
-      }
-
-      <div className="flex-1 min-w-0">
-        <p className={`text-sm font-semibold truncate ${isActive ? 'text-emerald-700' : 'text-gray-800'}`}>
-          {track.name}
-        </p>
-        <p className="text-xs text-gray-500 truncate flex items-center gap-1.5">
-          {track.artist}
-          {track.year && <span className="text-gray-400 font-medium">{track.year}</span>}
-        </p>
+      {/* Waveform — shown for all tracks, indicates progress when active */}
+      <div className="mt-1.5 ml-10">
+        <Waveform
+          trackId={track.id}
+          elapsed={isActive ? elapsed : 0}
+          duration={isActive ? duration : track.duration || 0}
+          height={20}
+          bars={60}
+          playedColor={isActive ? '#10b981' : '#d1fae5'}
+          unplayedColor={isActive ? 'rgba(0,0,0,0.12)' : 'rgba(0,0,0,0.06)'}
+        />
       </div>
-
-      {track.shareUrl && (
-        <a href={track.shareUrl} target="_blank" rel="noopener noreferrer"
-          className="shrink-0 opacity-0 group-hover:opacity-60 hover:!opacity-100 transition-opacity text-gray-400"
-          onClick={e => e.stopPropagation()}
-        >
-          <ExternalLink size={13} />
-        </a>
-      )}
-
-      <span onClick={e => e.stopPropagation()}>
-        <FavoriteButton id={track.id} type="track" name={`${track.name} – ${track.artist}`} size={14}
-          className="opacity-0 group-hover:opacity-100 transition-opacity" />
-      </span>
-
-      {track.duration ? (
-        <span className="text-xs text-gray-400 shrink-0 tabular-nums">{fmtDur(track.duration)}</span>
-      ) : null}
     </div>
   );
 }
@@ -380,17 +399,20 @@ function LiveTab() {
   );
 }
 
+const LIMIT_OPTIONS = [30, 50, 100, 200];
+
 // ── DISCOVERY TAB (Jamendo CC) ────────────────────────────────────────────────
 function DiscoveryTab() {
   const [activeTag, setActiveTag] = useState('afrobeats');
   const [tracks, setTracks]       = useState<RadioTrack[]>([]);
   const [loading, setLoading]     = useState(false);
+  const [limit, setLimit]         = useState(50);
   const { currentTrack, playing } = useRadioStore();
 
-  const loadTracks = useCallback(async (tag: string) => {
+  const loadTracks = useCallback(async (tag: string, lim: number) => {
     setLoading(true);
     try {
-      const r = await radioApi.tracks(tag, 50);
+      const r = await radioApi.tracks(tag, lim);
       setTracks(r.data.map(t => ({
         id: t.id, name: t.name, artist: t.artist, album: t.album,
         image: t.image, audio: t.audio, duration: t.duration,
@@ -400,7 +422,7 @@ function DiscoveryTab() {
     finally { setLoading(false); }
   }, []);
 
-  useEffect(() => { loadTracks(activeTag); }, [activeTag, loadTracks]);
+  useEffect(() => { loadTracks(activeTag, limit); }, [activeTag, limit, loadTracks]);
   const meta = GENRE_TAGS.find(g => g.id === activeTag) ?? GENRE_TAGS[0];
 
   return (
@@ -426,10 +448,24 @@ function DiscoveryTab() {
             <span className="font-bold text-gray-800">{meta.label}</span>
             {!loading && <span className="text-xs text-gray-400">({tracks.length} tracks)</span>}
           </div>
-          <a href="https://www.jamendo.com" target="_blank" rel="noopener noreferrer"
-            className="text-xs text-gray-400 flex items-center gap-1 hover:text-gray-600">
-            via Jamendo CC <ExternalLink size={11} />
-          </a>
+          <div className="flex items-center gap-3">
+            {/* Limit selector */}
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-gray-400 hidden sm:block">Show:</span>
+              {LIMIT_OPTIONS.map(n => (
+                <button key={n} onClick={() => setLimit(n)}
+                  className={`text-xs px-2 py-0.5 rounded-full font-semibold transition-colors ${
+                    limit === n ? 'bg-emerald-100 text-emerald-700' : 'text-gray-400 hover:text-gray-600'
+                  }`}>
+                  {n}
+                </button>
+              ))}
+            </div>
+            <a href="https://www.jamendo.com" target="_blank" rel="noopener noreferrer"
+              className="text-xs text-gray-400 flex items-center gap-1 hover:text-gray-600">
+              Jamendo CC <ExternalLink size={11} />
+            </a>
+          </div>
         </div>
         {loading
           ? <div className="py-16 flex flex-col items-center gap-3 text-gray-400">
@@ -471,13 +507,13 @@ function ArchiveTab() {
   const [total,     setTotal]     = useState(0);
   const [loading,   setLoading]   = useState(false);
   const [error,     setError]     = useState('');
-  const LIMIT = 20;
+  const [archiveLimit, setArchiveLimit] = useState(30);
 
-  const load = useCallback(async (dec: number, g: string, p: number) => {
+  const load = useCallback(async (dec: number, g: string, p: number, lim: number) => {
     setLoading(true); setError('');
     try {
       const { from, to } = DECADES[dec];
-      const r = await radioApi.archive({ genre: g || undefined, year_from: from, year_to: to, page: p, limit: LIMIT });
+      const r = await radioApi.archive({ genre: g || undefined, year_from: from, year_to: to, page: p, limit: lim });
       const archiveTracks: RadioTrack[] = r.data.tracks.map(t => ({
         id: t.id, name: t.name, artist: t.artist, album: t.album,
         image: t.image, audio: t.audio, duration: t.duration,
@@ -492,9 +528,9 @@ function ArchiveTab() {
     finally { setLoading(false); }
   }, []);
 
-  useEffect(() => { load(decade, genre, page); }, [decade, genre, page, load]);
+  useEffect(() => { load(decade, genre, page, archiveLimit); }, [decade, genre, page, archiveLimit, load]);
 
-  const totalPages = Math.ceil(Math.min(total, 200) / LIMIT);
+  const totalPages = Math.ceil(Math.min(total, 1000) / archiveLimit);
 
   const handleDecade = (idx: number) => { setDecade(idx); setPage(1); };
   const handleGenre  = (g: string)   => { setGenre(g);    setPage(1); };
@@ -539,21 +575,35 @@ function ArchiveTab() {
 
       {/* Track list */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 gap-3 flex-wrap">
           <div className="flex items-center gap-2">
             <Clock size={15} className="text-gray-400" />
             <span className="font-bold text-gray-800">
               {DECADES[decade].label}{genre ? ` · ${ARCHIVE_GENRES.find(g2 => g2.id === genre)?.label}` : ''}
             </span>
             {!loading && total > 0 && (
-              <span className="text-xs text-gray-400">(~{total.toLocaleString()} recordings found)</span>
+              <span className="text-xs text-gray-400">(~{total.toLocaleString()} recordings)</span>
             )}
           </div>
-          <a href="https://archive.org/search?query=subject:africa+AND+mediatype:audio&sort=year+asc"
-            target="_blank" rel="noopener noreferrer"
-            className="text-xs text-gray-400 flex items-center gap-1 hover:text-gray-600">
-            Internet Archive <ExternalLink size={11} />
-          </a>
+          <div className="flex items-center gap-3">
+            {/* Per-page selector */}
+            <div className="flex items-center gap-1">
+              <span className="text-xs text-gray-400 hidden sm:block">Show:</span>
+              {LIMIT_OPTIONS.map(n => (
+                <button key={n} onClick={() => { setArchiveLimit(n); setPage(1); }}
+                  className={`text-xs px-2 py-0.5 rounded-full font-semibold transition-colors ${
+                    archiveLimit === n ? 'bg-amber-100 text-amber-700' : 'text-gray-400 hover:text-gray-600'
+                  }`}>
+                  {n}
+                </button>
+              ))}
+            </div>
+            <a href="https://archive.org/search?query=subject:africa+AND+mediatype:audio&sort=year+asc"
+              target="_blank" rel="noopener noreferrer"
+              className="text-xs text-gray-400 flex items-center gap-1 hover:text-gray-600">
+              Archive <ExternalLink size={11} />
+            </a>
+          </div>
         </div>
 
         {loading
@@ -565,7 +615,7 @@ function ArchiveTab() {
           : error
             ? <div className="py-16 text-center text-gray-400">
                 <p className="text-sm">{error}</p>
-                <button onClick={() => load(decade, genre, page)}
+                <button onClick={() => load(decade, genre, page, archiveLimit)}
                   className="mt-3 text-xs text-emerald-600 underline">Try again</button>
               </div>
             : tracks.length === 0
@@ -627,12 +677,13 @@ function CommunityTab() {
   const [loading,     setLoading]     = useState(true);
   const [showSubmit,  setShowSubmit]  = useState(false);
   const [filterGenre, setFilterGenre] = useState('');
+  const [communityLimit, setCommunityLimit] = useState(50);
 
-  const load = useCallback(async (genre?: string) => {
+  const load = useCallback(async (genre?: string, lim = 50) => {
     setLoading(true);
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const r = await radioApi.community({ genre: genre || undefined, limit: 50 }) as any;
+      const r = await radioApi.community({ genre: genre || undefined, limit: lim }) as any;
       const items = r.data?.tracks ?? [];
       setTotal(r.data?.total ?? 0);
       setTracks(items.map((t: {
@@ -647,7 +698,7 @@ function CommunityTab() {
     finally { setLoading(false); }
   }, []);
 
-  useEffect(() => { load(filterGenre); }, [filterGenre, load]);
+  useEffect(() => { load(filterGenre, communityLimit); }, [filterGenre, communityLimit, load]);
 
   return (
     <div>
@@ -691,9 +742,23 @@ function CommunityTab() {
 
       {/* Track list */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+        <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between gap-3 flex-wrap">
           <span className="font-bold text-gray-800">Community Tracks</span>
-          {!loading && <span className="text-xs text-gray-400">{total} approved track{total !== 1 ? 's' : ''}</span>}
+          <div className="flex items-center gap-3">
+            {/* Limit selector */}
+            <div className="flex items-center gap-1">
+              <span className="text-xs text-gray-400 hidden sm:block">Show:</span>
+              {LIMIT_OPTIONS.map(n => (
+                <button key={n} onClick={() => setCommunityLimit(n)}
+                  className={`text-xs px-2 py-0.5 rounded-full font-semibold transition-colors ${
+                    communityLimit === n ? 'bg-purple-100 text-purple-700' : 'text-gray-400 hover:text-gray-600'
+                  }`}>
+                  {n}
+                </button>
+              ))}
+            </div>
+            {!loading && <span className="text-xs text-gray-400">{total} approved track{total !== 1 ? 's' : ''}</span>}
+          </div>
         </div>
         {loading
           ? <div className="py-16 flex flex-col items-center gap-3 text-gray-400">
@@ -728,7 +793,7 @@ export default function RadioPage() {
   ];
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4" ref={scrollRef}>
+    <div className="w-full px-4 sm:px-6 lg:px-10 py-4" ref={scrollRef}>
 
       {/* Page header */}
       <div className="flex items-center gap-3 mb-6">

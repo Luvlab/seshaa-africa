@@ -4,9 +4,12 @@
  * Mobile: vertical stream with category pills
  * All strings translated via i18next. Full viewport width everywhere.
  * No horizontal dividers — spacing and background contrast only.
+ *
+ * All article links go to /news/article (internal reader) first.
+ * Ticker items are clickable links.
  */
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { ExternalLink, RefreshCw, Clock, Newspaper, Search } from 'lucide-react';
+import { RefreshCw, Clock, Newspaper, Search, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useThemeStore } from '../store/theme';
 import { COUNTRIES } from '../components/layout/CountryPicker';
@@ -27,6 +30,19 @@ const CATEGORY_EMOJIS: Record<string,string> = {
   sports:'⚽', entertainment:'🎭', agriculture:'🌾', finance:'💰', travel:'✈️',
 };
 
+/* Build the internal reader URL for a NewsItem */
+function articlePath(item: NewsItem): string {
+  const p = new URLSearchParams();
+  p.set('link',        item.link);
+  p.set('title',       item.title);
+  p.set('source',      item.source);
+  p.set('country',     item.country);
+  p.set('publishedAt', item.publishedAt);
+  if (item.summary) p.set('summary', item.summary);
+  if (item.image)   p.set('image',   item.image);
+  return `/news/article?${p.toString()}`;
+}
+
 function timeAgo(d: string, t: (k: string) => string) {
   const ms = Date.now() - new Date(d).getTime();
   const m  = Math.floor(ms / 60000);
@@ -40,7 +56,7 @@ function timeAgo(d: string, t: (k: string) => string) {
 /* ── Hero — large image card ─────────────────────────────────────────────── */
 function HeroCard({ item, t }: { item: NewsItem; t: (k: string, opts?: Record<string, unknown>) => string }) {
   return (
-    <a href={item.link} target="_blank" rel="noopener noreferrer"
+    <a href={articlePath(item)}
       className="group block relative overflow-hidden bg-gray-900 h-full min-h-[320px]">
       {item.image ? (
         <img src={item.image} alt={item.title}
@@ -65,7 +81,6 @@ function HeroCard({ item, t }: { item: NewsItem; t: (k: string, opts?: Record<st
           {item.title}
         </h2>
         {item.summary && <p className="text-white/65 text-sm mt-1.5 line-clamp-2">{item.summary}</p>}
-        <ExternalLink size={12} className="text-white/40 group-hover:text-white/80 transition-colors mt-2" />
       </div>
     </a>
   );
@@ -74,7 +89,7 @@ function HeroCard({ item, t }: { item: NewsItem; t: (k: string, opts?: Record<st
 /* ── Secondary — image + text row ───────────────────────────────────────── */
 function SecondaryCard({ item }: { item: NewsItem }) {
   return (
-    <a href={item.link} target="_blank" rel="noopener noreferrer"
+    <a href={articlePath(item)}
       className="group flex gap-3 py-3 last:pb-0 hover:bg-gray-50 rounded transition-colors">
       {item.image && (
         <div className="shrink-0 w-24 aspect-[4/3] overflow-hidden bg-gray-100 rounded">
@@ -103,7 +118,7 @@ function GridCard({ item, size = 'md' }: { item: NewsItem; size?: 'sm' | 'md' | 
       <div className="absolute top-2 right-2 z-10">
         <FavoriteButton id={item.id} type="news" name={item.title} size={13} />
       </div>
-    <a href={item.link} target="_blank" rel="noopener noreferrer"
+    <a href={articlePath(item)}
       className="group block bg-white hover:bg-gray-50 overflow-hidden transition-colors rounded">
       {item.image && (
         <div className="aspect-[4/3] overflow-hidden bg-gray-100">
@@ -133,8 +148,9 @@ function GridCard({ item, size = 'md' }: { item: NewsItem; size?: 'sm' | 'md' | 
 }
 
 /* ── Breaking-news ticker ───────────────────────────────────────────────── */
-function TickerBar({ items, liveLabel }: { items: NewsItem[]; liveLabel: string }) {
-  const titles = items.slice(0, 20).map(i => i.title);
+function TickerBar({ items, liveLabel, speed }: { items: NewsItem[]; liveLabel: string; speed: number }) {
+  const headlines = items.slice(0, 20);
+  // speed: seconds for a full loop (60 default; admin can change via localStorage)
   return (
     <div className="w-full overflow-hidden bg-gray-900 text-white flex items-center h-9 shrink-0">
       <div className="shrink-0 px-3 py-1 font-black text-xs uppercase tracking-widest mr-3"
@@ -142,11 +158,14 @@ function TickerBar({ items, liveLabel }: { items: NewsItem[]; liveLabel: string 
         {liveLabel}
       </div>
       <div className="overflow-hidden flex-1">
-        <div className="flex gap-0 whitespace-nowrap" style={{ animation: 'ticker 60s linear infinite' }}>
-          {[...titles, ...titles].map((title, i) => (
-            <span key={i} className="text-xs mr-10 text-white/80">
-              <span className="text-white/40 mr-2">◆</span>{title}
-            </span>
+        <div className="flex gap-0 whitespace-nowrap"
+          style={{ animation: `ticker ${speed}s linear infinite` }}>
+          {[...headlines, ...headlines].map((item, i) => (
+            <a key={i} href={articlePath(item)}
+              className="text-xs mr-10 text-white/80 hover:text-white transition-colors cursor-pointer inline-flex items-center gap-1.5">
+              <span className="text-white/40">◆</span>
+              {item.title}
+            </a>
           ))}
         </div>
       </div>
@@ -223,6 +242,12 @@ export default function NewsPage() {
   const [searchQ, setSearchQ] = useState('');
   const autoRefreshRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // Ticker speed — stored in localStorage; admin can set it
+  const [tickerSpeed] = useState<number>(() => {
+    const stored = localStorage.getItem('seshaa_ticker_speed');
+    return stored ? Math.max(20, Math.min(200, parseInt(stored))) : 60;
+  });
+
   const selectedCountry = countryCode ? (COUNTRIES.find(c => c.code === countryCode)?.name || countryCode) : '';
 
   const fetchNews = useCallback(async (cat: string) => {
@@ -271,21 +296,26 @@ export default function NewsPage() {
 
           {/* Top row: date + search + refresh */}
           <div className="flex items-center gap-3 mb-3">
-            <span className="text-xs text-gray-400 font-medium hidden sm:block">{today}</span>
-            <div className="flex items-center gap-1.5 bg-gray-100 rounded-full px-3 py-1.5 ml-auto">
-              <Search size={12} className="text-gray-400 shrink-0" />
-              <input className="bg-transparent text-xs text-gray-700 placeholder-gray-400 w-32 sm:w-44"
+            <span className="text-xs text-gray-600 font-semibold hidden sm:block tracking-wide">{today}</span>
+            <div className="flex items-center gap-2 flex-1 bg-white border border-gray-300 rounded-full px-3 py-2 focus-within:border-gray-500 focus-within:ring-1 focus-within:ring-gray-400 transition-all ml-auto">
+              <Search size={13} className="text-gray-400 shrink-0" />
+              <input className="bg-transparent text-sm text-gray-800 placeholder-gray-400 flex-1 outline-none min-w-0"
                 placeholder={t('news.searchPlaceholder')}
                 value={searchQ} onChange={e => setSearchQ(e.target.value)} />
+              {searchQ && (
+                <button onClick={() => setSearchQ('')} className="text-gray-400 hover:text-gray-600 shrink-0">
+                  <X size={13} />
+                </button>
+              )}
             </div>
             <button onClick={() => fetchNews(activeCategory)}
-              className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-900 transition-colors shrink-0">
-              <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />
+              className="flex items-center gap-1.5 text-xs font-semibold text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-full transition-colors shrink-0 border border-gray-200">
+              <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
               <span className="hidden sm:inline">{t('news.refresh')}</span>
             </button>
           </div>
 
-          {/* Category tabs — no underlines between tabs, just active indicator */}
+          {/* Category tabs */}
           <div className="flex gap-0.5 overflow-x-auto scrollbar-none -mb-px">
             {CATEGORY_IDS.map(id => (
               <button key={id} onClick={() => setActiveCategory(id)}
@@ -302,7 +332,9 @@ export default function NewsPage() {
       </header>
 
       {/* Ticker */}
-      {filtered.length > 0 && <TickerBar items={filtered} liveLabel={t('news.live')} />}
+      {filtered.length > 0 && (
+        <TickerBar items={filtered} liveLabel={t('news.live')} speed={tickerSpeed} />
+      )}
 
       <main className="w-full">
         {loading ? (
@@ -348,7 +380,7 @@ export default function NewsPage() {
                     </p>
                     <div className="space-y-3">
                       {briefs.map(item => (
-                        <a key={item.id} href={item.link} target="_blank" rel="noopener noreferrer"
+                        <a key={item.id} href={articlePath(item)}
                           className="group block py-2 rounded hover:bg-gray-50 transition-colors">
                           <p className="text-xs font-semibold text-gray-800 leading-snug line-clamp-3 group-hover:text-[var(--cp)] transition-colors">
                             {item.title}

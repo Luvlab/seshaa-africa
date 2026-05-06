@@ -349,8 +349,8 @@ export default function EventsPage() {
 
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-4">
+    <div className="bg-gray-50">
+      <div className="w-full px-4 sm:px-6 lg:px-10 py-4">
 
         {submitSuccess && (
           <p className="mb-3 text-sm bg-purple-50 border border-purple-200 text-purple-700 rounded-xl px-4 py-2 inline-block">
@@ -406,10 +406,10 @@ export default function EventsPage() {
         </div>
 
         {/* ── Category chips ── */}
-        <div className="flex gap-2 flex-wrap mb-5">
+        <div className="flex gap-2 overflow-x-auto scrollbar-none pb-2 mb-3">
           <button
             onClick={() => setCategory('')}
-            className={clsx('px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors',
+            className={clsx('shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors',
               !category ? 'bg-purple-600 text-white border-purple-600' : 'bg-white text-gray-600 border-gray-200 hover:border-purple-300')}
           >
             All
@@ -417,7 +417,7 @@ export default function EventsPage() {
           {CATEGORIES.map(cat => (
             <button
               key={cat} onClick={() => setCategory(cat === category ? '' : cat)}
-              className={clsx('px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors',
+              className={clsx('shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors',
                 category === cat ? 'bg-purple-600 text-white border-purple-600' : 'bg-white text-gray-600 border-gray-200 hover:border-purple-300')}
             >
               {CAT_EMOJI[cat]} {cat}

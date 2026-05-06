@@ -368,7 +368,7 @@ export default function RidePage({ defaultType = 'RIDE' }: Props) {
   ];
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6">
+    <div className="w-full px-4 sm:px-6 lg:px-10 py-6">
       {/* Hero header */}
       <div className={`rounded-2xl bg-gradient-to-r ${meta.color} p-6 mb-6 text-white`}>
         <div className="flex items-start justify-between gap-4">
