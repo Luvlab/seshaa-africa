@@ -233,7 +233,8 @@ svg.lucide {
   top: var(--nav-h, 56px);
   left: 0;
   right: 0;
-  bottom: var(--tab-h, 60px);
+  /* -1px overlap ensures no sub-pixel gap; tab bar (z-50) covers the overlap */
+  bottom: calc(var(--tab-h, 60px) - 1px);
 }
 
 @media (min-width: 768px) {

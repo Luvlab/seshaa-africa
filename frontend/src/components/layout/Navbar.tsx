@@ -243,7 +243,7 @@ export default function Navbar() {
   }, [mobileOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <nav ref={navRef} className="fixed top-0 left-0 right-0 z-50 shadow-md" style={{ backgroundColor: 'var(--cp)' }}>
+    <nav ref={navRef} className={clsx('fixed top-0 left-0 right-0 z-50', !mobileOpen && 'shadow-md')} style={{ backgroundColor: 'var(--cp)' }}>
       {/* ── Main header row — full viewport width, 56px fixed height ── */}
       <div className="w-full px-4 sm:px-6 h-14 flex items-center gap-3">
 
@@ -307,20 +307,47 @@ export default function Navbar() {
               <ChevronDown size={10} className="hidden sm:block" />
             </button>
             {langOpen && (
-              <div className="absolute right-0 top-full mt-1 bg-white text-gray-800 rounded-xl shadow-2xl w-52 max-h-64 overflow-y-auto z-50">
-                {LANGUAGES.map(lang => (
-                  <button
-                    key={lang.code}
-                    className={clsx('w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex justify-between',
-                      lang.code === i18n.language && 'font-bold')}
-                    style={lang.code === i18n.language ? { color: 'var(--cp)' } : {}}
-                    onClick={() => changeLanguage(lang.code)}
-                  >
-                    <span>{lang.nativeName}</span>
-                    <span className="text-gray-400 text-xs">{lang.name}</span>
-                  </button>
-                ))}
-              </div>
+              <>
+                {/* Mobile: full-screen panel between header and tab bar */}
+                <div
+                  className="md:hidden fixed left-0 right-0 z-[60] bg-white text-gray-800 flex flex-col overflow-hidden"
+                  style={{ top: 'var(--nav-h, 56px)', bottom: 'var(--tab-h, 60px)' }}
+                >
+                  <div className="sticky top-0 bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between shrink-0">
+                    <span className="text-sm font-semibold text-gray-800">Select Language</span>
+                    <button onClick={() => setLangOpen(false)}><X size={16} className="text-gray-500" /></button>
+                  </div>
+                  <div className="overflow-y-auto flex-1">
+                    {LANGUAGES.map(lang => (
+                      <button
+                        key={lang.code}
+                        className={clsx('w-full text-left px-4 py-3 text-sm hover:bg-gray-50 flex justify-between border-b border-gray-100',
+                          lang.code === i18n.language && 'font-bold')}
+                        style={lang.code === i18n.language ? { color: 'var(--cp)' } : {}}
+                        onClick={() => changeLanguage(lang.code)}
+                      >
+                        <span>{lang.nativeName}</span>
+                        <span className="text-gray-400 text-xs">{lang.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {/* Desktop: dropdown */}
+                <div className="hidden md:block absolute right-0 top-full mt-1 bg-white text-gray-800 rounded-xl shadow-2xl w-52 max-h-64 overflow-y-auto z-50">
+                  {LANGUAGES.map(lang => (
+                    <button
+                      key={lang.code}
+                      className={clsx('w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex justify-between',
+                        lang.code === i18n.language && 'font-bold')}
+                      style={lang.code === i18n.language ? { color: 'var(--cp)' } : {}}
+                      onClick={() => changeLanguage(lang.code)}
+                    >
+                      <span>{lang.nativeName}</span>
+                      <span className="text-gray-400 text-xs">{lang.name}</span>
+                    </button>
+                  ))}
+                </div>
+              </>
             )}
           </div>
 
