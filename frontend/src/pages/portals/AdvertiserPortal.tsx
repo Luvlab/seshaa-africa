@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Megaphone, BarChart3, TrendingUp, Eye, MousePointer, Pause, Play, Plus, Package, Zap } from 'lucide-react';
 import { adsApi } from '../../services/api';
 import type { Ad } from '../../types';
@@ -36,6 +37,7 @@ const SELECTED_COLOR: Record<string, string> = {
 type Tab = 'new' | 'campaigns' | 'enterprise';
 
 export default function AdvertiserPortal() {
+  const { t } = useTranslation();
   const [tab, setTab] = useState<Tab>('new');
   const [selectedPackage, setSelectedPackage] = useState<PackageId | null>(null);
   const [step, setStep] = useState(1);
@@ -92,17 +94,17 @@ export default function AdvertiserPortal() {
           <Megaphone className="text-orange-600" size={24} />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Advertise on Seshaa</h1>
-          <p className="text-sm text-gray-500">Reach 1.4 billion Africans across 54 countries</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('advertiser.title')}</h1>
+          <p className="text-sm text-gray-500">{t('advertiser.subtitle')}</p>
         </div>
       </div>
 
       {/* Tabs */}
       <div className="flex border-b mb-6 gap-1 overflow-x-auto scrollbar-none">
         {([
-          { id: 'new', label: 'New Campaign', icon: <Plus size={15}/> },
-          { id: 'campaigns', label: 'My Campaigns', icon: <BarChart3 size={15}/> },
-          { id: 'enterprise', label: 'Enterprise / Custom', icon: <Zap size={15}/> },
+          { id: 'new', label: t('advertiser.newCampaign'), icon: <Plus size={15}/> },
+          { id: 'campaigns', label: t('advertiser.myCampaigns'), icon: <BarChart3 size={15}/> },
+          { id: 'enterprise', label: t('advertiser.enterprise'), icon: <Zap size={15}/> },
         ] as { id: Tab; label: string; icon: React.ReactNode }[]).map(t => (
           <button
             key={t.id}
@@ -121,21 +123,21 @@ export default function AdvertiserPortal() {
         launched ? (
           <div className="bg-green-50 border border-green-200 rounded-2xl p-10 text-center">
             <div className="text-5xl mb-4">🎉</div>
-            <h2 className="text-2xl font-bold text-green-800 mb-2">Campaign Launched!</h2>
-            <p className="text-green-600 mb-6">Your ad will go live on the start date. We'll notify you when it's active.</p>
+            <h2 className="text-2xl font-bold text-green-800 mb-2">{t('advertiser.launched')}</h2>
+            <p className="text-green-600 mb-6">{t('advertiser.launchedDesc')}</p>
             <div className="flex gap-3 justify-center">
               <button
                 onClick={() => { setLaunched(false); setStep(1); setSelectedPackage(null); }}
                 className="px-5 py-2.5 bg-white border rounded-full text-sm font-medium hover:bg-gray-50"
               >
-                Create Another
+                {t('advertiser.createAnother')}
               </button>
               <button
                 onClick={() => setTab('campaigns')}
                 className="px-5 py-2.5 text-white rounded-full text-sm font-semibold"
                 style={{ backgroundColor: 'var(--cp)' }}
               >
-                View Campaigns
+                {t('advertiser.viewCampaigns')}
               </button>
             </div>
           </div>
@@ -143,7 +145,7 @@ export default function AdvertiserPortal() {
           <div>
             {/* Step indicator */}
             <div className="flex items-center gap-2 mb-6 text-sm">
-              {['Choose Package', 'Ad Details', 'Targeting', 'Launch'].map((s, i) => (
+              {[t('advertiser.choosePackage'), t('advertiser.adDetails'), t('advertiser.targeting'), t('advertiser.launch')].map((s, i) => (
                 <div key={s} className="flex items-center gap-2">
                   <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${step > i + 1 ? 'bg-green-100 text-green-700' : step === i + 1 ? 'text-white' : 'bg-gray-100 text-gray-400'}`}
                     style={step === i + 1 ? { backgroundColor: 'var(--cp)' } : {}}
@@ -159,7 +161,7 @@ export default function AdvertiserPortal() {
             {/* Step 1: Pick package */}
             {step === 1 && (
               <div>
-                <h2 className="font-bold text-gray-800 text-lg mb-4">Choose your advertising package</h2>
+                <h2 className="font-bold text-gray-800 text-lg mb-4">{t('advertiser.choosePkg')}</h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {PACKAGES.map(p => (
                     <button
@@ -171,7 +173,7 @@ export default function AdvertiserPortal() {
                     >
                       {p.popular && (
                         <span className="absolute -top-2.5 left-4 text-xs bg-orange-500 text-white px-3 py-0.5 rounded-full font-semibold">
-                          Most Popular
+                          {t('advertiser.mostPopular')}
                         </span>
                       )}
                       <div className="flex justify-between items-start mb-2">
@@ -199,7 +201,7 @@ export default function AdvertiserPortal() {
                     className="px-8 py-3 text-white rounded-full font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
                     style={{ backgroundColor: 'var(--cp)' }}
                   >
-                    Continue with {pkg?.label || '...'}
+                    {t('advertiser.continueWith', { label: pkg?.label || '...' })}
                   </button>
                 </div>
               </div>
@@ -208,7 +210,7 @@ export default function AdvertiserPortal() {
             {/* Step 2: Ad details */}
             {step === 2 && (
               <div className="bg-white rounded-2xl border p-6">
-                <h2 className="font-bold text-gray-800 text-lg mb-5">Ad Details</h2>
+                <h2 className="font-bold text-gray-800 text-lg mb-5">{t('advertiser.adDetails')}</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium text-gray-600">Ad Title *</label>
@@ -258,8 +260,8 @@ export default function AdvertiserPortal() {
             {/* Step 3: Targeting */}
             {step === 3 && (
               <div className="bg-white rounded-2xl border p-6">
-                <h2 className="font-bold text-gray-800 text-lg mb-1">Targeting</h2>
-                <p className="text-sm text-gray-500 mb-5">Leave blank for Africa-wide reach</p>
+                <h2 className="font-bold text-gray-800 text-lg mb-1">{t('advertiser.targeting')}</h2>
+                <p className="text-sm text-gray-500 mb-5">{t('advertiser.targetingHint')}</p>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                   <div>
                     <label className="text-sm font-medium text-gray-600">Country</label>
@@ -300,7 +302,7 @@ export default function AdvertiserPortal() {
                 {/* Reach estimate */}
                 <div className="mt-4 bg-blue-50 rounded-xl p-4 border border-blue-200">
                   <div className="flex items-center gap-2 text-sm font-medium text-blue-800 mb-1">
-                    <TrendingUp size={15} /> Estimated Reach
+                    <TrendingUp size={15} /> {t('advertiser.estimatedReach')}
                   </div>
                   <p className="text-2xl font-black text-blue-700">{pkg?.reach}</p>
                   <p className="text-xs text-blue-500 mt-0.5">impressions over {pkg?.days} days</p>
@@ -316,14 +318,14 @@ export default function AdvertiserPortal() {
             {/* Step 4: Launch */}
             {step === 4 && (
               <div className="bg-white rounded-2xl border p-6">
-                <h2 className="font-bold text-gray-800 text-lg mb-5">Review & Launch</h2>
+                <h2 className="font-bold text-gray-800 text-lg mb-5">{t('advertiser.reviewLaunch')}</h2>
                 <div className="space-y-3 text-sm mb-6">
                   <div className="flex justify-between py-2 border-b"><span className="text-gray-500">Package</span><span className="font-semibold">{pkg?.label}</span></div>
                   <div className="flex justify-between py-2 border-b"><span className="text-gray-500">Ad Title</span><span className="font-semibold">{form.title}</span></div>
                   <div className="flex justify-between py-2 border-b"><span className="text-gray-500">Business</span><span className="font-semibold">{form.advertiser}</span></div>
-                  <div className="flex justify-between py-2 border-b"><span className="text-gray-500">Target</span><span className="font-semibold">{[form.city, form.country].filter(Boolean).join(', ') || 'Africa-wide'}</span></div>
+                  <div className="flex justify-between py-2 border-b"><span className="text-gray-500">Target</span><span className="font-semibold">{[form.city, form.country].filter(Boolean).join(', ') || t('advertiser.africaWide')}</span></div>
                   <div className="flex justify-between py-2 border-b"><span className="text-gray-500">Duration</span><span className="font-semibold">{pkg?.days} days from {form.startDate}</span></div>
-                  <div className="flex justify-between py-2 border-b"><span className="text-gray-500">Estimated Reach</span><span className="font-semibold text-blue-700">{pkg?.reach} impressions</span></div>
+                  <div className="flex justify-between py-2 border-b"><span className="text-gray-500">{t('advertiser.estimatedReach')}</span><span className="font-semibold text-blue-700">{pkg?.reach} impressions</span></div>
                   <div className="flex justify-between py-2"><span className="text-gray-500">Total Cost</span><span className="font-black text-xl text-orange-600">${pkg?.price}</span></div>
                 </div>
                 <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-3 text-xs text-yellow-800 mb-5">
@@ -332,7 +334,7 @@ export default function AdvertiserPortal() {
                 <div className="flex justify-between">
                   <button onClick={() => setStep(3)} className="px-5 py-2.5 border rounded-xl text-sm font-medium hover:bg-gray-50">Back</button>
                   <button onClick={handleLaunch} className="px-8 py-3 text-white rounded-xl font-bold text-sm" style={{ backgroundColor: 'var(--cp)' }}>
-                    Launch Campaign — ${pkg?.price}
+                    {t('advertiser.launchBtn', { price: pkg?.price })}
                   </button>
                 </div>
               </div>
@@ -367,8 +369,8 @@ export default function AdvertiserPortal() {
           {campaigns.length === 0 ? (
             <div className="text-center py-16 text-gray-400">
               <Megaphone size={40} className="mx-auto mb-3 opacity-30" />
-              <p className="font-medium">No campaigns yet</p>
-              <button onClick={() => setTab('new')} className="mt-3 text-sm text-orange-600 font-semibold">Create your first ad</button>
+              <p className="font-medium">{t('advertiser.noCampaigns')}</p>
+              <button onClick={() => setTab('new')} className="mt-3 text-sm text-orange-600 font-semibold">{t('advertiser.createFirst')}</button>
             </div>
           ) : (
             <div className="space-y-3">
@@ -381,7 +383,7 @@ export default function AdvertiserPortal() {
                       <div className="flex items-center gap-2">
                         <p className="font-semibold text-gray-800 truncate">{c.title}</p>
                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${isExpired ? 'bg-gray-100 text-gray-500' : c.active ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                          {isExpired ? 'Expired' : c.active ? 'Active' : 'Paused'}
+                          {isExpired ? t('common.inactive') : c.active ? t('common.active') : t('advertiser.paused')}
                         </span>
                         <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 font-medium">{c.tier}</span>
                       </div>
@@ -412,7 +414,7 @@ export default function AdvertiserPortal() {
       {tab === 'enterprise' && (
         <div className="space-y-6">
           <div className="bg-gradient-to-r from-gray-900 to-gray-800 rounded-2xl p-8 text-white">
-            <h2 className="text-2xl font-black mb-2">Enterprise Advertising</h2>
+            <h2 className="text-2xl font-black mb-2">{t('advertiser.enterpriseTitle')}</h2>
             <p className="text-gray-300 mb-6">Custom campaigns for large brands, governments, NGOs and pan-African campaigns. Managed service included.</p>
             <div className="grid md:grid-cols-3 gap-4 mb-6">
               {[
@@ -430,7 +432,7 @@ export default function AdvertiserPortal() {
               href="mailto:ads@seshaa.africa"
               className="inline-block bg-white text-gray-900 px-6 py-3 rounded-full font-bold text-sm hover:bg-gray-100 transition-colors"
             >
-              Contact Our Ad Team →
+              {t('advertiser.contactTeam')}
             </a>
           </div>
 
@@ -454,7 +456,7 @@ export default function AdvertiserPortal() {
               </div>
             </div>
             <button className="mt-4 px-6 py-2.5 bg-gray-900 text-white rounded-xl text-sm font-semibold hover:bg-gray-800">
-              Send Enquiry
+              {t('advertiser.sendEnquiry')}
             </button>
           </div>
         </div>

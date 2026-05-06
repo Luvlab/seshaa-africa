@@ -4,6 +4,7 @@
  * Rewards: discounts on Seshaa print-on-demand merchandise.
  */
 import { useState, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Languages, ChevronDown, ThumbsUp, Plus, CheckCircle, Gift, Globe, Users } from 'lucide-react';
 import { translationApi } from '../services/api';
 import { LANGUAGES } from '../i18n';
@@ -42,6 +43,7 @@ interface LangStats {
 
 // ── Main Component ─────────────────────────────────────────────────────────────
 export default function TranslatePage() {
+  const { t } = useTranslation();
   const { user } = useAuthStore();
   const [selectedLang, setSelectedLang] = useState(
     () => localStorage.getItem('seshaa-lang') || 'sw'
@@ -129,10 +131,9 @@ export default function TranslatePage() {
               <Languages size={28} className="text-white" strokeWidth={1.5} />
             </div>
             <div className="flex-1">
-              <h1 className="text-2xl md:text-3xl font-black text-white">Help Translate Seshaa</h1>
+              <h1 className="text-2xl md:text-3xl font-black text-white">{t('translatePage.title')}</h1>
               <p className="text-white/80 mt-2 text-sm md:text-base">
-                Make Seshaa accessible to every African. Suggest translations, vote for the best ones,
-                and earn exclusive rewards.
+                {t('translatePage.subtitle')}
               </p>
             </div>
           </div>
@@ -141,7 +142,7 @@ export default function TranslatePage() {
           <div className="mt-6 bg-white/15 rounded-2xl p-4 flex items-start gap-3">
             <Gift size={20} className="text-yellow-300 shrink-0 mt-0.5" strokeWidth={1.5} />
             <div className="text-sm text-white/90">
-              <strong className="text-white">Earn rewards for translating!</strong> Top contributors in each language
+              <strong className="text-white">{t('translatePage.rewardTitle')}</strong> Top contributors in each language
               earn discounts on Seshaa print merchandise (t-shirts, notebooks, stickers) and ambassador perks.
             </div>
           </div>
@@ -165,7 +166,7 @@ export default function TranslatePage() {
       {/* ── Language Progress Grid ── */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-6">
         <h2 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-          <Globe size={16} strokeWidth={1.5} /> Language Progress
+          <Globe size={16} strokeWidth={1.5} /> {t('translatePage.progress')}
         </h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
           {LANGUAGES.map(lang => {
@@ -192,7 +193,7 @@ export default function TranslatePage() {
                   />
                 </div>
                 {pct < 40 && (
-                  <p className="text-xs text-orange-500 font-semibold mt-1">Needs help!</p>
+                  <p className="text-xs text-orange-500 font-semibold mt-1">{t('translatePage.needsHelp')}</p>
                 )}
               </button>
             );
@@ -219,7 +220,7 @@ export default function TranslatePage() {
                   showOnlyMissing ? 'bg-orange-100 border-orange-300 text-orange-700' : 'bg-gray-50 border-gray-200 text-gray-600'
                 )}
               >
-                {showOnlyMissing ? '⚠️ Missing only' : 'All keys'}
+                {showOnlyMissing ? `⚠️ ${t('translatePage.missingOnly')}` : t('translatePage.allKeys')}
               </button>
             </div>
           </div>
@@ -227,14 +228,14 @@ export default function TranslatePage() {
           {/* Search */}
           <input
             className="mt-3 w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-green-500"
-            placeholder="Search keys…"
+            placeholder={t('translatePage.searchKeys')}
             value={search} onChange={e => setSearch(e.target.value)}
           />
         </div>
 
         {/* Keys list */}
         {loading ? (
-          <div className="p-10 text-center text-gray-400 text-sm">Loading translations…</div>
+          <div className="p-10 text-center text-gray-400 text-sm">{t('common.loading')}</div>
         ) : (
           <div className="divide-y divide-gray-50 max-h-[65vh] lg:max-h-none lg:flex-1 overflow-y-auto">
             {filteredKeys.length === 0 && (
@@ -273,7 +274,7 @@ export default function TranslatePage() {
                         isExpanded ? 'bg-green-100 border-green-300 text-green-700' : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
                       )}
                     >
-                      <Plus size={12} /> Suggest
+                      <Plus size={12} /> {t('translatePage.suggest')}
                     </button>
                   </div>
 
@@ -315,7 +316,7 @@ export default function TranslatePage() {
                         className="px-4 py-2 rounded-xl text-sm font-semibold text-white disabled:opacity-50 transition-colors"
                         style={{ background: 'var(--cp, #008751)' }}
                       >
-                        {submitting ? '…' : 'Submit'}
+                        {submitting ? '…' : t('common.submit')}
                       </button>
                     </div>
                   )}
@@ -349,14 +350,14 @@ export default function TranslatePage() {
       {!user && (
         <div className="mt-6 bg-blue-50 border border-blue-200 rounded-2xl p-5 text-center">
           <Users size={24} className="mx-auto mb-2 text-blue-500" strokeWidth={1.5} />
-          <p className="font-bold text-gray-800 mb-1">Join to earn translation rewards</p>
-          <p className="text-sm text-gray-500 mb-4">Create a free account to submit translations and vote.</p>
+          <p className="font-bold text-gray-800 mb-1">{t('translatePage.joinTitle')}</p>
+          <p className="text-sm text-gray-500 mb-4">{t('translatePage.joinDesc')}</p>
           <a
             href="/auth"
             className="inline-block px-6 py-2.5 rounded-xl font-bold text-white text-sm"
             style={{ background: 'var(--cp, #008751)' }}
           >
-            Create Free Account
+            {t('auth.register')}
           </a>
         </div>
       )}
@@ -364,7 +365,7 @@ export default function TranslatePage() {
       {/* Lang selector dropdown (mobile-friendly) */}
       <details className="mt-6 bg-white rounded-2xl border border-gray-100 shadow-sm">
         <summary className="p-4 font-semibold text-gray-700 flex items-center justify-between cursor-pointer list-none">
-          <span>Switch language: {langInfo?.nativeName}</span>
+          <span>{t('translatePage.switchLang')} {langInfo?.nativeName}</span>
           <ChevronDown size={16} className="text-gray-400" />
         </summary>
         <div className="px-4 pb-4 grid grid-cols-2 sm:grid-cols-3 gap-2">

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { certApi } from '../services/api';
 import { BadgeCheck, Star, Award, MapPin, Calendar } from 'lucide-react';
 
@@ -24,6 +25,7 @@ const CERT_ICON = { PLATINUM: '💎', GOLD: '🥇', STANDARD: '⭐' };
 
 export default function VerifyPage() {
   const { code } = useParams<{ code: string }>();
+  const { t } = useTranslation();
   const [data, setData] = useState<VerifyData | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
@@ -32,7 +34,7 @@ export default function VerifyPage() {
     if (!code) return;
     certApi.verify(code)
       .then(r => setData(r.data))
-      .catch(() => setError('Invalid or expired sticker code'))
+      .catch(() => setError(t('verify.invalidCode')))
       .finally(() => setLoading(false));
   }, [code]);
 
@@ -45,10 +47,10 @@ export default function VerifyPage() {
   if (error || !data) return (
     <div className="max-w-sm mx-auto px-4 py-16 text-center">
       <div className="text-6xl mb-4">❌</div>
-      <h2 className="text-xl font-bold text-gray-800 mb-2">Invalid Sticker Code</h2>
-      <p className="text-gray-500 text-sm mb-6">This sticker code is not valid or has expired.</p>
+      <h2 className="text-xl font-bold text-gray-800 mb-2">{t('verify.invalidCode')}</h2>
+      <p className="text-gray-500 text-sm mb-6">{t('verify.invalidDesc')}</p>
       <Link to="/" className="inline-block px-6 py-2.5 rounded-xl text-white font-semibold" style={{ backgroundColor: 'var(--cp)' }}>
-        Go to Seshaa
+        {t('verify.goToSeshaa')}
       </Link>
     </div>
   );
@@ -62,7 +64,7 @@ export default function VerifyPage() {
       <div className="text-center mb-6">
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-white text-sm font-semibold mb-4"
           style={{ backgroundColor: 'var(--cp)' }}>
-          <BadgeCheck size={16} /> Verified Business
+          <BadgeCheck size={16} /> {t('verify.verifiedBusiness')}
         </div>
         <p className="text-xs text-gray-400 font-mono tracking-wider">{data.stickerCode}</p>
       </div>
@@ -144,9 +146,9 @@ export default function VerifyPage() {
         <Link to={`/listing/${l.id}`}
           className="inline-block w-full py-3 rounded-xl text-white font-semibold text-sm"
           style={{ backgroundColor: 'var(--cp)' }}>
-          🌍 View on Seshaa
+          {t('verify.viewOnSeshaa')}
         </Link>
-        <p className="text-xs text-gray-400 mt-3">seshaa.africa · Africa's Directory</p>
+        <p className="text-xs text-gray-400 mt-3">{t('verify.branding')}</p>
       </div>
     </div>
   );

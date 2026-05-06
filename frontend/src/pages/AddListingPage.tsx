@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapPin, Phone, Mail, Globe, MessageCircle, Tag, CheckCircle,
          Loader2, Sparkles, Camera, Clock, Star, Copy } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { listingsApi } from '../services/api';
 import { useAuthStore } from '../store/auth';
 import clsx from 'clsx';
@@ -95,6 +96,7 @@ async function reverseGeocode(lat: number, lon: number) {
 export default function AddListingPage() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
+  const { t } = useTranslation();
   const [tier, setTier] = useState<TierId>('SILVER');
   const [step, setStep] = useState<'tier' | 'form' | 'success'>('tier');
   const [submitting, setSubmitting] = useState(false);
@@ -150,11 +152,11 @@ export default function AddListingPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name.trim()) return setError('Business name is required');
-    if (!form.phone.trim()) return setError('Phone number is required');
-    if (!form.city.trim()) return setError('City is required');
-    if (!form.country.trim()) return setError('Country is required');
-    if (!form.category) return setError('Please select a category');
+    if (!form.name.trim()) return setError(t('addListing.errName'));
+    if (!form.phone.trim()) return setError(t('addListing.errPhone'));
+    if (!form.city.trim()) return setError(t('addListing.errCity'));
+    if (!form.country.trim()) return setError(t('addListing.errCountry'));
+    if (!form.category) return setError(t('addListing.errCategory'));
 
     setError('');
     setSubmitting(true);
@@ -188,8 +190,8 @@ export default function AddListingPage() {
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-3xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-black text-gray-900">Add Your Listing</h1>
-          <p className="text-gray-500 mt-2">Choose a plan. You can upgrade anytime.</p>
+          <h1 className="text-3xl font-black text-gray-900">{t('addListing.title')}</h1>
+          <p className="text-gray-500 mt-2">{t('addListing.choosePlan')}</p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
@@ -227,7 +229,7 @@ export default function AddListingPage() {
 
         {!user && (
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-700 mb-4 text-center">
-            <a href="/auth" className="font-semibold hover:underline">Sign in or create a free account</a> to manage your listing later.
+            <a href="/auth" className="font-semibold hover:underline">{t('addListing.signIn')}</a> {t('addListing.signInHint')}
           </div>
         )}
 
@@ -237,7 +239,7 @@ export default function AddListingPage() {
             className="px-8 py-3.5 rounded-2xl font-black text-white text-base transition-all"
             style={{ background: 'var(--cp, #008751)' }}
           >
-            Continue with {TIERS.find(t => t.id === tier)?.label} →
+            {t('addListing.continueWith', { tier: TIERS.find(t => t.id === tier)?.label })}
           </button>
         </div>
       </div>
@@ -257,15 +259,15 @@ export default function AddListingPage() {
           {showRichSuccess ? (
             <>
               <div className="text-5xl mb-4">🎉</div>
-              <h1 className="text-2xl font-black text-gray-900 mb-2">Your listing is live!</h1>
+              <h1 className="text-2xl font-black text-gray-900 mb-2">{t('addListing.live')}</h1>
               <p className="text-gray-500 mb-6">
-                It will appear in search results after a quick review (usually under 24 hrs).
+                {t('addListing.liveDesc')}
               </p>
 
               {newListingId && (
                 <div className="bg-white rounded-2xl border border-gray-200 p-5 mb-5 space-y-4">
                   <img src={qrUrl} alt="QR code" className="mx-auto rounded-xl" width={160} height={160} />
-                  <p className="text-xs text-gray-500">Scan or share this QR code</p>
+                  <p className="text-xs text-gray-500">{t('addListing.qrShare')}</p>
 
                   <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2 text-xs text-gray-600 font-mono break-all">
                     <span className="flex-1 text-left truncate">{listingUrl}</span>
@@ -287,14 +289,14 @@ export default function AddListingPage() {
                     className="px-6 py-3 rounded-xl font-bold text-white"
                     style={{ background: 'var(--cp, #008751)' }}
                   >
-                    View listing →
+                    {t('addListing.viewListing')}
                   </button>
                 )}
                 <button
                   onClick={() => navigate('/business')}
                   className="px-6 py-3 rounded-xl font-bold bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
                 >
-                  Add a promotion →
+                  {t('addListing.addPromotion')}
                 </button>
               </div>
             </>
@@ -303,9 +305,9 @@ export default function AddListingPage() {
               <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
                 <CheckCircle size={40} className="text-green-500" strokeWidth={1.5} />
               </div>
-              <h1 className="text-2xl font-black text-gray-900 mb-2">Listing Submitted!</h1>
+              <h1 className="text-2xl font-black text-gray-900 mb-2">{t('addListing.submitted')}</h1>
               <p className="text-gray-500 mb-6">
-                Your {tier.toLowerCase()} listing is pending verification. We'll review it within 24 hours.
+                {t('addListing.submittedDesc', { tier: tier.toLowerCase() })}
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 {newListingId && (
@@ -314,18 +316,18 @@ export default function AddListingPage() {
                     className="px-6 py-3 rounded-xl font-bold text-white"
                     style={{ background: 'var(--cp, #008751)' }}
                   >
-                    View Listing
+                    {t('addListing.viewListingBtn')}
                   </button>
                 )}
                 <button onClick={() => navigate('/')} className="px-6 py-3 rounded-xl font-bold bg-gray-100 text-gray-700 hover:bg-gray-200">
-                  Back to Home
+                  {t('addListing.back')}
                 </button>
                 {tier === 'SILVER' && (
                   <button
                     onClick={() => { setTier('GOLD'); setStep('tier'); }}
                     className="px-6 py-3 rounded-xl font-bold bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
                   >
-                    🥇 Upgrade to Gold
+                    {t('addListing.upgradeGold')}
                   </button>
                 )}
               </div>
@@ -344,9 +346,9 @@ export default function AddListingPage() {
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
-          <button onClick={() => setStep('tier')} className="text-gray-400 hover:text-gray-600 text-sm">← Back</button>
+          <button onClick={() => setStep('tier')} className="text-gray-400 hover:text-gray-600 text-sm">{t('addListing.back')}</button>
           <div className="flex-1">
-            <h1 className="text-2xl font-black text-gray-900">Add Listing</h1>
+            <h1 className="text-2xl font-black text-gray-900">{t('addListing.add')}</h1>
           </div>
           <span className={clsx('text-xs font-black px-3 py-1.5 rounded-full', selectedTier.badge)}>
             {selectedTier.icon} {selectedTier.label} · {selectedTier.price}
@@ -356,7 +358,7 @@ export default function AddListingPage() {
         {/* Sales rep banner */}
         {user?.role === 'SALES_REP' && (
           <div className="flex items-center gap-2 text-sm text-purple-700 bg-purple-50 border border-purple-200 rounded-xl px-4 py-2.5 mb-4">
-            📋 <span><strong>Submitting as Sales Rep</strong> — this listing will be attributed to you.</span>
+            📋 <span><strong>{t('addListing.salesRepBanner')}</strong></span>
           </div>
         )}
 
@@ -364,20 +366,20 @@ export default function AddListingPage() {
         {geoLoading && (
           <div className="flex items-center gap-2 text-sm text-blue-600 bg-blue-50 border border-blue-200 rounded-xl px-4 py-2.5 mb-4">
             <Loader2 size={14} className="animate-spin" />
-            <span>Detecting your location…</span>
+            <span>{t('addListing.geoDetecting')}</span>
           </div>
         )}
         {!geoLoading && form.city && (
           <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 border border-green-200 rounded-xl px-4 py-2.5 mb-4">
             <MapPin size={14} />
-            <span>Location detected: {form.city}, {form.country}</span>
+            <span>{t('addListing.geoDetected', { city: form.city, country: form.country })}</span>
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Type */}
           <div>
-            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Listing Type</label>
+            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{t('addListing.listingType')}</label>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {LISTING_TYPES.map(t => (
                 <button
@@ -400,7 +402,7 @@ export default function AddListingPage() {
           {/* Name */}
           <div>
             <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">
-              {form.type === 'PERSONAL' ? 'Full Name' : 'Business / Organisation Name'} *
+              {form.type === 'PERSONAL' ? t('addListing.fullName') : t('addListing.orgName')} *
             </label>
             <input
               required
@@ -425,7 +427,7 @@ export default function AddListingPage() {
             </div>
             <div>
               <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">
-                <Phone size={12} className="inline mr-1" /> Second Phone (optional)
+                <Phone size={12} className="inline mr-1" /> {t('addListing.phone2Optional')}
               </label>
               <input
                 type="tel"
@@ -439,7 +441,7 @@ export default function AddListingPage() {
           {/* Email */}
           <div>
             <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">
-              <Mail size={12} className="inline mr-1" /> Email (optional)
+              <Mail size={12} className="inline mr-1" /> {t('addListing.emailOptional')}
             </label>
             <input
               type="email"
@@ -453,7 +455,7 @@ export default function AddListingPage() {
           <div className="grid sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">
-                <MapPin size={12} className="inline mr-1" /> City / Town *
+                <MapPin size={12} className="inline mr-1" /> {t('addListing.cityTown')} *
               </label>
               <input
                 required
@@ -478,7 +480,7 @@ export default function AddListingPage() {
           <div className="grid sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">
-                Region / District
+                {t('addListing.regionDistrict')}
               </label>
               <input
                 className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-green-500 bg-white"
@@ -488,7 +490,7 @@ export default function AddListingPage() {
             </div>
             <div>
               <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">
-                Street Address (optional)
+                {t('addListing.streetAddress')}
               </label>
               <AddressAutocomplete
                 value={form.address}
@@ -517,7 +519,7 @@ export default function AddListingPage() {
               className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-green-500 bg-white"
               value={form.category} onChange={e => set('category', e.target.value)}
             >
-              <option value="">Select a category…</option>
+              <option value="">{t('addListing.selectCategory')}</option>
               {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
@@ -525,7 +527,7 @@ export default function AddListingPage() {
           {/* Description */}
           <div>
             <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">
-              Description
+              {t('addListing.description')}
             </label>
             <textarea
               rows={3}
@@ -542,13 +544,13 @@ export default function AddListingPage() {
               tier === 'GOLD' ? 'border-yellow-200 bg-yellow-50' : 'border-blue-200 bg-blue-50'
             )}>
               <p className="text-xs font-black uppercase tracking-wide text-gray-500">
-                {tier === 'GOLD' ? '🥇 Gold Features' : '💎 Diamond Features'}
+                {tier === 'GOLD' ? t('addListing.goldFeatures') : t('addListing.diamondFeatures')}
               </p>
 
               <div className="grid sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">
-                    <Globe size={12} className="inline mr-1" /> Website URL
+                    <Globe size={12} className="inline mr-1" /> {t('addListing.website')}
                   </label>
                   <input
                     type="url"
@@ -559,7 +561,7 @@ export default function AddListingPage() {
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">
-                    <MessageCircle size={12} className="inline mr-1" /> WhatsApp Number
+                    <MessageCircle size={12} className="inline mr-1" /> {t('addListing.whatsapp')}
                   </label>
                   <input
                     type="tel"
@@ -572,7 +574,7 @@ export default function AddListingPage() {
 
               <div>
                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">
-                  <Clock size={12} className="inline mr-1" /> Opening Hours
+                  <Clock size={12} className="inline mr-1" /> {t('addListing.openingHoursLabel')}
                 </label>
                 <input
                   className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-yellow-400 bg-white"
@@ -583,8 +585,7 @@ export default function AddListingPage() {
 
               {tier === 'DIAMOND' && (
                 <div className="bg-blue-100 rounded-xl p-3 text-xs text-blue-700">
-                  <strong>💎 Diamond perks:</strong> Your listing gets featured at the top of search results,
-                  customers can book directly, and you'll receive a Seshaa QR sticker for your window.
+                  <strong>{t('addListing.diamondPerks')}:</strong> {t('addListing.diamondPerksDesc')}
                 </div>
               )}
             </div>
@@ -593,12 +594,12 @@ export default function AddListingPage() {
           {/* Photo upload placeholder */}
           <div>
             <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">
-              <Camera size={12} className="inline mr-1" /> Photos {tier === 'SILVER' ? '(1 max — upgrade for more)' : '(up to 10)'}
+              <Camera size={12} className="inline mr-1" /> {t('addListing.photosLabel')} {tier === 'SILVER' ? t('addListing.photos1Max') : t('addListing.photosMax10')}
             </label>
             <div className="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center text-gray-400 hover:border-gray-300 cursor-pointer">
               <Camera size={24} className="mx-auto mb-2 opacity-40" />
-              <p className="text-sm">Tap to add photos</p>
-              <p className="text-xs mt-1">JPG, PNG up to 5 MB each</p>
+              <p className="text-sm">{t('addListing.photosTap')}</p>
+              <p className="text-xs mt-1">{t('addListing.photosTip')}</p>
             </div>
           </div>
 
@@ -613,8 +614,7 @@ export default function AddListingPage() {
           {tier !== 'SILVER' && (
             <div className="bg-gray-100 rounded-xl p-3 text-xs text-gray-500">
               <Star size={11} className="inline mr-1" />
-              {tier === 'GOLD' ? '$9/month' : '$19/month'} billing begins after your listing is verified.
-              Cancel anytime. Your listing stays visible at Silver tier if you cancel.
+              {tier === 'GOLD' ? '$9/month' : '$19/month'} {t('addListing.billingNote')}
             </div>
           )}
 
@@ -626,9 +626,9 @@ export default function AddListingPage() {
             style={{ background: 'var(--cp, #008751)' }}
           >
             {submitting ? (
-              <><Loader2 size={18} className="animate-spin" /> Submitting…</>
+              <><Loader2 size={18} className="animate-spin" /> {t('addListing.submitting')}</>
             ) : (
-              <><Sparkles size={18} /> Submit {selectedTier.label} Listing</>
+              <><Sparkles size={18} /> {t('addListing.submitBtn', { tier: selectedTier.label })}</>
             )}
           </button>
         </form>

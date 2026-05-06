@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Leaf, ExternalLink, RefreshCw } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { merchApi } from '../services/api';
 import type { MerchProduct, MerchProvider, MerchService } from '../types';
 import FavoriteButton from '../components/ui/FavoriteButton';
 
 export default function MerchStorePage() {
+  const { t } = useTranslation();
   const [providers, setProviders] = useState<MerchProvider[]>([]);
   const [activeProvider, setActiveProvider] = useState('printify');
   const [products, setProducts] = useState<MerchProduct[]>([]);
@@ -43,19 +45,19 @@ export default function MerchStorePage() {
               className={`px-3 py-1.5 rounded-full text-xs font-semibold border ${activeProvider === p.id ? 'text-white border-transparent' : 'text-gray-600 border-gray-200 bg-white'}`}
               style={activeProvider === p.id ? { backgroundColor: 'var(--cp, #008751)' } : {}}
             >
-              {p.name} {p.connected ? '• connected' : '• not linked'}
+              {p.name} {p.connected ? `• ${t('common.connected')}` : `• ${t('merch.notLinked')}`}
             </button>
           ))}
           <button
             onClick={() => setActiveProvider(activeProvider)}
             className="ms-auto text-xs text-gray-500 hover:text-gray-700 inline-flex items-center gap-1"
           >
-            <RefreshCw size={12} /> Refresh
+            <RefreshCw size={12} /> {t('common.refresh')}
           </button>
         </div>
         {fallback && (
           <p className="mt-3 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-            Showing fallback catalog. Add API keys in Admin → Branding → POD Integrations to load live products.
+            {t('merch.fallbackCatalog')}
           </p>
         )}
       </div>
@@ -75,7 +77,7 @@ export default function MerchStorePage() {
                   <FavoriteButton id={`${p.provider}-${p.id}`} type="merch" name={p.name} size={14} />
                 </div>
                 <div className="aspect-square bg-gray-100">
-                  {p.imageUrl ? <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">No image</div>}
+                  {p.imageUrl ? <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">{t('common.noImage')}</div>}
                 </div>
                 <div className="p-3">
                   <p className="text-sm font-bold text-gray-900 line-clamp-2">{p.name}</p>
@@ -83,7 +85,7 @@ export default function MerchStorePage() {
                   <div className="mt-2 flex items-center justify-between">
                     <span className="text-xs text-gray-400 uppercase">{p.provider}</span>
                     <span className="text-sm font-bold text-gray-800">
-                      {p.priceFrom ? `${p.currency || 'USD'} ${p.priceFrom.toFixed(2)}` : 'Price on request'}
+                      {p.priceFrom ? `${p.currency || 'USD'} ${p.priceFrom.toFixed(2)}` : t('merch.priceOnRequest')}
                     </span>
                   </div>
                 </div>
@@ -96,7 +98,7 @@ export default function MerchStorePage() {
       <div className="bg-white border rounded-2xl p-5">
         <div className="flex items-center gap-2 mb-3">
           <Leaf size={16} className="text-emerald-600" />
-          <h2 className="font-bold text-gray-900">African POD Services and Eco Offers</h2>
+          <h2 className="font-bold text-gray-900">{t('merch.ecoServices')}</h2>
         </div>
         <div className="grid md:grid-cols-2 gap-3">
           {services.map(s => (

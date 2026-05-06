@@ -16,6 +16,7 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { ExternalLink, ArrowLeft, Clock, Globe, Newspaper } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 function timeAgo(d: string) {
   const ms = Date.now() - new Date(d).getTime();
@@ -28,6 +29,7 @@ function timeAgo(d: string) {
 }
 
 export default function NewsArticlePage() {
+  const { t } = useTranslation();
   const [params]      = useSearchParams();
   const link          = params.get('link')        || '';
   const title         = params.get('title')       || '';
@@ -43,11 +45,11 @@ export default function NewsArticlePage() {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center text-center px-4">
         <Newspaper size={56} className="text-gray-300 mb-4" />
-        <h2 className="text-xl font-bold text-gray-700 mb-2">Article not found</h2>
-        <p className="text-sm text-gray-500 mb-6">This article may have expired or the link is invalid.</p>
+        <h2 className="text-xl font-bold text-gray-700 mb-2">{t('news.articleNotFound')}</h2>
+        <p className="text-sm text-gray-500 mb-6">{t('news.articleExpired')}</p>
         <a href="/news" className="px-5 py-2.5 rounded-full text-white font-semibold text-sm"
           style={{ backgroundColor: 'var(--cp,#008751)' }}>
-          ← Back to Seshaa News
+          ← {t('news.backToNews')}
         </a>
       </div>
     );
@@ -62,7 +64,7 @@ export default function NewsArticlePage() {
           <a href="/news"
             className="flex items-center gap-1.5 text-sm font-semibold text-gray-600 hover:text-gray-900 transition-colors shrink-0">
             <ArrowLeft size={15} />
-            <span className="hidden sm:inline">Seshaa News</span>
+            <span className="hidden sm:inline">{t('news.backToNews')}</span>
           </a>
 
           <div className="flex-1 min-w-0">
@@ -75,7 +77,7 @@ export default function NewsArticlePage() {
             <a href={link} target="_blank" rel="noopener noreferrer"
               className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full text-white shrink-0 transition-opacity hover:opacity-80"
               style={{ backgroundColor: 'var(--cp,#008751)' }}>
-              <Globe size={12} /> Read original <ExternalLink size={11} />
+              <Globe size={12} /> {t('news.readOriginal')} <ExternalLink size={11} />
             </a>
           )}
         </div>
@@ -126,14 +128,14 @@ export default function NewsArticlePage() {
             {summary}
           </p>
         ) : (
-          <p className="text-gray-400 italic text-sm mb-8">No preview available.</p>
+          <p className="text-gray-400 italic text-sm mb-8">{t('news.noPreview')}</p>
         )}
 
         {/* ── Read full article CTA ────────────────────────────────────────── */}
         {link && (
           <div className="bg-white rounded-2xl border border-gray-200 p-6 sm:p-8 text-center shadow-sm">
             <div className="text-3xl mb-3">📰</div>
-            <p className="text-gray-600 text-sm mb-1">This is a preview. Read the complete article on:</p>
+            <p className="text-gray-600 text-sm mb-1">{t('news.previewText')}</p>
             <p className="font-black text-lg mb-5" style={{ color: 'var(--cp,#008751)' }}>
               {source || new URL(link).hostname}
             </p>
@@ -141,11 +143,11 @@ export default function NewsArticlePage() {
               className="inline-flex items-center gap-2 px-7 py-3 rounded-full text-white font-bold text-sm transition-opacity hover:opacity-90"
               style={{ backgroundColor: 'var(--cp,#008751)' }}>
               <Globe size={16} />
-              Open on {source || 'original site'}
+              {t('news.openOn', { source: source || 'original site' })}
               <ExternalLink size={14} />
             </a>
             <p className="text-xs text-gray-400 mt-4">
-              Opens in a new tab · Credit: {source}
+              {t('news.openInNewTab', { source })}
             </p>
           </div>
         )}

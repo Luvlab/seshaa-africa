@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Search, Building2, MapPin, Globe } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { listingsApi } from '../services/api';
 import { COUNTRIES } from '../components/layout/CountryPicker';
 import { getThemeForCode } from '../store/theme';
@@ -9,6 +10,7 @@ import type { Listing } from '../types';
 
 export default function CountryPage() {
   const { code } = useParams<{ code: string }>();
+  const { t } = useTranslation();
   const country = COUNTRIES.find(c => c.code === code?.toUpperCase());
   const theme = getThemeForCode(code?.toUpperCase() || 'NG');
 
@@ -29,8 +31,8 @@ export default function CountryPage() {
     return (
       <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 py-16 text-center text-gray-400">
         <p className="text-5xl mb-4">🌍</p>
-        <p className="text-xl font-bold">Country not found</p>
-        <Link to="/" className="mt-4 inline-block text-green-600 hover:underline">← Back to Home</Link>
+        <p className="text-xl font-bold">{t('country.notFound')}</p>
+        <Link to="/" className="mt-4 inline-block text-green-600 hover:underline">{t('country.backHome')}</Link>
       </div>
     );
   }
@@ -70,7 +72,7 @@ export default function CountryPage() {
             <div className="flex gap-6 mt-5 text-sm">
               <div>
                 <span className="font-black text-2xl">{stats.total.toLocaleString()}</span>
-                <span className="text-white/70 ml-1">listings</span>
+                <span className="text-white/70 ml-1">{t('country.listings')}</span>
               </div>
             </div>
           )}
@@ -81,7 +83,7 @@ export default function CountryPage() {
         {/* Quick search for this country */}
         <div className="bg-white rounded-2xl shadow-sm border p-5 mb-8">
           <h2 className="text-lg font-black text-gray-900 mb-3">
-            Search in {country.name}
+            {t('country.searchIn', { name: country.name })}
           </h2>
           <div className="flex gap-3">
             <Link
@@ -89,19 +91,19 @@ export default function CountryPage() {
               className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-white font-bold"
               style={{ backgroundColor: theme.primary }}
             >
-              <Search size={18} /> Search Directory
+              <Search size={18} /> {t('country.searchDir')}
             </Link>
             <Link
               to="/add-listing"
               className="flex items-center gap-2 px-5 py-3 rounded-xl border-2 font-bold text-gray-700 hover:bg-gray-50"
             >
-              <Building2 size={18} /> Add Business
+              <Building2 size={18} /> {t('country.addBusiness')}
             </Link>
           </div>
         </div>
 
         {/* Category quick access */}
-        <h2 className="text-xl font-black text-gray-900 mb-4">Browse by Category</h2>
+        <h2 className="text-xl font-black text-gray-900 mb-4">{t('country.browseCategory')}</h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
           {CATEGORIES.map(cat => (
             <Link
@@ -117,8 +119,8 @@ export default function CountryPage() {
 
         {/* Featured listings */}
         <h2 className="text-xl font-black text-gray-900 mb-4">
-          Featured in {country.name}
-          {stats && <span className="text-sm font-normal text-gray-400 ml-2">{stats.total.toLocaleString()} total</span>}
+          {t('country.featuredIn', { name: country.name })}
+          {stats && <span className="text-sm font-normal text-gray-400 ml-2">{stats.total.toLocaleString()} {t('country.total')}</span>}
         </h2>
         {loading ? (
           <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -137,21 +139,21 @@ export default function CountryPage() {
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl text-white font-bold"
                 style={{ backgroundColor: theme.primary }}
               >
-                View all {stats?.total.toLocaleString()} listings in {country.name} →
+                View all {stats?.total.toLocaleString()} {t('country.listings')} in {country.name} →
               </Link>
             </div>
           </>
         ) : (
           <div className="bg-white rounded-2xl border p-10 text-center text-gray-400">
             <MapPin size={40} className="mx-auto mb-3 opacity-30" />
-            <p className="text-lg font-semibold text-gray-600">No listings yet in {country.name}</p>
-            <p className="text-sm mt-1">Be the first to add a business here!</p>
+            <p className="text-lg font-semibold text-gray-600">{t('country.noListingsIn', { name: country.name })}</p>
+            <p className="text-sm mt-1">{t('country.beFirst')}</p>
             <Link
               to="/add-listing"
               className="mt-4 inline-flex items-center gap-2 px-6 py-3 rounded-2xl text-white font-bold"
               style={{ backgroundColor: theme.primary }}
             >
-              Add a Listing
+              {t('country.addListing')}
             </Link>
           </div>
         )}
@@ -159,7 +161,7 @@ export default function CountryPage() {
         {/* Languages spoken */}
         <div className="mt-10 bg-white rounded-2xl border p-6">
           <h2 className="text-lg font-black text-gray-900 mb-4 flex items-center gap-2">
-            <Globe size={20} style={{ color: theme.primary }} /> Languages in {country.name}
+            <Globe size={20} style={{ color: theme.primary }} /> {t('country.languages', { name: country.name })}
           </h2>
           <div className="flex flex-wrap gap-2">
             {country.langs.map(l => (

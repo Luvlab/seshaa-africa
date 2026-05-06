@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   LayoutDashboard, List, Megaphone, TrendingUp, Shield, DollarSign, Award,
   Send, CheckCircle, X, Users, Activity, Globe, Bell, ChevronRight,
@@ -132,6 +133,7 @@ function StatSparkle({ value, label, color, icon }: { value: string | number; la
 // ── Main component ───────────────────────────────────────────────────────────
 export default function AdminPortal() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { user, portal, setPortal } = useAuthStore();
   const [portalOpen, setPortalOpen] = useState(false);
   const [stats, setStats]                 = useState<Stats>({ listings: 0, users: 0, ads: 0, salesReps: 0, pendingListings: 0 });
@@ -800,18 +802,18 @@ export default function AdminPortal() {
   const totalBadge = (pendingListings.length + pendingPayouts.length + loanApps.length);
 
   const TABS: { key: Tab; label: string; icon: React.ReactNode; badge?: number }[] = [
-    { key: 'overview', label: 'Overview',   icon: <LayoutDashboard size={20} strokeWidth={1.5} /> },
-    { key: 'finance',  label: 'Finance',    icon: <DollarSign size={20} strokeWidth={1.5} /> },
-    { key: 'listings', label: 'Listings',   icon: <List size={20} strokeWidth={1.5} />, badge: stats.pendingListings },
-    { key: 'payouts',  label: 'Payouts',    icon: <TrendingUp size={20} strokeWidth={1.5} />, badge: pendingPayouts.length },
-    { key: 'loans',    label: 'Loans',      icon: <Award size={20} strokeWidth={1.5} />, badge: loanApps.length },
-    { key: 'salesreps',label: 'Sales Reps', icon: <Briefcase size={20} strokeWidth={1.5} /> },
-    { key: 'adcms',    label: 'Ad CMS',     icon: <Tv size={20} strokeWidth={1.5} /> },
-    { key: 'scraper',   label: 'Scraper',    icon: <Database size={20} strokeWidth={1.5} /> },
-    { key: 'branding',  label: 'Branding',   icon: <Paintbrush size={20} strokeWidth={1.5} /> },
-    { key: 'promote',   label: 'Press',      icon: <Send size={20} strokeWidth={1.5} /> },
-    { key: 'analytics', label: 'Behaviour',  icon: <Activity size={20} strokeWidth={1.5} /> },
-    { key: 'banking',   label: 'Banking',    icon: <CreditCard size={20} strokeWidth={1.5} /> },
+    { key: 'overview', label: t('admin.overview'),  icon: <LayoutDashboard size={20} strokeWidth={1.5} /> },
+    { key: 'finance',  label: t('admin.finance'),   icon: <DollarSign size={20} strokeWidth={1.5} /> },
+    { key: 'listings', label: t('admin.listings'),  icon: <List size={20} strokeWidth={1.5} />, badge: stats.pendingListings },
+    { key: 'payouts',  label: t('admin.payouts'),   icon: <TrendingUp size={20} strokeWidth={1.5} />, badge: pendingPayouts.length },
+    { key: 'loans',    label: t('admin.loans'),     icon: <Award size={20} strokeWidth={1.5} />, badge: loanApps.length },
+    { key: 'salesreps',label: t('admin.salesReps'), icon: <Briefcase size={20} strokeWidth={1.5} /> },
+    { key: 'adcms',    label: t('admin.adCms'),     icon: <Tv size={20} strokeWidth={1.5} /> },
+    { key: 'scraper',   label: t('admin.scraper'),   icon: <Database size={20} strokeWidth={1.5} /> },
+    { key: 'branding',  label: t('admin.branding'),  icon: <Paintbrush size={20} strokeWidth={1.5} /> },
+    { key: 'promote',   label: t('admin.press'),     icon: <Send size={20} strokeWidth={1.5} /> },
+    { key: 'analytics', label: t('admin.behaviour'), icon: <Activity size={20} strokeWidth={1.5} /> },
+    { key: 'banking',   label: t('admin.banking'),   icon: <CreditCard size={20} strokeWidth={1.5} /> },
   ];
 
   // Derived data for charts
@@ -1084,7 +1086,7 @@ export default function AdminPortal() {
             className="flex items-center gap-1 text-gray-200 text-xs px-2.5 py-1.5 rounded-lg hover:bg-gray-800 border border-gray-700"
             onClick={() => setPortalOpen(v => !v)}
           >
-            {PORTAL_LABELS[portal]} <ChevronRight size={11} className="rotate-90" />
+            {t(`portal.${portal}`)} <ChevronRight size={11} className="rotate-90" />
           </button>
           {portalOpen && (
             <div className="absolute right-0 top-full mt-1 bg-white text-gray-800 rounded-xl shadow-2xl w-40 z-50">
@@ -1099,7 +1101,7 @@ export default function AdminPortal() {
                     navigate(p === 'consumer' ? '/' : `/${p}`);
                   }}
                 >
-                  {PORTAL_LABELS[p]}
+                  {t(`portal.${p}`)}
                 </button>
               ))}
             </div>
@@ -1115,17 +1117,17 @@ export default function AdminPortal() {
 
         {/* Tab bar */}
         <div className="flex gap-1 overflow-x-auto bg-gray-900 rounded-xl p-1 mb-6 border border-gray-800 scrollbar-none">
-          {TABS.map(t => (
-            <button key={t.key} onClick={() => { setTab(t.key); analyticsApi.event('admin_action', { target: `tab:${t.key}`, path: '/admin' }).catch(() => {}); }}
+          {TABS.map(tabItem => (
+            <button key={tabItem.key} onClick={() => { setTab(tabItem.key); analyticsApi.event('admin_action', { target: `tab:${tabItem.key}`, path: '/admin' }).catch(() => {}); }}
               className={`flex items-center gap-1.5 px-3 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-colors relative ${
-                tab === t.key
+                tab === tabItem.key
                   ? 'bg-white text-gray-900 shadow'
                   : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800'
               }`}>
-              {t.icon} {t.label}
-              {t.badge != null && t.badge > 0 && (
+              {tabItem.icon} {tabItem.label}
+              {tabItem.badge != null && tabItem.badge > 0 && (
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-black rounded-full w-4 h-4 flex items-center justify-center">
-                  {t.badge > 9 ? '9+' : t.badge}
+                  {tabItem.badge > 9 ? '9+' : tabItem.badge}
                 </span>
               )}
             </button>

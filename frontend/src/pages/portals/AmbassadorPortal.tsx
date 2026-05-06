@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ambassadorApi, paymentsApi } from '../../services/api';
 import { useAuthStore } from '../../store/auth';
 import { Link } from 'react-router-dom';
@@ -25,6 +26,7 @@ interface Plan {
 }
 
 export default function AmbassadorPortal() {
+  const { t } = useTranslation();
   const { user } = useAuthStore();
   const [data, setData] = useState<AmbassadorData | null>(null);
   const [plans, setPlans] = useState<Plan[]>([]);
@@ -54,26 +56,26 @@ export default function AmbassadorPortal() {
     try {
       await ambassadorApi.apply(applyCountry, applyCity);
       window.location.reload();
-    } catch { setMsg('Could not apply. Try again.'); }
+    } catch { setMsg(t('ambassador.applyError')); }
   };
 
   const requestPayout = async () => {
     if (!data || data.ambassador.pendingPayout < 10) {
-      setMsg('Minimum payout is $10.');
+      setMsg(t('ambassador.minPayout'));
       return;
     }
     try {
       await ambassadorApi.requestPayout(payoutMethod);
-      setMsg('Payout request submitted! Processing within 3 business days.');
-    } catch { setMsg('Payout request failed. Try again.'); }
+      setMsg(t('ambassador.payoutSubmitted'));
+    } catch { setMsg(t('ambassador.payoutFailed')); }
   };
 
   if (!user) return (
     <div className="max-w-lg mx-auto px-4 py-16 text-center">
       <div className="text-6xl mb-4">🌟</div>
-      <h2 className="text-2xl font-bold text-gray-800 mb-2">Ambassador Program</h2>
-      <p className="text-gray-500 mb-6">Login to access the ambassador program</p>
-      <Link to="/auth" className="inline-block px-6 py-3 rounded-xl text-white font-semibold" style={{ backgroundColor: 'var(--cp)' }}>Log In</Link>
+      <h2 className="text-2xl font-bold text-gray-800 mb-2">{t('ambassador.program')}</h2>
+      <p className="text-gray-500 mb-6">{t('ambassador.loginRequired')}</p>
+      <Link to="/auth" className="inline-block px-6 py-3 rounded-xl text-white font-semibold" style={{ backgroundColor: 'var(--cp)' }}>{t('common.login')}</Link>
     </div>
   );
 
@@ -88,8 +90,8 @@ export default function AmbassadorPortal() {
     <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 py-8">
       <div className="bg-gradient-to-br from-yellow-400 to-orange-500 text-white rounded-2xl p-8 text-center mb-6">
         <div className="text-5xl mb-3">🌟</div>
-        <h1 className="text-3xl font-bold mb-2">Become a Seshaa Ambassador</h1>
-        <p className="text-yellow-100 text-lg">Earn money by listing businesses and selling Pro subscriptions</p>
+        <h1 className="text-3xl font-bold mb-2">{t('ambassador.becomeTitle')}</h1>
+        <p className="text-yellow-100 text-lg">{t('ambassador.becomeSubtitle')}</p>
       </div>
 
       <div className="grid sm:grid-cols-2 gap-4 mb-8">
@@ -109,16 +111,16 @@ export default function AmbassadorPortal() {
 
       {showApply ? (
         <div className="bg-white rounded-2xl border p-6">
-          <h2 className="font-bold text-lg mb-4">Apply to become an Ambassador</h2>
+          <h2 className="font-bold text-lg mb-4">{t('ambassador.applyTitle')}</h2>
           <div className="space-y-3">
             <div>
-              <label className="text-sm font-medium text-gray-700 block mb-1">Country *</label>
+              <label className="text-sm font-medium text-gray-700 block mb-1">{t('listing.country')} *</label>
               <input value={applyCountry} onChange={e => setApplyCountry(e.target.value)}
                 className="w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--cp)]"
                 placeholder="e.g. Nigeria" />
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-700 block mb-1">City (optional)</label>
+              <label className="text-sm font-medium text-gray-700 block mb-1">{t('ambassador.cityOptional')}</label>
               <input value={applyCity} onChange={e => setApplyCity(e.target.value)}
                 className="w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--cp)]"
                 placeholder="e.g. Lagos" />
@@ -127,7 +129,7 @@ export default function AmbassadorPortal() {
             <button onClick={applyAmbassador}
               className="w-full py-3 rounded-xl text-white font-semibold"
               style={{ backgroundColor: 'var(--cp)' }}>
-              Apply Now
+              {t('ambassador.applyNow')}
             </button>
           </div>
         </div>
@@ -135,7 +137,7 @@ export default function AmbassadorPortal() {
         <button onClick={() => setShowApply(true)}
           className="w-full py-4 rounded-2xl text-white font-bold text-lg"
           style={{ backgroundColor: 'var(--cp)' }}>
-          🌟 Join Ambassador Program
+          {t('ambassador.joinBtn')}
         </button>
       )}
     </div>
@@ -155,21 +157,21 @@ export default function AmbassadorPortal() {
       <div className="rounded-2xl text-white p-6 mb-6" style={{ background: `linear-gradient(135deg, var(--cp), var(--cp-dark))` }}>
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
-            <h1 className="text-2xl font-bold">🌟 Ambassador Dashboard</h1>
+            <h1 className="text-2xl font-bold">🌟 {t('ambassador.dashboard')}</h1>
             <p className="text-white/80">{amb.city ? `${amb.city}, ` : ''}{amb.country}</p>
           </div>
           <div className="text-right">
             <p className="text-3xl font-bold">${amb.totalEarned.toFixed(2)}</p>
-            <p className="text-white/70 text-sm">Total earned</p>
+            <p className="text-white/70 text-sm">{t('ambassador.totalEarned')}</p>
           </div>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5">
           {[
-            { label: 'Pending Payout', value: `$${amb.pendingPayout.toFixed(2)}`, icon: DollarSign },
-            { label: 'Listings Added', value: data.stats.listingsEntered, icon: Building2 },
-            { label: 'Pro Sales', value: data.stats.proSalesSold, icon: TrendingUp },
-            { label: 'Kickback Rate', value: `${(amb.proKickbackRate * 100).toFixed(0)}%`, icon: Award },
+            { label: t('ambassador.pendingPayout'), value: `$${amb.pendingPayout.toFixed(2)}`, icon: DollarSign },
+            { label: t('ambassador.listingsAdded'), value: data.stats.listingsEntered, icon: Building2 },
+            { label: t('ambassador.proSales'), value: data.stats.proSalesSold, icon: TrendingUp },
+            { label: t('ambassador.kickbackRate'), value: `${(amb.proKickbackRate * 100).toFixed(0)}%`, icon: Award },
           ].map((s, i) => (
             <div key={i} className="bg-white/15 rounded-xl p-3">
               <s.icon size={16} className="text-white/70 mb-1" />
@@ -197,10 +199,10 @@ export default function AmbassadorPortal() {
           {/* Recent Pro Sales */}
           <div className="bg-white rounded-2xl border p-5">
             <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-              <TrendingUp size={16} style={{ color: 'var(--cp)' }} /> Recent Pro Sales
+              <TrendingUp size={16} style={{ color: 'var(--cp)' }} /> {t('ambassador.recentProSales')}
             </h3>
             {data.recentProSales.length === 0 ? (
-              <p className="text-sm text-gray-400">No Pro sales yet. Share your referral link!</p>
+              <p className="text-sm text-gray-400">{t('ambassador.noProSales')}</p>
             ) : (
               <div className="space-y-2">
                 {data.recentProSales.map(s => (
@@ -219,10 +221,10 @@ export default function AmbassadorPortal() {
           {/* Recent Listings */}
           <div className="bg-white rounded-2xl border p-5">
             <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-              <Building2 size={16} style={{ color: 'var(--cp)' }} /> Recent Listings Added
+              <Building2 size={16} style={{ color: 'var(--cp)' }} /> {t('ambassador.recentListings')}
             </h3>
             {data.recentListings.length === 0 ? (
-              <p className="text-sm text-gray-400">No listings yet.</p>
+              <p className="text-sm text-gray-400">{t('ambassador.noListings')}</p>
             ) : (
               <div className="space-y-2">
                 {data.recentListings.map(l => (
@@ -245,10 +247,10 @@ export default function AmbassadorPortal() {
       {tab === 'listings' && (
         <div className="bg-white rounded-2xl border p-5">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-bold text-gray-900">My Submitted Listings</h3>
+            <h3 className="font-bold text-gray-900">{t('ambassador.myListings')}</h3>
             <Link to="/search" className="flex items-center gap-1 text-sm font-semibold text-white px-3 py-1.5 rounded-lg"
               style={{ backgroundColor: 'var(--cp)' }}>
-              <Plus size={14} /> Add Listing
+              <Plus size={14} /> {t('nav.addListing')}
             </Link>
           </div>
           {data.recentListings.length === 0 ? (
@@ -295,20 +297,20 @@ export default function AmbassadorPortal() {
       {tab === 'payout' && (
         <div className="bg-white rounded-2xl border p-5">
           <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <Send size={16} style={{ color: 'var(--cp)' }} /> Request Payout
+            <Send size={16} style={{ color: 'var(--cp)' }} /> {t('ambassador.requestPayout')}
           </h3>
           <div className="bg-gray-50 rounded-xl p-4 mb-4">
-            <p className="text-sm text-gray-600">Available balance</p>
+            <p className="text-sm text-gray-600">{t('ambassador.availableBalance')}</p>
             <p className="text-3xl font-bold text-gray-900">${amb.pendingPayout.toFixed(2)}</p>
-            {amb.pendingPayout < 10 && <p className="text-xs text-amber-600 mt-1">Minimum payout is $10.00</p>}
+            {amb.pendingPayout < 10 && <p className="text-xs text-amber-600 mt-1">{t('ambassador.minPayout')}</p>}
           </div>
           <div className="mb-4">
-            <label className="text-sm font-medium text-gray-700 block mb-2">Payout Method</label>
+            <label className="text-sm font-medium text-gray-700 block mb-2">{t('ambassador.payoutMethod')}</label>
             <div className="grid grid-cols-2 gap-2">
               {[
-                { id: 'mobile_money', label: 'Mobile Money' },
+                { id: 'mobile_money', label: t('ambassador.mobileMoney') },
                 { id: 'celo_cusd', label: 'Celo (cUSD)' },
-                { id: 'bank_transfer', label: 'Bank Transfer' },
+                { id: 'bank_transfer', label: t('ambassador.bankTransfer') },
                 ...payoutMethods.filter(m => !['mobile_money', 'celo_cusd', 'bank_transfer'].includes(m.id)).slice(0, 2),
               ].map(m => (
                 <button key={m.id}
@@ -330,15 +332,15 @@ export default function AmbassadorPortal() {
             style={{ backgroundColor: 'var(--cp)' }}>
             Request ${amb.pendingPayout.toFixed(2)} Payout
           </button>
-          <p className="text-xs text-center text-gray-400 mt-2">Processed within 3 business days</p>
+          <p className="text-xs text-center text-gray-400 mt-2">{t('ambassador.payoutProcessed')}</p>
           {data.recentPayouts.length > 0 && (
             <div className="mt-5">
-              <p className="text-sm font-semibold text-gray-700 mb-2">Payout History</p>
+              <p className="text-sm font-semibold text-gray-700 mb-2">{t('ambassador.payoutHistory')}</p>
               {data.recentPayouts.map(p => (
                 <div key={p.id} className="flex justify-between text-sm py-2 border-b border-gray-100 last:border-0">
                   <span className="text-gray-600">{p.method} · {new Date(p.createdAt).toLocaleDateString()}</span>
                   <span className={p.paid ? 'text-green-600 font-medium' : 'text-amber-600'}>
-                    ${p.amount.toFixed(2)} {p.paid ? '✓' : '(pending)'}
+                    ${p.amount.toFixed(2)} {p.paid ? '✓' : `(${t('common.pending')})`}
                   </span>
                 </div>
               ))}
