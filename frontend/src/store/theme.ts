@@ -18,62 +18,62 @@ export interface ThemeOverride {
   text?: string;
 }
 
-// All 54 African countries — flag-derived colors
+// All 54 African countries — flag-derived colors (Wikipedia-verified hex values)
 const THEMES: Record<string, Omit<CountryTheme, 'code'>> = {
-  DZ: { primary: '#006233', secondary: '#FFFFFF', accent: '#D21034', name: 'Algeria', lang: 'ar' },
-  AO: { primary: '#CC0000', secondary: '#000000', accent: '#FFD700', name: 'Angola', lang: 'pt' },
-  BJ: { primary: '#008751', secondary: '#FCD116', accent: '#DE2110', name: 'Benin', lang: 'fr' },
-  BW: { primary: '#75AADB', secondary: '#FFFFFF', accent: '#000000', name: 'Botswana', lang: 'en' },
-  BF: { primary: '#EF2B2D', secondary: '#009A00', accent: '#FCD116', name: 'Burkina Faso', lang: 'fr' },
-  BI: { primary: '#CE1126', secondary: '#1EB53A', accent: '#FFFFFF', name: 'Burundi', lang: 'fr' },
-  CV: { primary: '#003893', secondary: '#CF2027', accent: '#FFD700', name: 'Cape Verde', lang: 'pt' },
-  CM: { primary: '#007A5E', secondary: '#CE1126', accent: '#FCD116', name: 'Cameroon', lang: 'fr' },
-  CF: { primary: '#289728', secondary: '#FFCB00', accent: '#003082', name: 'Central African Republic', lang: 'fr' },
-  TD: { primary: '#002664', secondary: '#FECB00', accent: '#C60C30', name: 'Chad', lang: 'fr' },
-  KM: { primary: '#3A75C4', secondary: '#3F9C35', accent: '#FFC61E', name: 'Comoros', lang: 'ar' },
-  CG: { primary: '#009A00', secondary: '#FBDE4A', accent: '#DC241F', name: 'Republic of Congo', lang: 'fr' },
-  CD: { primary: '#007FFF', secondary: '#F7D618', accent: '#CE1021', name: 'DR Congo', lang: 'fr' },
-  CI: { primary: '#F77F00', secondary: '#FFFFFF', accent: '#009A44', name: "Côte d'Ivoire", lang: 'fr' },
-  DJ: { primary: '#6AB2E7', secondary: '#12AD2B', accent: '#FFFFFF', name: 'Djibouti', lang: 'fr' },
-  EG: { primary: '#CE1126', secondary: '#FFFFFF', accent: '#000000', name: 'Egypt', lang: 'ar' },
-  GQ: { primary: '#3E9A00', secondary: '#E32118', accent: '#0073CE', name: 'Equatorial Guinea', lang: 'es' },
-  ER: { primary: '#4189DD', secondary: '#4CAA51', accent: '#D21034', name: 'Eritrea', lang: 'ar' },
-  ET: { primary: '#078930', secondary: '#FCDD09', accent: '#DA121A', name: 'Ethiopia', lang: 'am' },
-  GA: { primary: '#009E60', secondary: '#FFD700', accent: '#3A75C4', name: 'Gabon', lang: 'fr' },
-  GM: { primary: '#3A7728', secondary: '#CE1126', accent: '#3E4095', name: 'Gambia', lang: 'en' },
-  GH: { primary: '#006B3F', secondary: '#FCD20F', accent: '#CF0921', name: 'Ghana', lang: 'en' },
-  GN: { primary: '#CE1126', secondary: '#FCD116', accent: '#009460', name: 'Guinea', lang: 'fr' },
-  GW: { primary: '#CE1126', secondary: '#FFD700', accent: '#009E60', name: 'Guinea-Bissau', lang: 'pt' },
-  KE: { primary: '#006600', secondary: '#BB0000', accent: '#000000', name: 'Kenya', lang: 'sw' },
-  LS: { primary: '#009543', secondary: '#0033A0', accent: '#FFFFFF', name: 'Lesotho', lang: 'en' },
-  LR: { primary: '#BF0A30', secondary: '#FFFFFF', accent: '#002868', name: 'Liberia', lang: 'en' },
-  LY: { primary: '#239E46', secondary: '#000000', accent: '#FFFFFF', name: 'Libya', lang: 'ar' },
-  MG: { primary: '#FC3D32', secondary: '#007E3A', accent: '#FFFFFF', name: 'Madagascar', lang: 'fr' },
-  MW: { primary: '#339E35', secondary: '#CE1126', accent: '#000000', name: 'Malawi', lang: 'en' },
-  ML: { primary: '#14B53A', secondary: '#FCD116', accent: '#CE1126', name: 'Mali', lang: 'fr' },
-  MR: { primary: '#006233', secondary: '#FFD700', accent: '#D21034', name: 'Mauritania', lang: 'ar' },
-  MU: { primary: '#EA2839', secondary: '#1A206D', accent: '#FFD500', name: 'Mauritius', lang: 'fr' },
-  MA: { primary: '#C1272D', secondary: '#FFFFFF', accent: '#006233', name: 'Morocco', lang: 'ar' },
-  MZ: { primary: '#009A44', secondary: '#FCE100', accent: '#000000', name: 'Mozambique', lang: 'pt' },
-  NA: { primary: '#003580', secondary: '#009543', accent: '#CC0000', name: 'Namibia', lang: 'en' },
-  NE: { primary: '#0DB02B', secondary: '#E05206', accent: '#FFFFFF', name: 'Niger', lang: 'fr' },
-  NG: { primary: '#008751', secondary: '#FFFFFF', accent: '#006B2B', name: 'Nigeria', lang: 'en' },
-  RW: { primary: '#20603D', secondary: '#FAD201', accent: '#00A1DE', name: 'Rwanda', lang: 'en' },
-  ST: { primary: '#12AD2B', secondary: '#FFCE00', accent: '#D21034', name: 'São Tomé & Príncipe', lang: 'pt' },
-  SN: { primary: '#00853F', secondary: '#FDEF42', accent: '#E31B23', name: 'Senegal', lang: 'fr' },
-  SC: { primary: '#003F87', secondary: '#FCD856', accent: '#D62828', name: 'Seychelles', lang: 'fr' },
-  SL: { primary: '#1EB53A', secondary: '#FFFFFF', accent: '#0072C6', name: 'Sierra Leone', lang: 'en' },
-  SO: { primary: '#4189DD', secondary: '#FFFFFF', accent: '#4189DD', name: 'Somalia', lang: 'ar' },
-  ZA: { primary: '#007A4D', secondary: '#FFB612', accent: '#002395', name: 'South Africa', lang: 'en' },
-  SS: { primary: '#078930', secondary: '#D21034', accent: '#000000', name: 'South Sudan', lang: 'en' },
-  SD: { primary: '#007229', secondary: '#D21034', accent: '#000000', name: 'Sudan', lang: 'ar' },
-  SZ: { primary: '#3E5EB9', secondary: '#FFD900', accent: '#B10C0C', name: 'Eswatini', lang: 'en' },
-  TZ: { primary: '#1EB53A', secondary: '#000000', accent: '#00A3DD', name: 'Tanzania', lang: 'sw' },
-  TG: { primary: '#006A4E', secondary: '#FFCE00', accent: '#D21034', name: 'Togo', lang: 'fr' },
-  TN: { primary: '#E70013', secondary: '#FFFFFF', accent: '#C60012', name: 'Tunisia', lang: 'ar' },
-  UG: { primary: '#000000', secondary: '#FCD116', accent: '#D90000', name: 'Uganda', lang: 'en' },
-  ZM: { primary: '#198A00', secondary: '#EF7D00', accent: '#000000', name: 'Zambia', lang: 'en' },
-  ZW: { primary: '#006400', secondary: '#FFD200', accent: '#D40000', name: 'Zimbabwe', lang: 'en' },
+  DZ: { primary: '#007A33', secondary: '#FFFFFF', accent: '#C8102E', name: 'Algeria', lang: 'ar' },        // green #007A33, red #C8102E
+  AO: { primary: '#CC0000', secondary: '#000000', accent: '#FFCB00', name: 'Angola', lang: 'pt' },          // red, black, gold #FFCB00
+  BJ: { primary: '#008751', secondary: '#FCD116', accent: '#DE2110', name: 'Benin', lang: 'fr' },           // Pan-African green/yellow/red
+  BW: { primary: '#75AADB', secondary: '#FFFFFF', accent: '#000000', name: 'Botswana', lang: 'en' },        // light blue, white, black
+  BF: { primary: '#EF2B2D', secondary: '#009A00', accent: '#FCD116', name: 'Burkina Faso', lang: 'fr' },    // red, green, yellow star
+  BI: { primary: '#C8102E', secondary: '#43B02A', accent: '#FFFFFF', name: 'Burundi', lang: 'fr' },         // red #C8102E, green #43B02A
+  CV: { primary: '#003893', secondary: '#CF2027', accent: '#FFD700', name: 'Cape Verde', lang: 'pt' },      // blue, red, yellow stars
+  CM: { primary: '#007A5E', secondary: '#CE1126', accent: '#FCD116', name: 'Cameroon', lang: 'fr' },        // green, red, yellow
+  CF: { primary: '#289728', secondary: '#FFCE00', accent: '#003082', name: 'Central African Republic', lang: 'fr' }, // green, yellow #FFCE00, blue
+  TD: { primary: '#00205B', secondary: '#FFCD00', accent: '#C8102E', name: 'Chad', lang: 'fr' },            // indigo #00205B, yellow #FFCD00, red #C8102E
+  KM: { primary: '#3A75C4', secondary: '#3F9C35', accent: '#FFC61E', name: 'Comoros', lang: 'ar' },         // blue, green, yellow
+  CG: { primary: '#009739', secondary: '#FFD100', accent: '#EF3340', name: 'Republic of Congo', lang: 'fr' }, // green #009739, yellow #FFD100, red #EF3340
+  CD: { primary: '#007FFF', secondary: '#F7D618', accent: '#CE1021', name: 'DR Congo', lang: 'fr' },        // blue, yellow, red
+  CI: { primary: '#F77F00', secondary: '#FFFFFF', accent: '#009A44', name: "Côte d'Ivoire", lang: 'fr' },   // orange, white, green
+  DJ: { primary: '#6AB2E7', secondary: '#12AD2B', accent: '#D7141A', name: 'Djibouti', lang: 'fr' },        // light blue, green, red star #D7141A
+  EG: { primary: '#C8102E', secondary: '#FFFFFF', accent: '#000000', name: 'Egypt', lang: 'ar' },           // red #C8102E, white, black
+  GQ: { primary: '#3E9A00', secondary: '#E32118', accent: '#0073CE', name: 'Equatorial Guinea', lang: 'es' }, // green, red, blue
+  ER: { primary: '#3C8BDC', secondary: '#4CAA51', accent: '#EB0433', name: 'Eritrea', lang: 'ar' },         // blue #3C8BDC, green, red #EB0433
+  ET: { primary: '#078930', secondary: '#FCDD09', accent: '#DA121A', name: 'Ethiopia', lang: 'am' },        // green, yellow, red — Pan-African
+  GA: { primary: '#009639', secondary: '#FFD100', accent: '#003DA5', name: 'Gabon', lang: 'fr' },           // green #009639, yellow #FFD100, blue #003DA5
+  GM: { primary: '#3A7728', secondary: '#CE1126', accent: '#3E4095', name: 'Gambia', lang: 'en' },          // green, red, blue
+  GH: { primary: '#006B3D', secondary: '#FCD20F', accent: '#CF0921', name: 'Ghana', lang: 'en' },           // green #006B3D, gold, red
+  GN: { primary: '#CE1126', secondary: '#FCD116', accent: '#009460', name: 'Guinea', lang: 'fr' },          // red, yellow, green
+  GW: { primary: '#CE1126', secondary: '#FFD700', accent: '#009E49', name: 'Guinea-Bissau', lang: 'pt' },   // red, yellow, green #009E49
+  KE: { primary: '#008C51', secondary: '#922529', accent: '#000000', name: 'Kenya', lang: 'sw' },           // green #008C51, red #922529, black
+  LS: { primary: '#009543', secondary: '#00209F', accent: '#FFFFFF', name: 'Lesotho', lang: 'en' },         // green, blue #00209F, white
+  LR: { primary: '#BF0A30', secondary: '#FFFFFF', accent: '#002868', name: 'Liberia', lang: 'en' },         // red, white, blue (US-style)
+  LY: { primary: '#239E46', secondary: '#000000', accent: '#EF3340', name: 'Libya', lang: 'ar' },           // green, black, red #EF3340
+  MG: { primary: '#FC3D32', secondary: '#007E3A', accent: '#FFFFFF', name: 'Madagascar', lang: 'fr' },      // red, green, white
+  MW: { primary: '#339E35', secondary: '#CE1126', accent: '#000000', name: 'Malawi', lang: 'en' },          // green, red, black
+  ML: { primary: '#14B53A', secondary: '#FCD116', accent: '#CE1126', name: 'Mali', lang: 'fr' },            // green, yellow, red
+  MR: { primary: '#00A95C', secondary: '#FFD700', accent: '#D01C1F', name: 'Mauritania', lang: 'ar' },      // green #00A95C (2020 update), red #D01C1F
+  MU: { primary: '#EA2839', secondary: '#1A206D', accent: '#FFD500', name: 'Mauritius', lang: 'fr' },       // red, blue, yellow
+  MA: { primary: '#B7312C', secondary: '#FFFFFF', accent: '#006341', name: 'Morocco', lang: 'ar' },         // red #B7312C, white, green star #006341
+  MZ: { primary: '#009A44', secondary: '#FCE100', accent: '#D21034', name: 'Mozambique', lang: 'pt' },      // green, yellow, red triangle #D21034
+  NA: { primary: '#002F6C', secondary: '#009543', accent: '#C8102E', name: 'Namibia', lang: 'en' },         // blue #002F6C, green, red #C8102E
+  NE: { primary: '#0DB02B', secondary: '#E05206', accent: '#FFFFFF', name: 'Niger', lang: 'fr' },           // green, orange, white circle
+  NG: { primary: '#008751', secondary: '#FFFFFF', accent: '#FFFFFF', name: 'Nigeria', lang: 'en' },         // green #008751 and white only
+  RW: { primary: '#20603D', secondary: '#FAD201', accent: '#00A1DE', name: 'Rwanda', lang: 'en' },          // green, yellow, blue
+  ST: { primary: '#12AD2B', secondary: '#FFCE00', accent: '#D21034', name: 'São Tomé & Príncipe', lang: 'pt' }, // green, yellow, red
+  SN: { primary: '#00853F', secondary: '#FDEF42', accent: '#E31B23', name: 'Senegal', lang: 'fr' },         // green, yellow, red
+  SC: { primary: '#003F87', secondary: '#FED141', accent: '#D62828', name: 'Seychelles', lang: 'fr' },      // blue, yellow #FED141, red
+  SL: { primary: '#1EB53A', secondary: '#FFFFFF', accent: '#0072C6', name: 'Sierra Leone', lang: 'en' },    // green, white, blue
+  SO: { primary: '#418FDE', secondary: '#FFFFFF', accent: '#418FDE', name: 'Somalia', lang: 'ar' },         // light blue #418FDE, white star
+  ZA: { primary: '#007A4D', secondary: '#FFB612', accent: '#002395', name: 'South Africa', lang: 'en' },    // green, gold, blue
+  SS: { primary: '#078930', secondary: '#DA121A', accent: '#000000', name: 'South Sudan', lang: 'en' },     // green, red #DA121A, black
+  SD: { primary: '#007229', secondary: '#D21034', accent: '#000000', name: 'Sudan', lang: 'ar' },           // green, red, black
+  SZ: { primary: '#3E5EB9', secondary: '#FFD900', accent: '#B10C0C', name: 'Eswatini', lang: 'en' },        // blue, yellow, crimson
+  TZ: { primary: '#1EB53A', secondary: '#000000', accent: '#00A3DD', name: 'Tanzania', lang: 'sw' },        // green, black, blue
+  TG: { primary: '#006A4E', secondary: '#FFCE00', accent: '#D21034', name: 'Togo', lang: 'fr' },            // green, yellow, red
+  TN: { primary: '#E70013', secondary: '#FFFFFF', accent: '#E70013', name: 'Tunisia', lang: 'ar' },         // red and white only
+  UG: { primary: '#000000', secondary: '#FCDC04', accent: '#D90000', name: 'Uganda', lang: 'en' },          // black, yellow #FCDC04, red
+  ZM: { primary: '#147F55', secondary: '#F99815', accent: '#D40829', name: 'Zambia', lang: 'en' },          // green #147F55, orange #F99815, red #D40829
+  ZW: { primary: '#006400', secondary: '#FFD200', accent: '#D40000', name: 'Zimbabwe', lang: 'en' },        // green, yellow, red
   DEFAULT: { primary: '#008751', secondary: '#FFFFFF', accent: '#FCD116', name: 'Africa', lang: 'en' },
 };
 
