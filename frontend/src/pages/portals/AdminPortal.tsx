@@ -16,14 +16,6 @@ import { ENGLISH_SLUGS } from '../../components/brand/SeshaaTitle';
 import { getThemeForCode } from '../../store/theme';
 import type { PortalType } from '../../types';
 
-const PORTAL_LABELS: Record<PortalType, string> = {
-  consumer: 'Consumer',
-  business: 'Business',
-  advertiser: 'Advertiser',
-  salesrep: 'Sales Rep',
-  ambassador: 'Ambassador',
-  admin: 'Admin',
-};
 
 interface Stats {
   listings: number; users: number; ads: number; salesReps: number; pendingListings: number;
