@@ -219,14 +219,22 @@ export default function Navbar() {
 
   const closeMenu = () => setMobileOpen(false);
 
-  // Close mobile menu when chat is opened from bottom bar or anywhere
+  // Close mobile menu (and all other panels) when chat is opened or a footer tab is tapped
   useEffect(() => {
-    const handler = () => setMobileOpen(false);
-    window.addEventListener('seshaa:mobile-menu-close', handler);
-    window.addEventListener('seshaa:chat-open', handler);
+    const closeMenu = () => setMobileOpen(false);
+    const closeAll  = () => {
+      setMobileOpen(false);
+      setLangOpen(false);
+      setPortalOpen(false);
+      setCountryPickerOpen(false);
+    };
+    window.addEventListener('seshaa:mobile-menu-close', closeMenu);
+    window.addEventListener('seshaa:chat-open',         closeMenu);
+    window.addEventListener('seshaa:close-all-panels',  closeAll);
     return () => {
-      window.removeEventListener('seshaa:mobile-menu-close', handler);
-      window.removeEventListener('seshaa:chat-open', handler);
+      window.removeEventListener('seshaa:mobile-menu-close', closeMenu);
+      window.removeEventListener('seshaa:chat-open',         closeMenu);
+      window.removeEventListener('seshaa:close-all-panels',  closeAll);
     };
   }, []);
 

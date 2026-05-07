@@ -60,6 +60,11 @@ export default function MobileTabBar() {
     };
   }, [countryCode]);
 
+  const dismissAll = () => {
+    window.dispatchEvent(new Event('seshaa:close-all-panels'));
+    window.dispatchEvent(new Event('seshaa:chat-close'));
+  };
+
   return (
     <nav
       ref={tabBarRef}
@@ -75,6 +80,7 @@ export default function MobileTabBar() {
             <Link
               key={tab.path}
               to={dest}
+              onClick={dismissAll}
               className="min-w-0 flex-1 flex flex-col items-center justify-center px-1 py-2.5 gap-1 transition-colors active:scale-95 rounded-lg"
               style={{
                 color: isActive ? colors.active : colors.inactive,
