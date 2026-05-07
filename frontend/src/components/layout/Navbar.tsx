@@ -245,20 +245,22 @@ export default function Navbar() {
   return (
     <nav ref={navRef} className={clsx('fixed top-0 left-0 right-0 z-50', !mobileOpen && 'shadow-md')} style={{ backgroundColor: 'var(--cp)' }}>
       {/* ── Main header row — full viewport width, 56px fixed height ── */}
-      <div className="w-full px-4 sm:px-6 h-14 flex items-center gap-3">
+      <div className="w-full px-4 sm:px-6 h-14 flex items-center gap-2">
 
-        {/* Seshaa animated title */}
+        {/* Seshaa animated title
+            mobile: flex-1 so the layout box is fixed — animating text inside doesn't shift siblings
+            desktop: shrink-0 / natural width, search bar fills the gap instead */}
         <Link
           to="/"
-          className="shrink-0 flex h-full items-center self-stretch origin-left scale-[0.84] -translate-y-[1px] sm:scale-100 sm:translate-y-0"
+          className="flex-1 md:flex-none md:shrink-0 min-w-0 flex h-full items-center self-stretch origin-left scale-[0.84] -translate-y-[1px] sm:scale-100 sm:translate-y-0"
           style={{ minWidth: 112 }}
         >
           <SeshaaTitle countryCode={countryCode} size="md" staticSuffix={pageSuffix} />
         </Link>
 
-        {/* Country flag badge */}
+        {/* Country flag badge — desktop only in this position (between title and search) */}
         <button
-          className="shrink-0 flex items-center gap-1.5 text-xs bg-white/20 hover:bg-white/30 text-white px-2 py-1.5 rounded-full transition-colors ml-1 sm:ml-3"
+          className="shrink-0 hidden md:flex items-center gap-1.5 text-xs bg-white/20 hover:bg-white/30 text-white px-2 py-1.5 rounded-full transition-colors ml-1"
           onClick={() => { closeChatPanel(); setCountryPickerOpen(true); }}
           title={`${theme.name} — tap to change`}
         >
@@ -267,7 +269,7 @@ export default function Navbar() {
               ? countryCode.toUpperCase().split('').map(c => String.fromCodePoint(0x1F1E6 - 65 + c.charCodeAt(0))).join('')
               : '🌍'}
           </span>
-          <span className="font-semibold hidden sm:inline">{countryCode ? theme.name : 'Africa'}</span>
+          <span className="font-semibold">{countryCode ? theme.name : 'Africa'}</span>
           <ChevronDown size={10} />
         </button>
 
@@ -294,8 +296,23 @@ export default function Navbar() {
           </button>
         </div>
 
-        {/* Right controls */}
-        <div className="flex items-center gap-1.5 ms-auto">
+        {/* Right controls — on mobile this is the entire right cluster: country + lang + menu */}
+        <div className="flex items-center gap-1.5 ms-auto md:ms-0">
+
+          {/* Country flag badge — mobile only (anchored here so it never shifts) */}
+          <button
+            className="md:hidden shrink-0 flex items-center gap-1 text-xs bg-white/20 hover:bg-white/30 text-white px-2 py-1.5 rounded-full transition-colors"
+            onClick={() => { closeChatPanel(); setCountryPickerOpen(true); }}
+            title={`${theme.name} — tap to change`}
+          >
+            <span className="text-base leading-none">
+              {countryCode
+                ? countryCode.toUpperCase().split('').map(c => String.fromCodePoint(0x1F1E6 - 65 + c.charCodeAt(0))).join('')
+                : '🌍'}
+            </span>
+            <ChevronDown size={10} />
+          </button>
+
           {/* Language */}
           <div className="relative">
             <button
