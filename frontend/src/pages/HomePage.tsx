@@ -244,7 +244,7 @@ export default function HomePage() {
             {/* Background media */}
             <div className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden" style={{ zIndex: 1 }}>
               {mediaType === 'image' ? (
-                <img src={rawUrl} alt={slide?.advertiser} className="absolute inset-0 w-full h-full object-cover" />
+                <img key={`${slideIdx}-${rawUrl}`} src={rawUrl} alt={slide?.advertiser} className="absolute inset-0 w-full h-full object-cover" />
               ) : mediaType === 'video' ? (
                 <video key={`${slideIdx}-${rawUrl}`} src={rawUrl} autoPlay muted loop playsInline
                   className="absolute inset-0 w-full h-full object-cover" />

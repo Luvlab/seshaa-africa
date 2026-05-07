@@ -45,6 +45,8 @@ export default function AdvertiserPortal() {
     title: '', advertiser: '', contactPhone: '', targetUrl: '', imageUrl: '',
     country: '', city: '', category: '',
     targetKeywords: '', targetInterests: '',
+    dayparts: [] as string[],
+    lifestyleTargets: [] as string[],
     startDate: new Date().toISOString().split('T')[0],
     budget: 0,
   });
@@ -76,6 +78,8 @@ export default function AdvertiserPortal() {
         endDate: endDate.toISOString().split('T')[0],
         targetKeywords: form.targetKeywords.split(',').map(s => s.trim()).filter(Boolean),
         targetInterests: form.targetInterests.split(',').map(s => s.trim()).filter(Boolean),
+        dayparts: form.dayparts,
+        lifestyleTargets: form.lifestyleTargets,
       });
       setLaunched(true);
     } catch { alert('Error launching campaign. Please try again.'); }
@@ -299,6 +303,88 @@ export default function AdvertiserPortal() {
                   </div>
                 </div>
 
+                {/* ── Daypart Scheduling ── */}
+                <div className="mt-6">
+                  <label className="text-sm font-semibold text-gray-700 block mb-1">
+                    🕐 Show Ad During
+                  </label>
+                  <p className="text-xs text-gray-400 mb-3">Select which times of day to show your ad (leave all unchecked = all day)</p>
+                  <div className="flex flex-wrap gap-2">
+                    {([
+                      { id: 'morning',   label: '🌅 Morning',   hint: '5am–10am'  },
+                      { id: 'lunch',     label: '☀️ Lunch',     hint: '10am–2pm'  },
+                      { id: 'afternoon', label: '🌤 Afternoon', hint: '2pm–5pm'   },
+                      { id: 'evening',   label: '🌆 Evening',   hint: '5pm–10pm'  },
+                      { id: 'night',     label: '🌙 Night',     hint: '10pm–5am'  },
+                    ] as { id: string; label: string; hint: string }[]).map(dp => {
+                      const active = form.dayparts.includes(dp.id);
+                      return (
+                        <button
+                          key={dp.id}
+                          type="button"
+                          onClick={() => setForm(f => ({
+                            ...f,
+                            dayparts: active
+                              ? f.dayparts.filter(d => d !== dp.id)
+                              : [...f.dayparts, dp.id],
+                          }))}
+                          className={`flex flex-col items-center px-4 py-2.5 rounded-xl border-2 text-sm font-medium transition-all ${
+                            active
+                              ? 'border-orange-500 bg-orange-50 text-orange-700'
+                              : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
+                          }`}
+                        >
+                          <span>{dp.label}</span>
+                          <span className="text-[10px] text-gray-400 font-normal">{dp.hint}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* ── Lifestyle Audience ── */}
+                <div className="mt-5">
+                  <label className="text-sm font-semibold text-gray-700 block mb-1">
+                    👤 Audience Lifestyle
+                  </label>
+                  <p className="text-xs text-gray-400 mb-3">Target people by lifestyle. Leave blank to reach everyone.</p>
+                  <div className="flex flex-wrap gap-2">
+                    {([
+                      { id: 'professional', label: '💼 Professional' },
+                      { id: 'student',      label: '🎓 Student'      },
+                      { id: 'parent',       label: '👨‍👩‍👧 Parent'        },
+                      { id: 'foodie',       label: '🍜 Foodie'       },
+                      { id: 'traveler',     label: '✈️ Traveler'     },
+                      { id: 'fitness',      label: '🏋️ Fitness'      },
+                      { id: 'nightlife',    label: '🎉 Nightlife'    },
+                      { id: 'driver',       label: '🚗 Driver'       },
+                      { id: 'farmer',       label: '🌾 Farmer'       },
+                      { id: 'shopaholic',   label: '🛍 Shopaholic'   },
+                    ] as { id: string; label: string }[]).map(ls => {
+                      const active = form.lifestyleTargets.includes(ls.id);
+                      return (
+                        <button
+                          key={ls.id}
+                          type="button"
+                          onClick={() => setForm(f => ({
+                            ...f,
+                            lifestyleTargets: active
+                              ? f.lifestyleTargets.filter(l => l !== ls.id)
+                              : [...f.lifestyleTargets, ls.id],
+                          }))}
+                          className={`px-3 py-1.5 rounded-full border text-xs font-medium transition-all ${
+                            active
+                              ? 'border-orange-500 bg-orange-50 text-orange-700'
+                              : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
+                          }`}
+                        >
+                          {ls.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
                 {/* Reach estimate */}
                 <div className="mt-4 bg-blue-50 rounded-xl p-4 border border-blue-200">
                   <div className="flex items-center gap-2 text-sm font-medium text-blue-800 mb-1">
@@ -325,6 +411,12 @@ export default function AdvertiserPortal() {
                   <div className="flex justify-between py-2 border-b"><span className="text-gray-500">Business</span><span className="font-semibold">{form.advertiser}</span></div>
                   <div className="flex justify-between py-2 border-b"><span className="text-gray-500">Target</span><span className="font-semibold">{[form.city, form.country].filter(Boolean).join(', ') || t('advertiser.africaWide')}</span></div>
                   <div className="flex justify-between py-2 border-b"><span className="text-gray-500">Duration</span><span className="font-semibold">{pkg?.days} days from {form.startDate}</span></div>
+                  {form.dayparts.length > 0 && (
+                    <div className="flex justify-between py-2 border-b"><span className="text-gray-500">Show During</span><span className="font-semibold capitalize">{form.dayparts.join(', ')}</span></div>
+                  )}
+                  {form.lifestyleTargets.length > 0 && (
+                    <div className="flex justify-between py-2 border-b"><span className="text-gray-500">Audience</span><span className="font-semibold capitalize">{form.lifestyleTargets.join(', ')}</span></div>
+                  )}
                   <div className="flex justify-between py-2 border-b"><span className="text-gray-500">{t('advertiser.estimatedReach')}</span><span className="font-semibold text-blue-700">{pkg?.reach} impressions</span></div>
                   <div className="flex justify-between py-2"><span className="text-gray-500">Total Cost</span><span className="font-black text-xl text-orange-600">${pkg?.price}</span></div>
                 </div>

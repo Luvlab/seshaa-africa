@@ -32,9 +32,10 @@ export const adsApi = {
   getContextual: (params: {
     country?: string; city?: string; category?: string; tier?: string;
     sessionId?: string; interests?: string; keywords?: string;
+    localHour?: number; lifestyle?: string;
   }) => api.get<Ad[]>('/ads', { params }),
   click: (id: string) => api.post(`/ads/${id}/click`),
-  create: (data: Partial<Ad> & { salesRepId?: string; packageId?: string; targetKeywords?: string[]; targetInterests?: string[]; countries?: string[] }) =>
+  create: (data: Partial<Ad> & { salesRepId?: string; packageId?: string; targetKeywords?: string[]; targetInterests?: string[]; countries?: string[]; dayparts?: string[]; lifestyleTargets?: string[] }) =>
     api.post<Ad>('/ads', data),
   myAds: () => api.get<Ad[]>('/ads/my'),
   myStats: () => api.get('/ads/my/stats'),

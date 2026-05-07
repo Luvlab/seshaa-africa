@@ -23,6 +23,8 @@ interface AdContext {
   interests?: string[];
   keywords?: string[];
   sessionId?: string;
+  localHour?: number;    // viewer's local hour 0-23 for daypart matching
+  lifestyle?: string[];  // inferred lifestyle tags for the viewer
 }
 
 interface ScoredAd {
@@ -96,6 +98,28 @@ async function scoreAndRank(ads: ScoredAd[], context: AdContext, limit = 3): Pro
     else if (seen >= 3) score -= 30;
     else if (seen >= 1) score -= 8;
 
+    // Daypart scheduling — hard filter: if ad has dayparts set and current hour doesn't match, exclude
+    const adDayparts = (ad.dayparts as string[]) || [];
+    if (adDayparts.length > 0) {
+      const localHour = (context as AdContext & { localHour?: number }).localHour ?? -1;
+      if (localHour >= 0) {
+        const slot = localHour >= 5 && localHour < 10 ? 'morning'
+          : localHour >= 10 && localHour < 14 ? 'lunch'
+          : localHour >= 14 && localHour < 17 ? 'afternoon'
+          : localHour >= 17 && localHour < 22 ? 'evening'
+          : 'night';
+        if (!adDayparts.includes(slot)) score -= 999;
+      }
+    }
+
+    // Lifestyle audience match
+    const adLifestyle = (ad.lifestyleTargets as string[]) || [];
+    const ctxLifestyle = (context as AdContext & { lifestyle?: string[] }).lifestyle || [];
+    if (adLifestyle.length > 0 && ctxLifestyle.length > 0) {
+      const lHits = adLifestyle.filter(l => ctxLifestyle.includes(l)).length;
+      score += lHits * 25;
+    }
+
     // Small randomization to prevent always-same order
     score += Math.random() * 8;
 
@@ -124,6 +148,8 @@ const AdSchema = z.object({
   category: z.string().optional(),
   targetKeywords: z.array(z.string()).optional(),
   targetInterests: z.array(z.string()).optional(),
+  dayparts:         z.array(z.string()).optional(),
+  lifestyleTargets: z.array(z.string()).optional(),
   packageId: z.string().optional(),
   dailyBudget: z.number().optional(),
   startDate: z.string(),
@@ -133,7 +159,7 @@ const AdSchema = z.object({
 
 // GET /ads — smart contextual ad serving
 router.get('/', async (req, res) => {
-  const { country, city, category, tier, sessionId, interests, keywords } = req.query as Record<string, string>;
+  const { country, city, category, tier, sessionId, interests, keywords, localHour, lifestyle } = req.query as Record<string, string>;
 
   const now = new Date();
   const where: Record<string, unknown> = {
@@ -158,6 +184,8 @@ router.get('/', async (req, res) => {
     sessionId,
     interests: interests ? interests.split(',').filter(Boolean) : [],
     keywords: keywords ? keywords.split(',').filter(Boolean) : [],
+    localHour: localHour !== undefined ? parseInt(localHour, 10) : undefined,
+    lifestyle: lifestyle ? lifestyle.split(',').filter(Boolean) : [],
   };
 
   const ranked = await scoreAndRank(ads as unknown as ScoredAd[], context, 5);
@@ -228,6 +256,8 @@ router.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
       category: data.category || null,
       targetKeywords: data.targetKeywords || [],
       targetInterests: data.targetInterests || [],
+      dayparts:         data.dayparts || [],
+      lifestyleTargets: data.lifestyleTargets || [],
       packageId: data.packageId || null,
       dailyBudget: data.dailyBudget || null,
       startDate,

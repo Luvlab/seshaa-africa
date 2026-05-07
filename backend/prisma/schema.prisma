@@ -143,6 +143,8 @@ model Ad {
   category        String?
   targetKeywords  String[]  // keyword targeting for algorithm
   targetInterests String[]  // interest category targeting
+  dayparts         String[]  // ["morning","lunch","afternoon","evening","night"] — empty = all day
+  lifestyleTargets String[]  // ["professional","student","parent","foodie","traveler","fitness","nightlife","driver","farmer","shopaholic"]
   packageId       String?   // which preset package was used
   dailyBudget     Float?
   startDate       DateTime
