@@ -821,8 +821,8 @@ export default function AdminPortal() {
 
   // ── Hero Slide Form (rendered inline inside list item OR at top for "Add New") ──
   const renderSlideForm = () => (
-    <div className="bg-gray-950 border border-orange-500/30 rounded-2xl p-4 mb-5 overflow-hidden max-w-full">
-      <div className="flex items-center justify-between mb-4">
+    <div className="bg-gray-950 w-full p-4 overflow-x-hidden">
+      <div className="flex items-center justify-between mb-3">
         <h4 className="font-bold text-orange-300 text-sm flex items-center gap-2">
           {editingSlide ? <Edit2 size={14} /> : <Plus size={14} />}
           {editingSlide ? `Editing: ${editingSlide.advertiser}` : 'New Hero Slide'}
@@ -831,7 +831,7 @@ export default function AdminPortal() {
           className="p-1 text-gray-500 hover:text-white"><X size={16} /></button>
       </div>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 min-w-0">
         {/* Media section */}
         <div className="sm:col-span-2 lg:col-span-3">
           <p className="text-[10px] font-bold uppercase tracking-wider text-gray-600 mb-2">📺 Media</p>
@@ -1925,7 +1925,11 @@ export default function AdminPortal() {
               )}
 
               {/* ── Add Form (Add New only — edit opens inline in list item below) ── */}
-              {showSlideForm && !editingSlide && renderSlideForm()}
+              {showSlideForm && !editingSlide && (
+                <div className="-mx-5 -mb-5 overflow-hidden rounded-b-2xl border-t border-gray-800">
+                  {renderSlideForm()}
+                </div>
+              )}
 
               {/* ── Slides list ── */}
               {!slidesLoaded ? (
@@ -2031,7 +2035,7 @@ export default function AdminPortal() {
                         </div>
                         {/* ── Inline edit form — accordion opens below this card ── */}
                         {editingSlide?.id === slide.id && (
-                          <div className="mt-3 border-t border-orange-500/20 pt-3">
+                          <div className="-mx-4 -mb-4 overflow-hidden rounded-b-2xl border-t border-gray-800">
                             {renderSlideForm()}
                           </div>
                         )}
