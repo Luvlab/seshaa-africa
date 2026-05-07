@@ -348,8 +348,11 @@ export default function ChatPage() {
   const [newDmId, setNewDmId]   = useState('');
   const [showNewDm, setShowNewDm] = useState(false);
 
-  // Staff sub-tab
+  // Staff sub-tab — auto-select first channel once fixedChs loads
   const [staffSub, setStaffSub] = useState<string | null>(null);
+  useEffect(() => {
+    if (fixedChs.length > 0 && !staffSub) setStaffSub(fixedChs[0].channelId);
+  }, [fixedChs]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!user) return;
@@ -652,41 +655,39 @@ export default function ChatPage() {
         {/* Staff Hub */}
         {tab === 'staff' && hasHub && (() => {
           const activeCh = fixedChs.find(c => c.channelId === staffSub) ?? fixedChs[0] ?? null;
-          // Auto-select first channel when fixedChs loads
-          if (fixedChs.length > 0 && !staffSub) setStaffSub(fixedChs[0].channelId);
-
-          const CHANNEL_STYLE: Record<string, { icon: React.ReactNode; active: string; inactive: string }> = {
-            admin:       { icon: <Lock  size={14} />, active: 'border-red-400    bg-red-50    text-red-600',    inactive: 'border-gray-200 text-gray-500 hover:border-red-200    hover:text-red-500'    },
-            salesreps:   { icon: <Users size={14} />, active: 'border-blue-400   bg-blue-50   text-blue-600',   inactive: 'border-gray-200 text-gray-500 hover:border-blue-200   hover:text-blue-500'   },
-            ambassadors: { icon: <Globe size={14} />, active: 'border-purple-400 bg-purple-50 text-purple-600', inactive: 'border-gray-200 text-gray-500 hover:border-purple-200 hover:text-purple-500' },
+          const STYLE: Record<string, { icon: React.ReactNode; active: string; inactive: string }> = {
+            admin:       { icon: <Lock  size={13} />, active: 'bg-red-500    text-white border-red-500',    inactive: 'bg-white text-gray-500 border-gray-200 hover:text-red-500'    },
+            salesreps:   { icon: <Users size={13} />, active: 'bg-blue-500   text-white border-blue-500',   inactive: 'bg-white text-gray-500 border-gray-200 hover:text-blue-500'   },
+            ambassadors: { icon: <Globe size={13} />, active: 'bg-purple-500 text-white border-purple-500', inactive: 'bg-white text-gray-500 border-gray-200 hover:text-purple-500' },
           };
-
           return (
             <div className="flex flex-col h-full overflow-hidden">
-              {/* Horizontal sub-tabs */}
-              <div className="flex gap-2 px-3 pt-3 pb-2 bg-white border-b shrink-0">
+
+              {/* ── Tab row ── */}
+              <div className="shrink-0 flex flex-row flex-nowrap gap-2 px-3 py-2 bg-white border-b border-gray-100">
                 {fixedChs.length === 0
                   ? <p className="text-sm text-gray-400 py-1">No channels for your role</p>
                   : fixedChs.map(ch => {
                     const isActive = ch.channelId === (staffSub ?? fixedChs[0]?.channelId);
-                    const style = CHANNEL_STYLE[ch.channelType] ?? CHANNEL_STYLE.admin;
+                    const s = STYLE[ch.channelType] ?? STYLE.admin;
                     return (
                       <button
                         key={ch.channelId}
+                        type="button"
                         onClick={() => setStaffSub(ch.channelId)}
-                        className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl border-2 text-xs font-semibold transition-all ${
-                          isActive ? style.active : style.inactive + ' bg-white'
+                        className={`flex-1 inline-flex flex-row items-center justify-center gap-1.5 py-2 px-2 rounded-xl border text-xs font-semibold transition-all whitespace-nowrap ${
+                          isActive ? s.active : s.inactive
                         }`}
                       >
-                        {style.icon}
-                        <span className="truncate">{ch.label}</span>
+                        {s.icon}
+                        <span>{ch.label}</span>
                       </button>
                     );
                   })
                 }
               </div>
 
-              {/* Inline channel pane */}
+              {/* ── Channel messages ── */}
               {activeCh && (
                 <div className="flex-1 min-h-0 overflow-hidden">
                   <ChannelPane
