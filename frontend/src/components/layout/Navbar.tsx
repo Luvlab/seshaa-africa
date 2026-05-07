@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef, useLayoutEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
-  Search, Menu, X, MessageCircle, Bell, User, ChevronDown, Sparkles, Globe,
+  Search, Menu, X, MessageCircle, Bell, User, ChevronDown, Sparkles,
   Home, Newspaper, Tag, BarChart2, Megaphone, PartyPopper,
   Star, Briefcase, Languages, Settings, Globe2, Archive,
   ShoppingBag, Radio, Car, Package, Truck, Plus,
@@ -13,6 +13,7 @@ import { useThemeStore } from '../../store/theme';
 import { adminApi } from '../../services/api';
 import SeshaaTitle from '../brand/SeshaaTitle';
 import CountryPicker from './CountryPicker';
+import AfricaIcon from '../icons/AfricaIcon';
 import { LANGUAGES } from '../../i18n';
 import clsx from 'clsx';
 import type { PortalType } from '../../types';
@@ -264,11 +265,13 @@ export default function Navbar() {
           onClick={() => { closeChatPanel(); setCountryPickerOpen(true); }}
           title={`${theme.name} — tap to change`}
         >
-          <span className="text-base leading-none">
-            {countryCode
-              ? countryCode.toUpperCase().split('').map(c => String.fromCodePoint(0x1F1E6 - 65 + c.charCodeAt(0))).join('')
-              : '🌍'}
-          </span>
+          {countryCode ? (
+            <span className="text-base leading-none">
+              {countryCode.toUpperCase().split('').map(c => String.fromCodePoint(0x1F1E6 - 65 + c.charCodeAt(0))).join('')}
+            </span>
+          ) : (
+            <AfricaIcon size={18} strokeWidth={1.75} className="shrink-0" />
+          )}
           <span className="font-semibold">{countryCode ? theme.name : 'Africa'}</span>
           <ChevronDown size={10} />
         </button>
@@ -305,11 +308,13 @@ export default function Navbar() {
             onClick={() => { closeChatPanel(); setCountryPickerOpen(true); }}
             title={`${theme.name} — tap to change`}
           >
-            <span className="text-base leading-none">
-              {countryCode
-                ? countryCode.toUpperCase().split('').map(c => String.fromCodePoint(0x1F1E6 - 65 + c.charCodeAt(0))).join('')
-                : '🌍'}
-            </span>
+            {countryCode ? (
+              <span className="text-base leading-none">
+                {countryCode.toUpperCase().split('').map(c => String.fromCodePoint(0x1F1E6 - 65 + c.charCodeAt(0))).join('')}
+              </span>
+            ) : (
+              <AfricaIcon size={18} strokeWidth={1.75} className="shrink-0" />
+            )}
             <ChevronDown size={10} />
           </button>
 
@@ -319,7 +324,7 @@ export default function Navbar() {
               className="flex items-center gap-1.5 text-white/90 text-sm px-2 py-1 rounded-lg hover:bg-white/20"
               onClick={() => { closeChatPanel(); setLangOpen(v => !v); }}
             >
-              <Globe size={15} className="shrink-0" />
+              <AfricaIcon size={15} strokeWidth={1.75} className="shrink-0" />
               <span className="text-xs font-semibold uppercase tracking-wide">{currentLang.code.slice(0, 2)}</span>
               <ChevronDown size={10} className="hidden sm:block" />
             </button>
