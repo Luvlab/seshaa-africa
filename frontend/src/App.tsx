@@ -3,12 +3,25 @@ import { useAnalytics, usePageview } from './hooks/useAnalytics';
 import type { ReactNode, ErrorInfo } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 
-// ── Scroll to top on every navigation ────────────────────────────────────────
+// ── Scroll to top on every navigation AND on page refresh ────────────────────
 function ScrollToTop() {
   const { pathname } = useLocation();
+
+  // Disable browser's built-in scroll restoration so a refresh doesn't
+  // land midway down the page.
+  useEffect(() => {
+    if ('scrollRestoration' in history) {
+      history.scrollRestoration = 'manual';
+    }
+    // Scroll to top on first mount (covers hard refresh of any route)
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Scroll to top on every client-side navigation
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   }, [pathname]);
+
   return null;
 }
 import './i18n';
