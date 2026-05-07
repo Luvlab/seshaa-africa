@@ -65,7 +65,7 @@ function MsgBubble({ msg, myId }: { msg: ChatMsg; myId: string }) {
 }
 
 // ── Channel pane ──────────────────────────────────────────────────────────────
-function ChannelPane({ channelId, myId, label, onBack }: { channelId: string; myId: string; label?: string; onBack: () => void }) {
+function ChannelPane({ channelId, myId, label, onBack, hideHeader }: { channelId: string; myId: string; label?: string; onBack: () => void; hideHeader?: boolean }) {
   const [msgs, setMsgs]       = useState<ChatMsg[]>([]);
   const [input, setInput]     = useState('');
   const [sending, setSending] = useState(false);
@@ -103,13 +103,15 @@ function ChannelPane({ channelId, myId, label, onBack }: { channelId: string; my
 
   return (
     <div className="flex flex-col h-full">
-      <div className="px-4 py-3 bg-white border-b flex items-center gap-2 shrink-0">
-        <button onClick={onBack} className="text-gray-400 hover:text-gray-600 p-1 -ml-1 rounded-lg">
-          <ArrowLeft size={18} />
-        </button>
-        <span className="font-semibold text-sm text-gray-800 truncate flex-1">{label ?? channelId}</span>
-        <span className="text-[10px] text-gray-400 shrink-0">live</span>
-      </div>
+      {!hideHeader && (
+        <div className="px-4 py-3 bg-white border-b flex items-center gap-2 shrink-0">
+          <button onClick={onBack} className="text-gray-400 hover:text-gray-600 p-1 -ml-1 rounded-lg">
+            <ArrowLeft size={18} />
+          </button>
+          <span className="font-semibold text-sm text-gray-800 truncate flex-1">{label ?? channelId}</span>
+          <span className="text-[10px] text-gray-400 shrink-0">live</span>
+        </div>
+      )}
       <div className="flex-1 overflow-y-auto px-4 py-3">
         {msgs.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full py-12 text-gray-400 gap-2">
@@ -345,6 +347,9 @@ export default function ChatPage() {
   // New DM
   const [newDmId, setNewDmId]   = useState('');
   const [showNewDm, setShowNewDm] = useState(false);
+
+  // Staff sub-tab
+  const [staffSub, setStaffSub] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -645,25 +650,58 @@ export default function ChatPage() {
         )}
 
         {/* Staff Hub */}
-        {tab === 'staff' && hasHub && (
-          <div className="h-full overflow-y-auto">
-            <div className="px-4 pt-4 pb-2">
-              <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Staff Channels</p>
+        {tab === 'staff' && hasHub && (() => {
+          const activeCh = fixedChs.find(c => c.channelId === staffSub) ?? fixedChs[0] ?? null;
+          // Auto-select first channel when fixedChs loads
+          if (fixedChs.length > 0 && !staffSub) setStaffSub(fixedChs[0].channelId);
+
+          const CHANNEL_STYLE: Record<string, { icon: React.ReactNode; active: string; inactive: string }> = {
+            admin:       { icon: <Lock  size={14} />, active: 'border-red-400    bg-red-50    text-red-600',    inactive: 'border-gray-200 text-gray-500 hover:border-red-200    hover:text-red-500'    },
+            salesreps:   { icon: <Users size={14} />, active: 'border-blue-400   bg-blue-50   text-blue-600',   inactive: 'border-gray-200 text-gray-500 hover:border-blue-200   hover:text-blue-500'   },
+            ambassadors: { icon: <Globe size={14} />, active: 'border-purple-400 bg-purple-50 text-purple-600', inactive: 'border-gray-200 text-gray-500 hover:border-purple-200 hover:text-purple-500' },
+          };
+
+          return (
+            <div className="flex flex-col h-full overflow-hidden">
+              {/* Horizontal sub-tabs */}
+              <div className="flex gap-2 px-3 pt-3 pb-2 bg-white border-b shrink-0">
+                {fixedChs.length === 0
+                  ? <p className="text-sm text-gray-400 py-1">No channels for your role</p>
+                  : fixedChs.map(ch => {
+                    const isActive = ch.channelId === (staffSub ?? fixedChs[0]?.channelId);
+                    const style = CHANNEL_STYLE[ch.channelType] ?? CHANNEL_STYLE.admin;
+                    return (
+                      <button
+                        key={ch.channelId}
+                        onClick={() => setStaffSub(ch.channelId)}
+                        className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl border-2 text-xs font-semibold transition-all ${
+                          isActive ? style.active : style.inactive + ' bg-white'
+                        }`}
+                      >
+                        {style.icon}
+                        <span className="truncate">{ch.label}</span>
+                      </button>
+                    );
+                  })
+                }
+              </div>
+
+              {/* Inline channel pane */}
+              {activeCh && (
+                <div className="flex-1 min-h-0 overflow-hidden">
+                  <ChannelPane
+                    key={activeCh.channelId}
+                    channelId={activeCh.channelId}
+                    myId={user!.id}
+                    label={activeCh.label}
+                    onBack={() => {}}
+                    hideHeader
+                  />
+                </div>
+              )}
             </div>
-            {fixedChs.length === 0 && <p className="px-4 py-2 text-sm text-gray-400">No channels for your role</p>}
-            <div className="px-3 space-y-1">
-              {fixedChs.map(ch => (
-                <button key={ch.channelId} onClick={() => openChannel(ch.channelId, ch.label)}
-                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-white border hover:bg-gray-50 transition-colors">
-                  {ch.channelType === 'admin'       && <Lock  size={15} className="text-red-400 shrink-0" />}
-                  {ch.channelType === 'salesreps'   && <Users size={15} className="text-blue-400 shrink-0" />}
-                  {ch.channelType === 'ambassadors' && <Globe size={15} className="text-purple-400 shrink-0" />}
-                  <span className="font-medium text-gray-800 text-sm">{ch.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+          );
+        })()}
       </div>
     </div>
   );
