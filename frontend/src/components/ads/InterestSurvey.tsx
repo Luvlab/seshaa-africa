@@ -147,7 +147,7 @@ export default function InterestSurvey({ onClose }: Props) {
   const canNext2 = !!ageGroup && !!householdType;
 
   return (
-    <div className="fixed inset-0 bg-black/70 z-50 flex items-end sm:items-center justify-center">
+    <div className="fixed left-0 right-0 z-50 flex items-end sm:items-center justify-center bg-black/70" style={{ top: 'var(--nav-h, 56px)', bottom: 'var(--tab-h, 0px)' }}>
       <div className="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl shadow-2xl flex flex-col"
         style={{ maxHeight: '92vh' }}>
 

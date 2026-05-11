@@ -77,7 +77,7 @@ export default function BookingModal({ listing, onClose }: Props) {
   const minDateStr = minDate.toISOString().split('T')[0];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+    <div className="fixed left-0 right-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/50 backdrop-blur-sm" style={{ top: 'var(--nav-h, 56px)', bottom: 'var(--tab-h, 0px)' }}>
       <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl">
         <div className="flex items-center justify-between p-5 border-b">
           <div>

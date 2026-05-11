@@ -77,7 +77,7 @@ function PostForm({ onClose, onPosted }: { onClose: () => void; onPosted: () => 
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+    <div className="fixed left-0 right-0 z-50 flex items-center justify-center p-4 bg-black/60" style={{ top: 'var(--nav-h, 56px)', bottom: 'var(--tab-h, 0px)' }}>
       <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-5 border-b sticky top-0 bg-white">
           <h2 className="font-bold text-gray-900">{t('classifieds.postAd')}</h2>

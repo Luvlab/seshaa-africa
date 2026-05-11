@@ -267,7 +267,7 @@ function CreateGroupModal({ follows, onCreated, onClose }: {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-4">
+    <div className="fixed left-0 right-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/50" style={{ top: 'var(--nav-h, 56px)', bottom: 'var(--tab-h, 0px)' }}>
       <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
         <div className="px-4 py-4 border-b flex items-center justify-between">
           <h3 className="font-bold text-gray-900">New Group Chat</h3>
