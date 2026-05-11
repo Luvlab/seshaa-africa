@@ -912,40 +912,23 @@ export default function AdminPortal() {
           )}
         </div>
 
+        {/* YouTube URL — only for YouTube type */}
         {slideForm.mediaType === 'youtube' && (
-          <>
-            <div className="sm:col-span-2 lg:col-span-2">
-              <label className="text-xs font-semibold text-gray-400 block mb-1">YouTube URL or Video ID</label>
-              <input className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white"
-                placeholder="https://www.youtube.com/watch?v=VIDEO_ID  or  VIDEO_ID"
-                value={slideForm.youtubeId || slideForm.mediaUrl}
-                onChange={e => {
-                  const val = e.target.value;
-                  setSlideForm(f => ({ ...f, youtubeId: val, mediaUrl: val }));
-                  fetchYoutubeMeta(val);
-                }} />
-              <p className="text-xs text-gray-600 mt-1">Metadata + preview auto-load above when URL is pasted</p>
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-gray-400 block mb-1">▶ Start (seconds)</label>
-              <input type="number" min="0" step="1"
-                className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white"
-                placeholder="0"
-                value={slideForm.startTime || ''}
-                onChange={e => setSlideForm(f => ({ ...f, startTime: Number(e.target.value) || 0 }))} />
-              <p className="text-xs text-gray-600 mt-1">Video in-point</p>
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-gray-400 block mb-1">⏹ End (seconds)</label>
-              <input type="number" min="0" step="1"
-                className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white"
-                placeholder="0 = full video"
-                value={slideForm.endTime || ''}
-                onChange={e => setSlideForm(f => ({ ...f, endTime: Number(e.target.value) || 0 }))} />
-              <p className="text-xs text-gray-600 mt-1">Video out-point (0 = play to end)</p>
-            </div>
-          </>
+          <div className="sm:col-span-2 lg:col-span-2">
+            <label className="text-xs font-semibold text-gray-400 block mb-1">YouTube URL or Video ID</label>
+            <input className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white"
+              placeholder="https://www.youtube.com/watch?v=VIDEO_ID  or  VIDEO_ID"
+              value={slideForm.youtubeId || slideForm.mediaUrl}
+              onChange={e => {
+                const val = e.target.value;
+                setSlideForm(f => ({ ...f, youtubeId: val, mediaUrl: val }));
+                fetchYoutubeMeta(val);
+              }} />
+            <p className="text-xs text-gray-600 mt-1">Metadata + preview auto-load above when URL is pasted</p>
+          </div>
         )}
+
+        {/* Image / Video URL */}
         {(slideForm.mediaType === 'image' || slideForm.mediaType === 'video') && (
           <div className="sm:col-span-2 lg:col-span-2">
             <label className="text-xs font-semibold text-gray-400 block mb-1">{slideForm.mediaType === 'image' ? 'Image / GIF URL' : 'Video URL (mp4)'}</label>
@@ -955,6 +938,28 @@ export default function AdminPortal() {
               onChange={e => setSlideForm(f => ({ ...f, mediaUrl: e.target.value }))} />
           </div>
         )}
+
+        {/* ── In / Out points — all slide types ── */}
+        <div>
+          <label className="text-xs font-semibold text-gray-400 block mb-1">▶ In-point (seconds)</label>
+          <input type="number" min="0" step="1"
+            className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white"
+            placeholder="0"
+            value={slideForm.startTime || ''}
+            onChange={e => setSlideForm(f => ({ ...f, startTime: Number(e.target.value) || 0 }))} />
+          <p className="text-xs text-gray-600 mt-1">{slideForm.mediaType === 'youtube' ? 'Video in-point' : 'Display start (s)'}</p>
+        </div>
+        <div>
+          <label className="text-xs font-semibold text-gray-400 block mb-1">⏹ Out-point (seconds)</label>
+          <input type="number" min="0" step="1"
+            className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white"
+            placeholder="9"
+            value={slideForm.endTime || ''}
+            onChange={e => setSlideForm(f => ({ ...f, endTime: Number(e.target.value) || 0 }))} />
+          <p className="text-xs text-gray-600 mt-1">
+            {slideForm.mediaType === 'youtube' ? 'Video out-point — sets slide duration' : 'Out − in = display seconds'}
+          </p>
+        </div>
 
         {/* Content */}
         <div className="sm:col-span-2 lg:col-span-3">

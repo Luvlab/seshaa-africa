@@ -30,12 +30,25 @@ interface HeroSlide {
 
 // ── Fallback hardcoded slides (used when no DB slides configured) ──────────
 const FALLBACK_SLIDES: HeroSlide[] = [
-  { youtubeId: 'T2RpwsMIhRg', advertiser: 'Uganda Tourism Board',  ctaUrl: '/advertise', mediaType: 'youtube' },
-  { youtubeId: 'mCEJBpBpX1s', advertiser: 'Pearl of Africa',       ctaUrl: '/advertise', mediaType: 'youtube' },
-  { youtubeId: 'GCDJBaFKKyE', advertiser: 'Visit Uganda',          ctaUrl: '/advertise', mediaType: 'youtube' },
-  { youtubeId: 'oCr_M7dQ3_Y', advertiser: 'Stanbic Bank Uganda',   ctaUrl: '/advertise', mediaType: 'youtube' },
-  { youtubeId: 'h3yRY3OwJlc', advertiser: 'MTN Uganda',            ctaUrl: '/advertise', mediaType: 'youtube' },
+  { youtubeId: 'T2RpwsMIhRg', advertiser: 'Uganda Tourism Board',  ctaUrl: '/advertise', mediaType: 'youtube', startTime: 0, endTime: 9 },
+  { youtubeId: 'mCEJBpBpX1s', advertiser: 'Pearl of Africa',       ctaUrl: '/advertise', mediaType: 'youtube', startTime: 0, endTime: 9 },
+  { youtubeId: 'GCDJBaFKKyE', advertiser: 'Visit Uganda',          ctaUrl: '/advertise', mediaType: 'youtube', startTime: 0, endTime: 9 },
+  { youtubeId: 'oCr_M7dQ3_Y', advertiser: 'Stanbic Bank Uganda',   ctaUrl: '/advertise', mediaType: 'youtube', startTime: 0, endTime: 9 },
+  { youtubeId: 'h3yRY3OwJlc', advertiser: 'MTN Uganda',            ctaUrl: '/advertise', mediaType: 'youtube', startTime: 0, endTime: 9 },
 ];
+
+// ── Per-slide display duration ──────────────────────────────────────────────
+const DEFAULT_SLIDE_MS = 12_000;
+
+/** Returns how many ms this slide should display.
+ *  If both startTime and endTime are set, uses (endTime – startTime) × 1000.
+ *  Falls back to DEFAULT_SLIDE_MS (12 s). */
+function slideDurationMs(slide: HeroSlide): number {
+  const start = slide?.startTime ?? 0;
+  const end   = slide?.endTime   ?? 0;
+  if (end > 0 && end > start) return (end - start) * 1_000;
+  return DEFAULT_SLIDE_MS;
+}
 
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -210,13 +223,15 @@ export default function HomePage() {
     }).catch(() => { /* keep fallback */ });
   }, []);
 
-  // Auto-advance hero slides every 12 s
+  // Auto-advance: each slide plays for exactly (endTime – startTime) seconds.
+  // Resets whenever slideIdx or heroSlides changes (including manual dot clicks).
   useEffect(() => {
     const len = heroSlides.length;
     if (len <= 1) return;
-    const id = setInterval(() => setSlideIdx(i => (i + 1) % len), 12000);
-    return () => clearInterval(id);
-  }, [heroSlides.length]);
+    const ms = slideDurationMs(heroSlides[slideIdx]);
+    const id = setTimeout(() => setSlideIdx(i => (i + 1) % len), ms);
+    return () => clearTimeout(id);
+  }, [heroSlides, slideIdx]);
 
   const handleSearch = () => {
     if (!query.trim()) return;
