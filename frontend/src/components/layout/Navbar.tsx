@@ -338,28 +338,61 @@ export default function Navbar() {
             </button>
             {langOpen && (
               <>
-                {/* Mobile: full-screen panel between header and tab bar */}
+                {/* Mobile: full-screen panel between header and tab bar — matches CountryPicker */}
                 <div
-                  className="md:hidden fixed left-0 right-0 z-[60] bg-white text-gray-800 flex flex-col overflow-hidden"
-                  style={{ top: 'var(--nav-h, 56px)', bottom: 'var(--tab-h, 60px)' }}
+                  className="md:hidden fixed left-0 right-0 z-[9999] flex flex-col"
+                  style={{
+                    top: 'var(--nav-h, 56px)',
+                    bottom: 'var(--tab-h, 0px)',
+                    backgroundColor: 'rgba(0,0,0,0.25)',
+                    backdropFilter: 'blur(3px)',
+                    WebkitBackdropFilter: 'blur(3px)',
+                  }}
+                  onClick={e => e.target === e.currentTarget && setLangOpen(false)}
                 >
-                  <div className="sticky top-0 bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between shrink-0">
-                    <span className="text-sm font-semibold text-gray-800">Select Language</span>
-                    <button onClick={() => setLangOpen(false)}><X size={16} className="text-gray-500" /></button>
-                  </div>
-                  <div className="overflow-y-auto flex-1">
-                    {LANGUAGES.map(lang => (
-                      <button
-                        key={lang.code}
-                        className={clsx('w-full text-left px-4 py-3 text-sm hover:bg-gray-50 flex justify-between border-b border-gray-100',
-                          lang.code === i18n.language && 'font-bold')}
-                        style={lang.code === i18n.language ? { color: 'var(--cp)' } : {}}
-                        onClick={() => changeLanguage(lang.code)}
-                      >
-                        <span>{lang.nativeName}</span>
-                        <span className="text-gray-400 text-xs">{lang.name}</span>
+                  <div className="h-full w-full max-w-2xl mx-auto bg-white/[0.95] backdrop-blur-2xl flex flex-col overflow-hidden">
+                    {/* Header */}
+                    <div className="flex items-center gap-3 px-5 pt-5 pb-3 border-b border-gray-100 shrink-0">
+                      <div className="flex-1">
+                        <h2 className="text-lg font-black text-gray-900">Choose Language</h2>
+                        <p className="text-xs text-gray-500 mt-0.5">Sets the app display language</p>
+                      </div>
+                      <button onClick={() => setLangOpen(false)} className="p-2 rounded-full hover:bg-gray-100 text-gray-500">
+                        <X size={20} />
                       </button>
-                    ))}
+                    </div>
+                    {/* Language list */}
+                    <div className="flex-1 overflow-y-auto px-4 py-3">
+                      {LANGUAGES.map(lang => {
+                        const isActive = lang.code === i18n.language;
+                        return (
+                          <button
+                            key={lang.code}
+                            onClick={() => changeLanguage(lang.code)}
+                            className={clsx(
+                              'w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-left transition-colors mb-1',
+                              isActive
+                                ? 'border-2 border-[color:var(--cp)] bg-[color:var(--cp)]/5'
+                                : 'border-2 border-transparent hover:bg-gray-50'
+                            )}
+                          >
+                            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0 text-lg font-black text-gray-600">
+                              {lang.code.slice(0, 2).toUpperCase()}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className={clsx('font-bold text-sm', isActive ? 'text-[color:var(--cp)]' : 'text-gray-900')}>
+                                {lang.nativeName}
+                                {isActive && <span className="ml-2 text-xs font-normal opacity-60">✓ current</span>}
+                              </p>
+                              <p className="text-xs text-gray-400 mt-0.5">{lang.name}</p>
+                            </div>
+                            {lang.dir === 'rtl' && (
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 shrink-0">RTL</span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
                 {/* Desktop: dropdown */}
