@@ -218,13 +218,18 @@ export default function CountryPicker({ onSelect, onClose, currentCode }: Props)
 
   return (
     <div
-      className="fixed inset-0 z-[9999] flex flex-col"
-      style={{ backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
+      className="fixed left-0 right-0 z-[9999] flex flex-col"
+      style={{
+        top: 'var(--nav-h, 56px)',
+        bottom: 'var(--tab-h, 0px)',
+        backgroundColor: 'rgba(0,0,0,0.25)',
+        backdropFilter: 'blur(3px)',
+        WebkitBackdropFilter: 'blur(3px)',
+      }}
       onClick={e => e.target === e.currentTarget && onClose()}
     >
-      {/* Sheet */}
-      <div className="mt-auto w-full max-w-2xl mx-auto bg-white/[0.88] backdrop-blur-2xl rounded-t-3xl flex flex-col border-t border-white/40"
-        style={{ maxHeight: '88vh' }}>
+      {/* Full-height panel */}
+      <div className="h-full w-full max-w-2xl mx-auto bg-white/[0.95] backdrop-blur-2xl flex flex-col overflow-hidden">
 
         {/* Header */}
         <div className="flex items-center gap-3 px-5 pt-5 pb-3 border-b border-gray-100">
