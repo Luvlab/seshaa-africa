@@ -404,7 +404,10 @@ export default function ChatPage() {
   // ── If channel active, show full-screen pane ────────────────────────────────
   if (activeChannel) {
     return (
-      <div className="flex flex-col h-[calc(100svh-var(--nav-h,56px)-var(--tab-h,60px)-var(--player-bar-h,0px))] md:h-[calc(100svh-var(--nav-h,92px)-var(--player-bar-h,0px))] overflow-hidden bg-gray-50">
+      <div
+        className="fixed left-0 right-0 z-30 flex flex-col overflow-hidden bg-gray-50"
+        style={{ top: 'var(--nav-h, 56px)', bottom: 'calc(var(--tab-h, 0px) + var(--player-bar-h, 0px))' }}
+      >
         <ChannelPane
           channelId={activeChannel.id}
           myId={user!.id}
@@ -435,7 +438,10 @@ export default function ChatPage() {
   ];
 
   return (
-    <div className="flex flex-col h-[calc(100svh-var(--nav-h,56px)-var(--tab-h,60px)-var(--player-bar-h,0px))] md:h-[calc(100svh-var(--nav-h,92px)-var(--player-bar-h,0px))] overflow-hidden bg-gray-50">
+    <div
+      className="fixed left-0 right-0 z-30 flex flex-col overflow-hidden bg-gray-50"
+      style={{ top: 'var(--nav-h, 56px)', bottom: 'calc(var(--tab-h, 0px) + var(--player-bar-h, 0px))' }}
+    >
 
       {/* ── Tab bar ── */}
       <div className="flex border-b border-gray-200 bg-white shrink-0">
@@ -655,11 +661,15 @@ export default function ChatPage() {
         {/* Staff Hub */}
         {tab === 'staff' && hasHub && (() => {
           const activeCh = fixedChs.find(c => c.channelId === staffSub) ?? fixedChs[0] ?? null;
-          const STYLE: Record<string, { icon: React.ReactNode; active: string; inactive: string }> = {
-            admin:       { icon: <Lock  size={13} />, active: 'bg-red-500    text-white border-red-500',    inactive: 'bg-white text-gray-500 border-gray-200 hover:text-red-500'    },
-            salesreps:   { icon: <Users size={13} />, active: 'bg-blue-500   text-white border-blue-500',   inactive: 'bg-white text-gray-500 border-gray-200 hover:text-blue-500'   },
-            ambassadors: { icon: <Globe size={13} />, active: 'bg-purple-500 text-white border-purple-500', inactive: 'bg-white text-gray-500 border-gray-200 hover:text-purple-500' },
+
+          // Monochrome icon per channel type — same size/weight, colour comes from active state only
+          const chIcon = (type: string) => {
+            if (type === 'admin')       return <Lock    size={14} strokeWidth={1.75} />;
+            if (type === 'salesreps')   return <Users   size={14} strokeWidth={1.75} />;
+            if (type === 'ambassadors') return <Globe   size={14} strokeWidth={1.75} />;
+            return                             <MessageCircle size={14} strokeWidth={1.75} />;
           };
+
           return (
             <div className="flex flex-col h-full overflow-hidden">
 
@@ -669,17 +679,18 @@ export default function ChatPage() {
                   ? <p className="text-sm text-gray-400 py-1">No channels for your role</p>
                   : fixedChs.map(ch => {
                     const isActive = ch.channelId === (staffSub ?? fixedChs[0]?.channelId);
-                    const s = STYLE[ch.channelType] ?? STYLE.admin;
                     return (
                       <button
                         key={ch.channelId}
                         type="button"
                         onClick={() => setStaffSub(ch.channelId)}
-                        className={`flex-1 inline-flex flex-row items-center justify-center gap-1.5 py-2 px-2 rounded-xl border text-xs font-semibold transition-all whitespace-nowrap ${
-                          isActive ? s.active : s.inactive
-                        }`}
+                        className="flex-1 flex flex-row items-center justify-center gap-1.5 py-2 px-3 rounded-xl border text-xs font-semibold transition-all whitespace-nowrap"
+                        style={isActive
+                          ? { backgroundColor: 'var(--cp,#008751)', color: '#fff', borderColor: 'var(--cp,#008751)' }
+                          : { backgroundColor: '#fff', color: '#9ca3af', borderColor: '#e5e7eb' }
+                        }
                       >
-                        {s.icon}
+                        {chIcon(ch.channelType)}
                         <span>{ch.label}</span>
                       </button>
                     );
