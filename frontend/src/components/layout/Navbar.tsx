@@ -495,7 +495,9 @@ export default function Navbar() {
           style={{
             top: 'calc(var(--nav-h, 56px) - 1px)',   /* -1px overlaps nav to kill sub-pixel gap */
             bottom: 0,
-            background: 'var(--cp)',
+            background: 'color-mix(in srgb, var(--cp) 88%, transparent)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
             WebkitOverflowScrolling: 'touch',
           }}
         >

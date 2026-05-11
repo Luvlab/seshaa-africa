@@ -223,7 +223,7 @@ export default function CountryPicker({ onSelect, onClose, currentCode }: Props)
       onClick={e => e.target === e.currentTarget && onClose()}
     >
       {/* Sheet */}
-      <div className="mt-auto w-full max-w-2xl mx-auto bg-white rounded-t-3xl flex flex-col"
+      <div className="mt-auto w-full max-w-2xl mx-auto bg-white/[0.88] backdrop-blur-2xl rounded-t-3xl flex flex-col border-t border-white/40"
         style={{ maxHeight: '88vh' }}>
 
         {/* Header */}

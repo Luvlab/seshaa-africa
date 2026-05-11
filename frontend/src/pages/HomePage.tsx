@@ -301,10 +301,10 @@ export default function HomePage() {
                 <p className="md:hidden text-white/90 text-sm font-semibold mb-3 drop-shadow tracking-wide">
                   {slide?.overlayTitle || t('app.tagline')}
                 </p>
-                <div ref={searchBoxRef} className="bg-white rounded-2xl shadow-2xl overflow-hidden max-w-2xl mx-auto">
+                <div ref={searchBoxRef} className="bg-white/75 backdrop-blur-md rounded-2xl shadow-2xl overflow-hidden max-w-2xl mx-auto border border-white/60">
                   <div className="flex items-center gap-2 px-4 py-1">
-                    {aiMode ? <Sparkles size={22} className="text-purple-500 shrink-0" /> : <Search size={22} className="text-gray-400 shrink-0" />}
-                    <input className="flex-1 outline-none text-gray-800 text-lg py-3 placeholder-gray-400 min-w-0"
+                    {aiMode ? <Sparkles size={22} className="text-purple-500 shrink-0" /> : <Search size={22} className="text-gray-500 shrink-0" />}
+                    <input className="flex-1 outline-none text-gray-800 text-lg py-3 placeholder-gray-400 min-w-0 bg-transparent"
                       placeholder={t('search.placeholder')}
                       value={query} onChange={e => setQuery(e.target.value)}
                       onKeyDown={e => e.key === 'Enter' && handleSearch()} />
