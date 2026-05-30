@@ -60,6 +60,37 @@ const COUNTRY_THEMES: Record<string, { primary: string; secondary: string; accen
   ZW: { primary: '#006400', secondary: '#FFD200', accent: '#D40000' },
 };
 
+// Country → primary app language mapping
+// Ordered: official/national language first, then most-spoken if in the app.
+const COUNTRY_LANG: Record<string, string> = {
+  // North Africa
+  DZ:'ar', EG:'ar', LY:'ar', MA:'ar', MR:'ar', SD:'ar', TN:'ar',
+  // West Africa — Anglophone
+  GM:'en', GH:'en', LR:'en', NG:'en', SL:'en', SS:'en',
+  // West Africa — Francophone
+  BF:'fr', BJ:'fr', CI:'fr', GN:'fr', ML:'fr', NE:'fr', TG:'fr',
+  // West Africa — specific local langs in app
+  SN:'wo',   // Wolof majority
+  GW:'pt',   CV:'pt',
+  // Central Africa
+  CG:'fr', GA:'fr', TD:'fr',
+  CD:'ln',   // Lingala in Kinshasa
+  CM:'fr',
+  CF:'sg',   // Sango — national language
+  GQ:'es',   ST:'pt',
+  // East Africa
+  BI:'fr',   DJ:'so', ER:'ti', ET:'am',
+  KE:'sw',   MG:'mg', MU:'fr', KM:'fr', SC:'fr',
+  RW:'rw',   SO:'so', TZ:'sw', UG:'lg',
+  // Southern Africa
+  AO:'pt',   BW:'tn', LS:'st', MW:'ny', MZ:'pt',
+  NA:'en',   SZ:'en', ZA:'zu', ZM:'bem', ZW:'sn',
+  // Diaspora / Rest of world
+  AE:'ar', SA:'ar', BR:'pt', CN:'zh', FR:'fr',
+  IN:'en', JP:'ja', PT:'pt', RU:'ru',
+  // Default for everyone else → en
+};
+
 // GET /api/geo/detect — detect user's country from IP and return flag colors
 router.get('/detect', async (req, res) => {
   const forwarded = req.headers['x-forwarded-for'] as string;
@@ -85,7 +116,8 @@ router.get('/detect', async (req, res) => {
   }
 
   const colors = COUNTRY_THEMES[countryCode] || COUNTRY_THEMES['NG'];
-  res.json({ countryCode, countryName, colors });
+  const suggestedLang = COUNTRY_LANG[countryCode] || 'en';
+  res.json({ countryCode, countryName, colors, suggestedLang });
 });
 
 export default router;

@@ -162,8 +162,22 @@ export const useThemeStore = create<ThemeState>()(
         if (get().detected) return; // already detected this session
         try {
           const r = await fetch(`${BASE_URL}/geo/detect`);
-          const data = await r.json() as { countryCode: string };
+          const data = await r.json() as { countryCode: string; suggestedLang?: string };
           if (data.countryCode) get().applyTheme(data.countryCode);
+
+          // Auto-set language only if the user has never explicitly picked one
+          if (data.suggestedLang && !localStorage.getItem('seshaa-lang')) {
+            const prevGeo = localStorage.getItem('seshaa-lang-geo');
+            if (prevGeo !== data.suggestedLang) {
+              // Lazy-import i18n to avoid circular dep at module load time
+              import('../i18n').then(({ default: i18n, LANGUAGES }) => {
+                i18n.changeLanguage(data.suggestedLang!);
+                const dir = LANGUAGES.find(l => l.code === data.suggestedLang)?.dir || 'ltr';
+                document.documentElement.dir = dir;
+              }).catch(() => {});
+            }
+            localStorage.setItem('seshaa-lang-geo', data.suggestedLang);
+          }
         } catch {
           get().applyTheme('NG'); // fallback
         }

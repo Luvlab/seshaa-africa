@@ -128,7 +128,8 @@ i18n
       bem: { translation: bem },
       ny:  { translation: ny  },
     },
-    lng: localStorage.getItem('seshaa-lang') || 'en',
+    // Priority: explicit user pick → geo-detected → English
+    lng: localStorage.getItem('seshaa-lang') || localStorage.getItem('seshaa-lang-geo') || 'en',
     fallbackLng: 'en',
     interpolation: { escapeValue: false },
   });
