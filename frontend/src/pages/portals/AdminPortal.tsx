@@ -986,9 +986,8 @@ export default function AdminPortal() {
           <p className="text-[10px] font-bold uppercase tracking-wider text-gray-600 mb-2 mt-1">👤 Client Info</p>
         </div>
         {[
-          { key: 'clientEmail',   label: 'Client Email',   placeholder: 'client@company.com' },
-          { key: 'clientPhone',   label: 'Client Phone',   placeholder: '+234 800 000 0000' },
-          { key: 'clientCountry', label: 'Client Country', placeholder: 'Nigeria' },
+          { key: 'clientEmail', label: 'Client Email', placeholder: 'client@company.com' },
+          { key: 'clientPhone', label: 'Client Phone', placeholder: '+234 800 000 0000' },
         ].map(f => (
           <div key={f.key}>
             <label className="text-xs font-semibold text-gray-400 block mb-1">{f.label}</label>
@@ -998,6 +997,37 @@ export default function AdminPortal() {
               onChange={e => setSlideForm(f2 => ({ ...f2, [f.key]: e.target.value }))} />
           </div>
         ))}
+        {/* Geo-targeting country — drives which users see this slide */}
+        <div>
+          <label className="text-xs font-semibold text-gray-400 block mb-1">
+            🌍 Target Country <span className="text-yellow-400 font-normal">(geo-targeting)</span>
+          </label>
+          <select
+            className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white"
+            value={slideForm.clientCountry || ''}
+            onChange={e => setSlideForm(f2 => ({ ...f2, clientCountry: e.target.value }))}
+          >
+            <option value="">🌐 Global — show in all countries</option>
+            {[
+              ['DZ','Algeria'],['AO','Angola'],['BJ','Benin'],['BW','Botswana'],['BF','Burkina Faso'],
+              ['BI','Burundi'],['CV','Cape Verde'],['CM','Cameroon'],['CF','Central African Rep.'],['TD','Chad'],
+              ['KM','Comoros'],['CG','Congo (Republic)'],['CD','Congo (DR)'],['CI',"Côte d'Ivoire"],['DJ','Djibouti'],
+              ['EG','Egypt'],['GQ','Equatorial Guinea'],['ER','Eritrea'],['ET','Ethiopia'],['GA','Gabon'],
+              ['GM','Gambia'],['GH','Ghana'],['GN','Guinea'],['GW','Guinea-Bissau'],['KE','Kenya'],
+              ['LS','Lesotho'],['LR','Liberia'],['LY','Libya'],['MG','Madagascar'],['MW','Malawi'],
+              ['ML','Mali'],['MR','Mauritania'],['MU','Mauritius'],['MA','Morocco'],['MZ','Mozambique'],
+              ['NA','Namibia'],['NE','Niger'],['NG','Nigeria'],['RW','Rwanda'],['ST','São Tomé & Príncipe'],
+              ['SN','Senegal'],['SC','Seychelles'],['SL','Sierra Leone'],['SO','Somalia'],['ZA','South Africa'],
+              ['SS','South Sudan'],['SD','Sudan'],['SZ','Eswatini'],['TZ','Tanzania'],['TG','Togo'],
+              ['TN','Tunisia'],['UG','Uganda'],['ZM','Zambia'],['ZW','Zimbabwe'],
+            ].map(([code, name]) => (
+              <option key={code} value={code}>{code} — {name}</option>
+            ))}
+          </select>
+          <p className="text-[10px] text-gray-500 mt-1">
+            Leave as "Global" to show to everyone. Select a country to show only to visitors from that country.
+          </p>
+        </div>
 
         {/* Payment */}
         <div className="sm:col-span-2 lg:col-span-3">

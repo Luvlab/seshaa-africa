@@ -779,12 +779,18 @@ router.get('/public/stats', async (_req, res) => {
 });
 
 // GET /hero-slides (public) — active hero slides for the homepage
-router.get('/public/hero-slides', async (_req, res) => {
-  const slides = await prisma.ad.findMany({
+// ?country=XX  → returns slides for that country + global (no-country) slides.
+//               Country-specific slides are listed first.
+//               If omitted or unrecognised, all active slides are returned.
+router.get('/public/hero-slides', async (req, res) => {
+  const countryFilter = (req.query.country as string || '').toUpperCase().trim();
+
+  const all = await prisma.ad.findMany({
     where: { packageId: 'hero-slide', active: true },
     orderBy: { createdAt: 'asc' },
   });
-  res.json(slides.map(s => {
+
+  const parsed = all.map(s => {
     let extra: Record<string, unknown> = {};
     try { extra = JSON.parse(s.description || '{}'); } catch { /* ok */ }
     return {
@@ -794,8 +800,22 @@ router.get('/public/hero-slides', async (_req, res) => {
       imageUrl: s.imageUrl,
       impressions: s.impressions,
       ...extra,
+      _clientCountry: ((extra.clientCountry as string) || '').toUpperCase().trim(),
     };
-  }));
+  });
+
+  let result = parsed;
+  if (countryFilter) {
+    const targeted = parsed.filter(s => s._clientCountry === countryFilter);
+    const global_  = parsed.filter(s => !s._clientCountry);
+    // If there are targeted slides for this country, mix them with global ones.
+    // Otherwise fall back to all global slides only (never show wrong-market ads).
+    result = targeted.length > 0
+      ? [...targeted, ...global_]
+      : global_.length > 0 ? global_ : parsed; // last resort: show everything
+  }
+
+  res.json(result.map(({ _clientCountry, ...s }) => s));
 });
 
 // GET /admin/seo-settings — fetch editable social sharing SEO settings

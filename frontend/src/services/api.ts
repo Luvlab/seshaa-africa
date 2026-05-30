@@ -215,7 +215,7 @@ export const adminApi = {
   setHero: (data: object) => api.post('/admin/hero', data),
   // Hero slideshow management
   getHeroSlides: () => api.get('/admin/hero-slides'),
-  getPublicHeroSlides: () => api.get('/admin/public/hero-slides'),
+  getPublicHeroSlides: (country?: string) => api.get(`/admin/public/hero-slides${country ? `?country=${encodeURIComponent(country)}` : ''}`),
   getSeoSettings: () => api.get('/admin/seo-settings'),
   saveSeoSettings: (data: { title?: string; description?: string; thumbnailUrl?: string; url?: string }) => api.post('/admin/seo-settings', data),
   getPublicSeoSettings: () => api.get('/admin/public/seo-settings'),

@@ -4,10 +4,20 @@
     {
       "src": "api/index.ts",
       "use": "@vercel/node",
-      "config": { "maxDuration": 60 }
+      "config": { "maxDuration": 300 }
     }
   ],
   "routes": [
     { "src": "/(.*)", "dest": "/api/index.ts" }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/news",
+      "schedule": "0 */6 * * *"
+    },
+    {
+      "path": "/api/cron/listings",
+      "schedule": "0 3 * * *"
+    }
   ]
 }

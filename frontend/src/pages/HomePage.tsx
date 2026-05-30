@@ -210,9 +210,9 @@ export default function HomePage() {
   const searchBoxRef = useRef<HTMLDivElement>(null);
   const { isInstallable, install } = usePWAInstall();
 
-  // Load live hero slides from DB; fall back to hardcoded if empty
+  // Load live hero slides from DB; pass country so geo-targeted slides are filtered correctly
   useEffect(() => {
-    adminApi.getPublicHeroSlides().then(r => {
+    adminApi.getPublicHeroSlides(countryCode || undefined).then(r => {
       const slides: HeroSlide[] = ((r.data as HeroSlide[]) || []).map((s) => {
         const source = s.mediaUrl || s.youtubeId || s.imageUrl || '';
         const mediaType = normalizeMediaType(s.mediaType, source);

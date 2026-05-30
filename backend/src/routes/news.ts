@@ -553,7 +553,7 @@ async function fetchSources(sources: Source[], category: string): Promise<NewsIt
   return interleaved;
 }
 
-async function fetchCategory(category: string): Promise<NewsItem[]> {
+export async function fetchCategory(category: string): Promise<NewsItem[]> {
   const cached = cache.get(category);
   if (cached && Date.now() - cached.fetchedAt < CACHE_TTL) return cached.items;
 
