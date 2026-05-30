@@ -35,6 +35,7 @@ import followsRouter from './routes/follows';
 import marketRouter from './routes/market';
 import groupsRouter from './routes/groups';
 import cronRouter from './routes/cron';
+import feedbackRouter from './routes/feedback';
 
 const app = express();
 
@@ -96,6 +97,7 @@ app.use('/api/follows', followsRouter);
 app.use('/api/market', marketRouter);
 app.use('/api/groups', groupsRouter);
 app.use('/api/cron', cronRouter);
+app.use('/api/feedback', feedbackRouter);
 
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error(err);

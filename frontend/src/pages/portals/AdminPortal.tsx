@@ -6,9 +6,10 @@ import {
   Send, CheckCircle, X, Users, Activity, Globe, Bell, ChevronRight,
   AlertTriangle, Tv, Database, Paintbrush, RefreshCw, Briefcase, BarChart2,
   Zap, ArrowUpRight, Plus, Edit2, Trash2, Eye, EyeOff, Play,
-  CreditCard, Phone, Mail, Info,
+  CreditCard, Phone, Mail, Info, Lightbulb, Bug, ChevronUp,
+  Clock, CheckCheck, XCircle, AlertCircle,
 } from 'lucide-react';
-import { adminApi, adsApi, analyticsApi } from '../../services/api';
+import { adminApi, adsApi, analyticsApi, feedbackApi } from '../../services/api';
 import { useAuthStore } from '../../store/auth';
 import { ALL_LOGOS, saveEnabled, type LogoId } from '../../components/brand/LogoRotator';
 import { COUNTRIES } from '../../components/layout/CountryPicker';
@@ -40,7 +41,7 @@ interface PendingListing {
 interface PendingPayout  { id: string; amount: number; method: string; ambassador: { user: { name: string; phone: string; country: string } } }
 interface LoanApp        { id: string; amount: number; purpose: string; status: string; createdAt: string; user: { name: string; phone: string; country: string } }
 
-type Tab = 'overview' | 'listings' | 'payouts' | 'loans' | 'finance' | 'adcms' | 'promote' | 'scraper' | 'branding' | 'salesreps' | 'analytics' | 'banking';
+type Tab = 'overview' | 'listings' | 'payouts' | 'loans' | 'finance' | 'adcms' | 'promote' | 'scraper' | 'branding' | 'salesreps' | 'analytics' | 'banking' | 'feedback';
 
 interface HeroConfig {
   mediaType: 'youtube' | 'image' | 'video' | 'default';
@@ -805,7 +806,8 @@ export default function AdminPortal() {
     { key: 'branding',  label: t('admin.branding'),  icon: <Paintbrush size={20} strokeWidth={1.5} /> },
     { key: 'promote',   label: t('admin.press'),     icon: <Send size={20} strokeWidth={1.5} /> },
     { key: 'analytics', label: t('admin.behaviour'), icon: <Activity size={20} strokeWidth={1.5} /> },
-    { key: 'banking',   label: t('admin.banking'),   icon: <CreditCard size={20} strokeWidth={1.5} /> },
+    { key: 'banking',   label: t('admin.banking'),   icon: <CreditCard  size={20} strokeWidth={1.5} /> },
+    { key: 'feedback',  label: 'Feedback',           icon: <Lightbulb  size={20} strokeWidth={1.5} /> },
   ];
 
   // Derived data for charts
@@ -3871,6 +3873,169 @@ export default function AdminPortal() {
           </div>
         )}
 
+        {/* ── FEEDBACK & WISHLIST ── */}
+        {tab === 'feedback' && <AdminFeedbackPanel />}
+
+      </div>
+    </div>
+  );
+}
+
+// ── Admin Feedback Panel (inline component) ───────────────────────────────────
+function AdminFeedbackPanel() {
+  type FBItem = {
+    id: string; userId: string; userName?: string; type: string; title: string;
+    description?: string; status: string; priority: string; upvotes: number;
+    upvoterIds: string[]; adminReply?: string; createdAt: string;
+  };
+  const [items,    setItems]    = useState<FBItem[]>([]);
+  const [loading,  setLoading]  = useState(true);
+  const [filter,   setFilter]   = useState('all');
+  const [replying, setReplying] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState('');
+  const [saving,   setSaving]   = useState(false);
+
+  const STATUS_OPTS = ['open','in_progress','done','wont_fix'];
+  const STATUS_STYLE_MAP: Record<string, string> = {
+    open: 'bg-blue-100 text-blue-700', in_progress: 'bg-yellow-100 text-yellow-700',
+    done: 'bg-green-100 text-green-700', wont_fix: 'bg-gray-100 text-gray-500',
+  };
+  const TYPE_ICON: Record<string, React.ReactNode> = {
+    bug: <Bug size={12} />, feature: <Lightbulb size={12} />, other: <AlertCircle size={12} />,
+  };
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const r = await feedbackApi.list(filter === 'all' ? {} : { type: filter });
+      setItems(r.data as FBItem[]);
+    } catch { /* ok */ }
+    setLoading(false);
+  };
+  useEffect(() => { load(); }, [filter]); // eslint-disable-line
+
+  const setStatus = async (id: string, status: string) => {
+    try {
+      await feedbackApi.update(id, { status });
+      setItems(prev => prev.map(it => it.id === id ? { ...it, status } : it));
+    } catch { /* ok */ }
+  };
+
+  const saveReply = async (id: string) => {
+    setSaving(true);
+    try {
+      await feedbackApi.update(id, { adminReply: replyText });
+      setItems(prev => prev.map(it => it.id === id ? { ...it, adminReply: replyText } : it));
+      setReplying(null);
+      setReplyText('');
+    } catch { /* ok */ }
+    setSaving(false);
+  };
+
+  const del = async (id: string) => {
+    if (!confirm('Delete this feedback item?')) return;
+    try { await feedbackApi.delete(id); setItems(prev => prev.filter(it => it.id !== id)); } catch { /* ok */ }
+  };
+
+  return (
+    <div className="p-6 max-w-4xl mx-auto">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="text-xl font-bold text-white">Sales Rep Feedback & Wishlist</h2>
+          <p className="text-sm text-gray-400 mt-0.5">Bug reports and feature requests from your sales team.</p>
+        </div>
+        <div className="flex gap-2 flex-wrap">
+          {['all','bug','feature','other'].map(f => (
+            <button key={f} onClick={() => setFilter(f)}
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${
+                filter === f ? 'border-purple-400 bg-purple-900/40 text-purple-300' : 'border-gray-600 text-gray-400 hover:border-gray-400'
+              }`}>
+              {f === 'all' ? 'All' : f === 'bug' ? '🐛 Bugs' : f === 'feature' ? '💡 Features' : '💬 Other'}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {loading && <div className="flex justify-center py-12"><div className="w-8 h-8 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" /></div>}
+
+      {!loading && items.length === 0 && (
+        <div className="text-center py-16 text-gray-500">
+          <Lightbulb size={40} className="mx-auto mb-3 opacity-30" />
+          <p>No feedback submitted yet.</p>
+        </div>
+      )}
+
+      <div className="space-y-4">
+        {items.map(item => (
+          <div key={item.id} className="bg-gray-800/60 rounded-xl border border-gray-700/50 p-5">
+            <div className="flex items-start gap-3">
+              {/* Vote count */}
+              <div className="flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl bg-gray-700/50 shrink-0">
+                <ChevronUp size={14} className="text-gray-400" />
+                <span className="text-xs font-bold text-white">{item.upvotes}</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-700 text-gray-300">
+                    {TYPE_ICON[item.type] || TYPE_ICON.other} {item.type}
+                  </span>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${STATUS_STYLE_MAP[item.status] || STATUS_STYLE_MAP.open}`}>
+                    {item.status.replace('_', ' ')}
+                  </span>
+                  {item.priority === 'high' && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-900/50 text-orange-400">🔥 High</span>}
+                </div>
+                <p className="text-sm font-semibold text-white leading-snug">{item.title}</p>
+                {item.description && <p className="text-xs text-gray-400 mt-1 leading-relaxed">{item.description}</p>}
+                {item.adminReply && (
+                  <div className="mt-2 pl-3 border-l-2 border-purple-500/50">
+                    <p className="text-[10px] font-bold text-purple-400 mb-0.5">Your reply:</p>
+                    <p className="text-xs text-gray-300">{item.adminReply}</p>
+                  </div>
+                )}
+                <p className="text-[10px] text-gray-500 mt-2">{item.userName || 'Sales Rep'} · {new Date(item.createdAt).toLocaleDateString()}</p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0 flex-col sm:flex-row">
+                {/* Status */}
+                <select
+                  className="bg-gray-700 border border-gray-600 rounded-lg px-2 py-1.5 text-xs text-white"
+                  value={item.status}
+                  onChange={e => setStatus(item.id, e.target.value)}
+                >
+                  {STATUS_OPTS.map(s => <option key={s} value={s}>{s.replace('_',' ')}</option>)}
+                </select>
+                <button onClick={() => { setReplying(item.id); setReplyText(item.adminReply || ''); }}
+                  className="text-xs text-purple-400 hover:text-purple-300 px-2 py-1.5 rounded-lg border border-purple-700/50 hover:border-purple-500 transition-colors">
+                  Reply
+                </button>
+                <button onClick={() => del(item.id)}
+                  className="text-xs text-red-400 hover:text-red-300 px-2 py-1.5 rounded-lg border border-red-900/50 hover:border-red-700 transition-colors">
+                  Delete
+                </button>
+              </div>
+            </div>
+
+            {/* Reply form */}
+            {replying === item.id && (
+              <div className="mt-4 flex gap-2">
+                <input
+                  className="flex-1 bg-gray-700 border border-gray-600 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-500 outline-none focus:border-purple-500"
+                  placeholder="Type your reply to this rep…"
+                  value={replyText}
+                  onChange={e => setReplyText(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && saveReply(item.id)}
+                />
+                <button onClick={() => saveReply(item.id)} disabled={saving}
+                  className="px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-purple-600 hover:bg-purple-700 disabled:opacity-50">
+                  {saving ? '…' : 'Send'}
+                </button>
+                <button onClick={() => setReplying(null)}
+                  className="px-3 py-2.5 rounded-xl text-sm text-gray-400 hover:text-gray-200 border border-gray-600">
+                  Cancel
+                </button>
+              </div>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   );

@@ -384,4 +384,17 @@ export const analyticsApi = {
   }>('/analytics/admin/prognosis'),
 };
 
+export const feedbackApi = {
+  list: (params?: { type?: string; status?: string }) =>
+    api.get('/feedback', { params }),
+  create: (data: { type: string; title: string; description?: string; priority?: string }) =>
+    api.post('/feedback', data),
+  upvote: (id: string) =>
+    api.post(`/feedback/${id}/upvote`),
+  update: (id: string, data: { status?: string; adminReply?: string; priority?: string }) =>
+    api.patch(`/feedback/${id}`, data),
+  delete: (id: string) =>
+    api.delete(`/feedback/${id}`),
+};
+
 export default api;
