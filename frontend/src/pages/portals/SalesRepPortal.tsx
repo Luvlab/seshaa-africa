@@ -4,10 +4,11 @@ import {
   TrendingUp, DollarSign, Megaphone, Trophy, Plus, CheckCircle, Send,
   MapPin, Phone, User, Bot, MessageSquare, Lightbulb, Bug, ChevronUp,
   RefreshCw, CheckCheck, Clock, XCircle, AlertCircle, Sparkles,
-  BarChart2, Users,
+  BarChart2, Users, BookOpen,
 } from 'lucide-react';
 import { salesRepApi, feedbackApi, messagesApi } from '../../services/api';
 import { useAuthStore } from '../../store/auth';
+import SalesTraining, { TrainingWelcomeBanner } from './SalesTraining';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface DashboardData {
@@ -25,7 +26,7 @@ interface FeedbackItem {
 interface ChatMsg { role: 'user' | 'assistant'; content: string; }
 interface DmMsg   { id: string; content: string; senderId: string; createdAt: string; }
 
-type DashTab = 'dashboard' | 'ai' | 'chat' | 'feedback';
+type DashTab = 'dashboard' | 'training' | 'ai' | 'chat' | 'feedback';
 
 // ─── Status helpers ───────────────────────────────────────────────────────────
 const STATUS_STYLE: Record<string, { label: string; cls: string; icon: React.ReactNode }> = {
@@ -497,10 +498,11 @@ export default function SalesRepPortal() {
 
   // ── Tabs config ──
   const TABS: { id: DashTab; label: string; icon: React.ReactNode }[] = [
-    { id: 'dashboard', label: 'Dashboard',  icon: <BarChart2   size={16} /> },
-    { id: 'ai',        label: 'AI Coach',   icon: <Bot         size={16} /> },
+    { id: 'dashboard', label: 'Dashboard',  icon: <BarChart2     size={16} /> },
+    { id: 'training',  label: 'Playbook',   icon: <BookOpen      size={16} /> },
+    { id: 'ai',        label: 'AI Coach',   icon: <Bot           size={16} /> },
     { id: 'chat',      label: 'Team Chat',  icon: <MessageSquare size={16} /> },
-    { id: 'feedback',  label: 'Feedback',   icon: <Lightbulb   size={16} /> },
+    { id: 'feedback',  label: 'Feedback',   icon: <Lightbulb     size={16} /> },
   ];
 
   // ── Dashboard view ──────────────────────────────────────────────────────────
@@ -530,8 +532,16 @@ export default function SalesRepPortal() {
         {/* Tab content */}
         {tab === 'dashboard' && (
           <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-8">
+
+            {/* First-login training banner */}
+            <TrainingWelcomeBanner
+              userId={user?.id || ''}
+              userName={user?.name}
+              onStart={() => setTab('training')}
+            />
+
             {/* Header */}
-            <div className="flex items-center gap-3 mb-8">
+            <div className="flex items-center gap-3 mb-8 mt-6">
               <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
                 <TrendingUp className="text-purple-600" size={24} />
               </div>
@@ -632,11 +642,12 @@ export default function SalesRepPortal() {
             </div>
 
             {/* Quick-access to other tabs */}
-            <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-4">
               {[
-                { id: 'ai' as DashTab, icon: <Bot size={22} className="text-purple-500" />, title: 'AI Sales Coach', desc: 'Get instant help with pitches, objections, and scripts.', cta: 'Open AI Chat →' },
-                { id: 'chat' as DashTab, icon: <MessageSquare size={22} className="text-blue-500" />, title: 'Team Chat', desc: 'Message your sales manager directly. Get support fast.', cta: 'Open Chat →' },
-                { id: 'feedback' as DashTab, icon: <Lightbulb size={22} className="text-yellow-500" />, title: 'Feedback & Wishlist', desc: 'Report bugs, request features, and vote on ideas.', cta: 'Give Feedback →' },
+                { id: 'training' as DashTab, icon: <BookOpen size={22} className="text-green-600" />, title: 'Sales Playbook', desc: 'Scripts, pitches, objection handlers.', cta: 'Open Playbook →' },
+                { id: 'ai' as DashTab, icon: <Bot size={22} className="text-purple-500" />, title: 'AI Coach', desc: 'Instant help with pitches and scripts.', cta: 'Open AI Chat →' },
+                { id: 'chat' as DashTab, icon: <MessageSquare size={22} className="text-blue-500" />, title: 'Team Chat', desc: 'Message your sales manager directly.', cta: 'Open Chat →' },
+                { id: 'feedback' as DashTab, icon: <Lightbulb size={22} className="text-yellow-500" />, title: 'Feedback', desc: 'Report bugs, request features.', cta: 'Give Feedback →' },
               ].map(card => (
                 <button key={card.id} onClick={() => setTab(card.id)}
                   className="bg-white rounded-xl border p-5 text-left hover:border-purple-300 hover:shadow-sm transition-all">
@@ -668,12 +679,13 @@ export default function SalesRepPortal() {
           </div>
         )}
 
-        {/* AI / Team Chat / Feedback — full-height panels */}
-        {(tab === 'ai' || tab === 'chat' || tab === 'feedback') && (
+        {/* Training / AI / Team Chat / Feedback — full-height panels */}
+        {(tab === 'training' || tab === 'ai' || tab === 'chat' || tab === 'feedback') && (
           <div className="flex-1 flex flex-col overflow-hidden" style={{ height: 'calc(100dvh - 57px - 57px)' }}>
-            {tab === 'ai'       && <AiChatTab   user={user} />}
-            {tab === 'chat'     && <TeamChatTab user={user as { id: string; name?: string } | null} />}
-            {tab === 'feedback' && <FeedbackTab userId={user?.id || ''} />}
+            {tab === 'training' && <SalesTraining userId={user?.id || ''} userName={user?.name} />}
+            {tab === 'ai'       && <AiChatTab    user={user} />}
+            {tab === 'chat'     && <TeamChatTab  user={user as { id: string; name?: string } | null} />}
+            {tab === 'feedback' && <FeedbackTab  userId={user?.id || ''} />}
           </div>
         )}
       </div>
