@@ -74,7 +74,7 @@ const THEMES: Record<string, Omit<CountryTheme, 'code'>> = {
   UG: { primary: '#000000', secondary: '#FCDC04', accent: '#D90000', name: 'Uganda', lang: 'en' },          // black, yellow #FCDC04, red
   ZM: { primary: '#147F55', secondary: '#F99815', accent: '#D40829', name: 'Zambia', lang: 'en' },          // green #147F55, orange #F99815, red #D40829
   ZW: { primary: '#006400', secondary: '#FFD200', accent: '#D40000', name: 'Zimbabwe', lang: 'en' },        // green, yellow, red
-  DEFAULT: { primary: '#008751', secondary: '#FFFFFF', accent: '#FCD116', name: 'Africa', lang: 'en' },
+  DEFAULT: { primary: '#1A5C38', secondary: '#FFFFFF', accent: '#FCD116', name: 'Africa', lang: 'en' },
 };
 
 function darken(hex: string, amount = 20): string {
@@ -119,8 +119,8 @@ const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 export const useThemeStore = create<ThemeState>()(
   persist(
     (set, get) => ({
-      countryCode: 'NG',
-      theme: { ...THEMES['NG'], code: 'NG' },
+      countryCode: '',
+      theme: { ...THEMES['DEFAULT'], code: '' },
       detected: false,
       overrides: {},
       countryClicks: {},
@@ -179,13 +179,13 @@ export const useThemeStore = create<ThemeState>()(
             localStorage.setItem('seshaa-lang-geo', data.suggestedLang);
           }
         } catch {
-          get().applyTheme('NG'); // fallback
+          get().applyTheme(''); // fallback → Africa/global, never a specific country
         }
       },
     }),
     {
-      name: 'seshaa-theme',
-      partialize: (s) => ({ countryCode: s.countryCode, detected: false, countryClicks: s.countryClicks }),
+      name: 'seshaa-theme-v3', // bumped to flush stale countryCode from localStorage
+      partialize: (s) => ({ countryClicks: s.countryClicks }), // never persist countryCode — always start at Africa
     }
   )
 );

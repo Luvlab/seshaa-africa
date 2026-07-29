@@ -818,96 +818,85 @@ router.get('/public/hero-slides', async (req, res) => {
   res.json(result.map(({ _clientCountry, ...s }) => s));
 });
 
-// GET /admin/seo-settings — fetch editable social sharing SEO settings
+// ── SEO Settings — shared defaults ───────────────────────────────────────────
+const SEO_DEFAULTS = {
+  title:         'Seshaa — Africa\'s Directory. Seshaa and you will find.',
+  description:   'Find any business, person or service across all 54 African countries. Real phone numbers, addresses, reviews & bookings. Available in 14 African languages.',
+  thumbnailUrl:  'https://seshaa.africa/og-image.svg',
+  url:           'https://seshaa.africa',
+  keywords:      'Africa directory, business directory Africa, phone numbers Africa, seshaa, listings Africa, find businesses Africa',
+  twitterCard:   'summary_large_image',
+  twitterHandle: '@SeshaaAfrica',
+  author:        'Seshaa Africa',
+  robots:        'index,follow',
+  jsonLd:        JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'Seshaa Africa',
+    url: 'https://seshaa.africa',
+    description: 'Africa\'s business directory — all 54 countries, 14 languages',
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: 'https://seshaa.africa/search?q={search_term_string}',
+      'query-input': 'required name=search_term_string',
+    },
+  }, null, 2),
+};
+
+function parseSeoRecord(raw: string | null | undefined) {
+  if (!raw) return { ...SEO_DEFAULTS };
+  try {
+    const p = JSON.parse(raw) as Record<string, string>;
+    return {
+      title:         p.title         || SEO_DEFAULTS.title,
+      description:   p.description   || SEO_DEFAULTS.description,
+      thumbnailUrl:  p.thumbnailUrl  || SEO_DEFAULTS.thumbnailUrl,
+      url:           p.url           || SEO_DEFAULTS.url,
+      keywords:      p.keywords      || SEO_DEFAULTS.keywords,
+      twitterCard:   p.twitterCard   || SEO_DEFAULTS.twitterCard,
+      twitterHandle: p.twitterHandle || SEO_DEFAULTS.twitterHandle,
+      author:        p.author        || SEO_DEFAULTS.author,
+      robots:        p.robots        || SEO_DEFAULTS.robots,
+      jsonLd:        p.jsonLd        || SEO_DEFAULTS.jsonLd,
+    };
+  } catch { return { ...SEO_DEFAULTS }; }
+}
+
+// GET /admin/seo-settings — fetch editable SEO settings (admin auth)
 router.get('/seo-settings', requireAuth, adminOnly, async (_req, res) => {
   const record = await prisma.listing.findUnique({ where: { osmId: 'seshaa-seo-config' } });
-  if (!record?.description) {
-    return res.json({
-      title: 'Seshaa Africa — Directory for All 54 Countries',
-      description: 'Find businesses, services, and people across all 54 African countries on Seshaa.',
-      thumbnailUrl: 'https://www.seshaa.africa/og-image.svg',
-      url: 'https://www.seshaa.africa',
-    });
-  }
-
-  try {
-    const parsed = JSON.parse(record.description) as { title?: string; description?: string; thumbnailUrl?: string; url?: string };
-    return res.json({
-      title: parsed.title || 'Seshaa Africa — Directory for All 54 Countries',
-      description: parsed.description || 'Find businesses, services, and people across all 54 African countries on Seshaa.',
-      thumbnailUrl: parsed.thumbnailUrl || 'https://www.seshaa.africa/og-image.svg',
-      url: parsed.url || 'https://www.seshaa.africa',
-    });
-  } catch {
-    return res.json({
-      title: 'Seshaa Africa — Directory for All 54 Countries',
-      description: 'Find businesses, services, and people across all 54 African countries on Seshaa.',
-      thumbnailUrl: 'https://www.seshaa.africa/og-image.svg',
-      url: 'https://www.seshaa.africa',
-    });
-  }
+  return res.json(parseSeoRecord(record?.description));
 });
 
-// POST /admin/seo-settings — save social sharing SEO metadata
+// POST /admin/seo-settings — save SEO metadata (admin auth)
 router.post('/seo-settings', requireAuth, adminOnly, async (req, res) => {
-  const title = String(req.body?.title || '').trim() || 'Seshaa Africa — Directory for All 54 Countries';
-  const description = String(req.body?.description || '').trim() || 'Find businesses, services, and people across all 54 African countries on Seshaa.';
-  const thumbnailUrl = String(req.body?.thumbnailUrl || '').trim() || 'https://www.seshaa.africa/og-image.svg';
-  const url = String(req.body?.url || '').trim() || 'https://www.seshaa.africa';
-
-  const payload = JSON.stringify({ title, description, thumbnailUrl, url });
+  const b = req.body as Record<string, string>;
+  const data = {
+    title:         (b.title         || SEO_DEFAULTS.title).trim().slice(0, 200),
+    description:   (b.description   || SEO_DEFAULTS.description).trim().slice(0, 500),
+    thumbnailUrl:  (b.thumbnailUrl  || SEO_DEFAULTS.thumbnailUrl).trim().slice(0, 500),
+    url:           (b.url           || SEO_DEFAULTS.url).trim().slice(0, 200),
+    keywords:      (b.keywords      || SEO_DEFAULTS.keywords).trim().slice(0, 500),
+    twitterCard:   ['summary','summary_large_image'].includes(b.twitterCard) ? b.twitterCard : SEO_DEFAULTS.twitterCard,
+    twitterHandle: (b.twitterHandle || SEO_DEFAULTS.twitterHandle).trim().slice(0, 50),
+    author:        (b.author        || SEO_DEFAULTS.author).trim().slice(0, 100),
+    robots:        (b.robots        || SEO_DEFAULTS.robots).trim().slice(0, 50),
+    jsonLd:        (b.jsonLd        || SEO_DEFAULTS.jsonLd).trim().slice(0, 5000),
+  };
 
   await prisma.listing.upsert({
-    where: { osmId: 'seshaa-seo-config' },
-    update: {
-      name: 'SEO Share Config',
-      description: payload,
-      active: true,
-      verified: true,
-    },
-    create: {
-      name: 'SEO Share Config',
-      description: payload,
-      osmId: 'seshaa-seo-config',
-      country: 'ZZ',
-      city: 'Global',
-      type: 'BUSINESS',
-      active: true,
-      verified: true,
-    },
+    where:  { osmId: 'seshaa-seo-config' },
+    update: { name: 'SEO Config', description: JSON.stringify(data), active: true, verified: true },
+    create: { name: 'SEO Config', description: JSON.stringify(data), osmId: 'seshaa-seo-config', country: 'ZZ', city: 'Global', type: 'BUSINESS', active: true, verified: true },
   });
 
-  res.json({ ok: true, title, description, thumbnailUrl, url });
+  res.json({ ok: true, ...data });
 });
 
-// GET /admin/public/seo-settings — public SEO metadata for frontend head tags
+// GET /admin/public/seo-settings — public (no auth) — used by frontend SeoHead
 router.get('/public/seo-settings', async (_req, res) => {
   const record = await prisma.listing.findUnique({ where: { osmId: 'seshaa-seo-config' } });
-  if (!record?.description) {
-    return res.json({
-      title: 'Seshaa Africa — Directory for All 54 Countries',
-      description: 'Find businesses, services, and people across all 54 African countries on Seshaa.',
-      thumbnailUrl: 'https://www.seshaa.africa/og-image.svg',
-      url: 'https://www.seshaa.africa',
-    });
-  }
-
-  try {
-    const parsed = JSON.parse(record.description) as { title?: string; description?: string; thumbnailUrl?: string; url?: string };
-    return res.json({
-      title: parsed.title || 'Seshaa Africa — Directory for All 54 Countries',
-      description: parsed.description || 'Find businesses, services, and people across all 54 African countries on Seshaa.',
-      thumbnailUrl: parsed.thumbnailUrl || 'https://www.seshaa.africa/og-image.svg',
-      url: parsed.url || 'https://www.seshaa.africa',
-    });
-  } catch {
-    return res.json({
-      title: 'Seshaa Africa — Directory for All 54 Countries',
-      description: 'Find businesses, services, and people across all 54 African countries on Seshaa.',
-      thumbnailUrl: 'https://www.seshaa.africa/og-image.svg',
-      url: 'https://www.seshaa.africa',
-    });
-  }
+  return res.json(parseSeoRecord(record?.description));
 });
 
 // GET /admin/ai-settings — fetch AI provider settings for admin UI

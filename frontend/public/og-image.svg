@@ -1,71 +1,137 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
-  <!-- Background gradient -->
   <defs>
+    <!-- Main background gradient — deep forest green to rich emerald -->
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#004d2b"/>
+      <stop offset="0%" style="stop-color:#002e18"/>
+      <stop offset="60%" style="stop-color:#005c30"/>
       <stop offset="100%" style="stop-color:#008751"/>
     </linearGradient>
-    <linearGradient id="shine" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.08"/>
+    <!-- Glow behind logo text -->
+    <radialGradient id="logGlow" cx="20%" cy="48%" r="40%">
+      <stop offset="0%" style="stop-color:#FCD116;stop-opacity:0.14"/>
+      <stop offset="100%" style="stop-color:#FCD116;stop-opacity:0"/>
+    </radialGradient>
+    <!-- Card surface shine -->
+    <linearGradient id="cardShine" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.06"/>
       <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0"/>
+    </linearGradient>
+    <!-- Gold accent line gradient -->
+    <linearGradient id="goldLine" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#FCD116;stop-opacity:0"/>
+      <stop offset="20%" style="stop-color:#FCD116;stop-opacity:1"/>
+      <stop offset="80%" style="stop-color:#FCD116;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#FCD116;stop-opacity:0"/>
     </linearGradient>
   </defs>
 
-  <!-- Background -->
+  <!-- ── Background ── -->
   <rect width="1200" height="630" fill="url(#bg)"/>
-  <rect width="1200" height="630" fill="url(#shine)"/>
+  <rect width="1200" height="630" fill="url(#logGlow)"/>
+  <rect width="1200" height="630" fill="url(#cardShine)"/>
 
-  <!-- Decorative circles -->
-  <circle cx="1050" cy="80"  r="200" fill="#ffffff" fill-opacity="0.04"/>
-  <circle cx="1100" cy="500" r="150" fill="#ffffff" fill-opacity="0.04"/>
-  <circle cx="80"   cy="550" r="120" fill="#FCD116" fill-opacity="0.07"/>
-
-  <!-- Africa outline (simplified, decorative) -->
-  <g transform="translate(820, 60)" opacity="0.18">
-    <path d="M130,10 C150,10 200,30 210,80 C220,130 200,160 220,200
-             C240,240 250,270 240,310 C230,350 210,380 200,420
-             C190,460 185,500 170,530 C155,560 130,580 110,575
-             C90,570 70,545 60,510 C50,475 55,440 45,400
-             C35,360 20,330 15,290 C10,250 20,210 10,170
-             C0,130 5,90 30,60 C55,30 110,10 130,10Z"
-      fill="none" stroke="#FCD116" stroke-width="8"/>
+  <!-- ── Decorative: large faint Africa continent outline ── -->
+  <g transform="translate(730, 20) scale(1.15)" opacity="0.10">
+    <path d="M130,10 C155,8 195,22 215,65 C235,108 218,148 228,185
+             C238,222 255,252 248,298 C241,344 220,376 212,414
+             C204,452 198,488 180,520 C162,552 138,574 115,570
+             C92,566 72,542 60,508 C48,474 54,440 42,402
+             C30,364 14,336 10,296 C6,256 16,216 8,176
+             C0,136 6,96 28,62 C50,28 105,12 130,10Z"
+      fill="none" stroke="#FCD116" stroke-width="10" stroke-linejoin="round"/>
   </g>
 
-  <!-- Main brand text -->
-  <text x="100" y="240"
-    font-family="Arial Black, Arial, sans-serif"
-    font-size="130" font-weight="900" font-style="italic"
-    fill="#ffffff" paint-order="stroke fill"
-    stroke="#90EE30" stroke-width="6">seshaa.</text>
+  <!-- ── Decorative circles top-right ── -->
+  <circle cx="1140" cy="60"  r="260" fill="#ffffff" fill-opacity="0.025"/>
+  <circle cx="1100" cy="520" r="180" fill="#FCD116" fill-opacity="0.04"/>
+  <circle cx="60"   cy="580" r="100" fill="#008751" fill-opacity="0.3"/>
 
-  <!-- Tagline -->
-  <text x="104" y="310"
-    font-family="Arial, sans-serif"
-    font-size="34" font-weight="600"
-    fill="#ffffff" fill-opacity="0.85">
-    Seshaa and you will find.
-  </text>
+  <!-- ── Dot pattern grid (faint) ── -->
+  <pattern id="dots" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+    <circle cx="20" cy="20" r="1.2" fill="#ffffff" fill-opacity="0.06"/>
+  </pattern>
+  <rect width="1200" height="630" fill="url(#dots)"/>
 
-  <!-- Description -->
-  <text x="104" y="370"
-    font-family="Arial, sans-serif"
-    font-size="26" font-weight="400"
-    fill="#ffffff" fill-opacity="0.65">
-    Africa's business directory — all 54 countries, all languages
-  </text>
+  <!-- ── Left accent bar ── -->
+  <rect x="0" y="0" width="6" height="630" fill="#FCD116" opacity="0.9"/>
 
-  <!-- Country flags strip -->
-  <text x="100" y="450" font-size="42" font-family="Arial">🇳🇬 🇰🇪 🇿🇦 🇬🇭 🇪🇬 🇪🇹 🇹🇿 🇸🇳 🇺🇬 🇷🇼 🇨🇮 🇨🇲</text>
+  <!-- ── Main brand logo "seshaa." ── -->
+  <!-- Drop shadow effect using duplicate text with offset -->
+  <text x="97" y="253"
+    font-family="Arial Black, Arial, Impact, sans-serif"
+    font-size="148" font-weight="900" font-style="italic"
+    fill="#000000" fill-opacity="0.25">seshaa.</text>
+  <text x="94" y="250"
+    font-family="Arial Black, Arial, Impact, sans-serif"
+    font-size="148" font-weight="900" font-style="italic"
+    fill="#ffffff"
+    paint-order="stroke fill"
+    stroke="#90EE30" stroke-width="4" stroke-linejoin="round">seshaa.</text>
 
-  <!-- Bottom bar -->
-  <rect x="0" y="580" width="1200" height="50" fill="#000000" fill-opacity="0.3"/>
-  <text x="100" y="613"
-    font-family="Arial, sans-serif" font-size="22" font-weight="600"
+  <!-- ── Gold accent line under logo ── -->
+  <rect x="94" y="266" width="680" height="3" fill="url(#goldLine)" rx="2"/>
+
+  <!-- ── Tagline ── -->
+  <text x="98" y="320"
+    font-family="Arial, Helvetica, sans-serif"
+    font-size="30" font-weight="700" letter-spacing="1"
+    fill="#FCD116">SESHAA AND YOU WILL FIND.</text>
+
+  <!-- ── Description line ── -->
+  <text x="98" y="366"
+    font-family="Arial, Helvetica, sans-serif"
+    font-size="22" font-weight="400" letter-spacing="0.3"
+    fill="#ffffff" fill-opacity="0.72">Africa's business directory — all 54 countries, 14 languages</text>
+
+  <!-- ── Service pill badges ── -->
+  <!-- seshaa.directory -->
+  <rect x="98"  y="400" width="172" height="36" rx="18" fill="#ffffff" fill-opacity="0.12"/>
+  <text x="114" y="423" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#ffffff">🔍 seshaa.directory</text>
+
+  <!-- seshaa.ride -->
+  <rect x="282" y="400" width="126" height="36" rx="18" fill="#ffffff" fill-opacity="0.12"/>
+  <text x="298" y="423" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#ffffff">🚗 seshaa.ride</text>
+
+  <!-- seshaa.delivery -->
+  <rect x="420" y="400" width="148" height="36" rx="18" fill="#ffffff" fill-opacity="0.12"/>
+  <text x="436" y="423" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#ffffff">📦 seshaa.delivery</text>
+
+  <!-- seshaa.market -->
+  <rect x="580" y="400" width="140" height="36" rx="18" fill="#ffffff" fill-opacity="0.12"/>
+  <text x="596" y="423" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#ffffff">🛍️ seshaa.market</text>
+
+  <!-- seshaa.news -->
+  <rect x="732" y="400" width="122" height="36" rx="18" fill="#ffffff" fill-opacity="0.12"/>
+  <text x="748" y="423" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#ffffff">📰 seshaa.news</text>
+
+  <!-- ── Country flags strip ── -->
+  <text x="96" y="490"
+    font-family="Segoe UI Emoji, Apple Color Emoji, Noto Color Emoji, sans-serif"
+    font-size="36">🇳🇬 🇰🇪 🇿🇦 🇬🇭 🇪🇬 🇪🇹 🇹🇿 🇸🇳 🇺🇬 🇷🇼 🇨🇮 🇨🇲 🇲🇦 🇸🇩</text>
+  <text x="96" y="538"
+    font-family="Arial, sans-serif" font-size="13" fill="#ffffff" fill-opacity="0.38"
+    letter-spacing="0.5">+ 40 more African countries covered</text>
+
+  <!-- ── Bottom bar ── -->
+  <rect x="0" y="580" width="1200" height="50" fill="#000000" fill-opacity="0.45"/>
+
+  <!-- Green live dot -->
+  <circle cx="76" cy="605" r="5" fill="#90EE30"/>
+  <circle cx="76" cy="605" r="9" fill="#90EE30" fill-opacity="0.25"/>
+
+  <text x="92" y="612"
+    font-family="Arial Black, Arial, sans-serif" font-size="20" font-weight="900"
     fill="#FCD116">seshaa.africa</text>
-  <text x="800" y="613"
-    font-family="Arial, sans-serif" font-size="18"
-    fill="#ffffff" fill-opacity="0.6">Find anyone, any business, anywhere in Africa</text>
 
-  <!-- Green dot accent -->
-  <circle cx="70" cy="608" r="6" fill="#90EE30"/>
+  <text x="280" y="611"
+    font-family="Arial, sans-serif" font-size="16" fill="#ffffff" fill-opacity="0.45">·</text>
+
+  <text x="296" y="611"
+    font-family="Arial, sans-serif" font-size="16" fill="#ffffff" fill-opacity="0.55"
+    letter-spacing="0.2">Find anyone, any business, anywhere in Africa</text>
+
+  <!-- Right: QR placeholder hint text -->
+  <text x="1100" y="611"
+    font-family="Arial, sans-serif" font-size="13" fill="#ffffff" fill-opacity="0.3"
+    text-anchor="middle">Free · No Commission</text>
 </svg>

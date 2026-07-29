@@ -267,22 +267,53 @@ export default function Navbar() {
           <SeshaaTitle countryCode={countryCode} size="md" staticSuffix={pageSuffix} />
         </Link>
 
-        {/* Country flag badge — desktop only in this position (between title and search) */}
-        <button
-          className="shrink-0 hidden md:flex items-center gap-1.5 text-xs bg-white/20 hover:bg-white/30 text-white px-2 py-1.5 rounded-full transition-colors ml-1"
-          onClick={() => { closeChatPanel(); setCountryPickerOpen(true); }}
-          title={`${theme.name} — tap to change`}
-        >
-          {countryCode ? (
-            <span className="text-base leading-none">
-              {countryCode.toUpperCase().split('').map(c => String.fromCodePoint(0x1F1E6 - 65 + c.charCodeAt(0))).join('')}
-            </span>
-          ) : (
-            <AfricaIcon size={18} strokeWidth={1.75} className="shrink-0" />
-          )}
-          <span className="font-semibold">{countryCode ? theme.name : 'Africa'}</span>
-          <ChevronDown size={10} />
-        </button>
+        {/* ── Country + Language buttons side-by-side (desktop only, before search) ── */}
+        <div className="hidden md:flex items-center gap-1 shrink-0 ml-1">
+          {/* Country flag */}
+          <button
+            className="flex items-center gap-1.5 text-xs bg-white/20 hover:bg-white/30 text-white px-2 py-1.5 rounded-full transition-colors"
+            onClick={() => { closeChatPanel(); setCountryPickerOpen(true); }}
+            title={`${theme.name} — tap to change`}
+          >
+            {countryCode ? (
+              <span className="text-base leading-none">
+                {countryCode.toUpperCase().split('').map(c => String.fromCodePoint(0x1F1E6 - 65 + c.charCodeAt(0))).join('')}
+              </span>
+            ) : (
+              <AfricaIcon size={18} strokeWidth={1.75} className="shrink-0" />
+            )}
+            <span className="font-semibold">{countryCode ? theme.name : 'Africa'}</span>
+            <ChevronDown size={10} />
+          </button>
+
+          {/* Language — desktop button + dropdown */}
+          <div className="relative">
+            <button
+              className="flex items-center gap-1.5 text-white/90 text-sm px-2 py-1.5 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
+              onClick={() => { closeChatPanel(); setLangOpen(v => !v); }}
+            >
+              <AfricaIcon size={15} strokeWidth={1.75} className="shrink-0" />
+              <span className="text-xs font-semibold uppercase tracking-wide">{currentLang.code.slice(0, 2)}</span>
+              <ChevronDown size={10} />
+            </button>
+            {langOpen && (
+              <div className="absolute left-0 top-full mt-1 bg-white text-gray-800 rounded-xl shadow-2xl w-52 max-h-64 overflow-y-auto z-50">
+                {LANGUAGES.map(lang => (
+                  <button
+                    key={lang.code}
+                    className={clsx('w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex justify-between',
+                      lang.code === i18n.language && 'font-bold')}
+                    style={lang.code === i18n.language ? { color: 'var(--cp)' } : {}}
+                    onClick={() => changeLanguage(lang.code)}
+                  >
+                    <span>{lang.nativeName}</span>
+                    <span className="text-gray-400 text-xs">{lang.name}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
 
         {/* Search bar — grows to fill available space (desktop only) */}
         <div className="flex-1 hidden md:flex items-center bg-white/15 hover:bg-white/25 rounded-full px-3.5 py-1.5 gap-2 transition-colors h-9">
@@ -326,93 +357,71 @@ export default function Navbar() {
             <ChevronDown size={10} />
           </button>
 
-          {/* Language */}
-          <div className="relative">
-            <button
-              className="flex items-center gap-1.5 text-white/90 text-sm px-2 py-1 rounded-lg hover:bg-white/20"
-              onClick={() => { closeChatPanel(); setLangOpen(v => !v); }}
+          {/* Language — mobile only trigger (desktop version lives before the search bar) */}
+          <button
+            className="md:hidden flex items-center gap-1 text-white/90 text-xs px-2 py-1.5 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
+            onClick={() => { closeChatPanel(); setLangOpen(v => !v); }}
+          >
+            <AfricaIcon size={15} strokeWidth={1.75} className="shrink-0" />
+            <span className="font-semibold uppercase tracking-wide">{currentLang.code.slice(0, 2)}</span>
+          </button>
+          {/* Mobile full-screen language panel */}
+          {langOpen && (
+            <div
+              className="md:hidden fixed left-0 right-0 z-[9999] flex flex-col"
+              style={{
+                top: 'var(--nav-h, 56px)',
+                bottom: 'var(--tab-h, 0px)',
+                backgroundColor: 'rgba(0,0,0,0.25)',
+                backdropFilter: 'blur(3px)',
+                WebkitBackdropFilter: 'blur(3px)',
+              }}
+              onClick={e => e.target === e.currentTarget && setLangOpen(false)}
             >
-              <AfricaIcon size={15} strokeWidth={1.75} className="shrink-0" />
-              <span className="text-xs font-semibold uppercase tracking-wide">{currentLang.code.slice(0, 2)}</span>
-              <ChevronDown size={10} className="hidden sm:block" />
-            </button>
-            {langOpen && (
-              <>
-                {/* Mobile: full-screen panel between header and tab bar — matches CountryPicker */}
-                <div
-                  className="md:hidden fixed left-0 right-0 z-[9999] flex flex-col"
-                  style={{
-                    top: 'var(--nav-h, 56px)',
-                    bottom: 'var(--tab-h, 0px)',
-                    backgroundColor: 'rgba(0,0,0,0.25)',
-                    backdropFilter: 'blur(3px)',
-                    WebkitBackdropFilter: 'blur(3px)',
-                  }}
-                  onClick={e => e.target === e.currentTarget && setLangOpen(false)}
-                >
-                  <div className="h-full w-full max-w-2xl mx-auto bg-white/[0.95] backdrop-blur-2xl flex flex-col overflow-hidden">
-                    {/* Header */}
-                    <div className="flex items-center gap-3 px-5 pt-5 pb-3 border-b border-gray-100 shrink-0">
-                      <div className="flex-1">
-                        <h2 className="text-lg font-black text-gray-900">Choose Language</h2>
-                        <p className="text-xs text-gray-500 mt-0.5">Sets the app display language</p>
-                      </div>
-                      <button onClick={() => setLangOpen(false)} className="p-2 rounded-full hover:bg-gray-100 text-gray-500">
-                        <X size={20} />
-                      </button>
-                    </div>
-                    {/* Language list */}
-                    <div className="flex-1 overflow-y-auto px-4 py-3">
-                      {LANGUAGES.map(lang => {
-                        const isActive = lang.code === i18n.language;
-                        return (
-                          <button
-                            key={lang.code}
-                            onClick={() => changeLanguage(lang.code)}
-                            className={clsx(
-                              'w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-left transition-colors mb-1',
-                              isActive
-                                ? 'border-2 border-[color:var(--cp)] bg-[color:var(--cp)]/5'
-                                : 'border-2 border-transparent hover:bg-gray-50'
-                            )}
-                          >
-                            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0 text-lg font-black text-gray-600">
-                              {lang.code.slice(0, 2).toUpperCase()}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className={clsx('font-bold text-sm', isActive ? 'text-[color:var(--cp)]' : 'text-gray-900')}>
-                                {lang.nativeName}
-                                {isActive && <span className="ml-2 text-xs font-normal opacity-60">✓ current</span>}
-                              </p>
-                              <p className="text-xs text-gray-400 mt-0.5">{lang.name}</p>
-                            </div>
-                            {lang.dir === 'rtl' && (
-                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 shrink-0">RTL</span>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
+              <div className="h-full w-full max-w-2xl mx-auto bg-white/[0.95] backdrop-blur-2xl flex flex-col overflow-hidden">
+                <div className="flex items-center gap-3 px-5 pt-5 pb-3 border-b border-gray-100 shrink-0">
+                  <div className="flex-1">
+                    <h2 className="text-lg font-black text-gray-900">Choose Language</h2>
+                    <p className="text-xs text-gray-500 mt-0.5">Sets the app display language</p>
                   </div>
+                  <button onClick={() => setLangOpen(false)} className="p-2 rounded-full hover:bg-gray-100 text-gray-500">
+                    <X size={20} />
+                  </button>
                 </div>
-                {/* Desktop: dropdown */}
-                <div className="hidden md:block absolute right-0 top-full mt-1 bg-white text-gray-800 rounded-xl shadow-2xl w-52 max-h-64 overflow-y-auto z-50">
-                  {LANGUAGES.map(lang => (
-                    <button
-                      key={lang.code}
-                      className={clsx('w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex justify-between',
-                        lang.code === i18n.language && 'font-bold')}
-                      style={lang.code === i18n.language ? { color: 'var(--cp)' } : {}}
-                      onClick={() => changeLanguage(lang.code)}
-                    >
-                      <span>{lang.nativeName}</span>
-                      <span className="text-gray-400 text-xs">{lang.name}</span>
-                    </button>
-                  ))}
+                <div className="flex-1 overflow-y-auto px-4 py-3">
+                  {LANGUAGES.map(lang => {
+                    const isActive = lang.code === i18n.language;
+                    return (
+                      <button
+                        key={lang.code}
+                        onClick={() => changeLanguage(lang.code)}
+                        className={clsx(
+                          'w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-left transition-colors mb-1',
+                          isActive
+                            ? 'border-2 border-[color:var(--cp)] bg-[color:var(--cp)]/5'
+                            : 'border-2 border-transparent hover:bg-gray-50'
+                        )}
+                      >
+                        <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0 text-lg font-black text-gray-600">
+                          {lang.code.slice(0, 2).toUpperCase()}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className={clsx('font-bold text-sm', isActive ? 'text-[color:var(--cp)]' : 'text-gray-900')}>
+                            {lang.nativeName}
+                            {isActive && <span className="ml-2 text-xs font-normal opacity-60">✓ current</span>}
+                          </p>
+                          <p className="text-xs text-gray-400 mt-0.5">{lang.name}</p>
+                        </div>
+                        {lang.dir === 'rtl' && (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 shrink-0">RTL</span>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
-              </>
-            )}
-          </div>
+              </div>
+            </div>
+          )}
 
           {/* Portal switcher */}
           {user && user.role !== 'ADMIN' && availablePortals.length > 1 && (

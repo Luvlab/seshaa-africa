@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
-  Search, Zap, Users, Building2, Landmark, Heart, Sparkles, Volume2, VolumeX,
+  Search, Zap, Users, Building2, Landmark, Heart, Sparkles,
   Utensils, HeartPulse, GraduationCap, Banknote, Bus, BedDouble,
   Laptop, Scissors, Wrench, Wheat, Church, HardHat, Download,
 } from 'lucide-react';
@@ -299,22 +299,16 @@ export default function HomePage() {
               <div className="w-full">
                 {/* Title — hidden on mobile (navbar has the brand already) */}
                 <div className="hidden md:block">
-                  {slide?.overlayTitle ? (
-                    <h1 className="font-black mb-2 drop-shadow-lg" style={{ fontSize: 'clamp(1.15rem, 4.5vw, 3.2rem)', lineHeight: 1.15 }}>
-                      {slide.overlayTitle}
-                    </h1>
-                  ) : (
-                    <h1 className="font-black mb-2 drop-shadow-lg" style={{ fontSize: 'clamp(1.15rem, 4.5vw, 3.2rem)', lineHeight: 1.15 }}>
-                      {t('app.tagline')}
-                    </h1>
-                  )}
+                  <h1 className="font-black mb-2 drop-shadow-lg" style={{ fontSize: 'clamp(1.15rem, 4.5vw, 3.2rem)', lineHeight: 1.15 }}>
+                    {t('app.tagline')}
+                  </h1>
                   <p className="text-white/85 text-base md:text-lg mb-6 leading-relaxed drop-shadow">
                     {slide?.overlaySubtitle || t('app.description')}
                   </p>
                 </div>
                 {/* Mobile title — compact, single line */}
                 <p className="md:hidden text-white/90 text-sm font-semibold mb-3 drop-shadow tracking-wide">
-                  {slide?.overlayTitle || t('app.tagline')}
+                  {t('app.tagline')}
                 </p>
                 <div ref={searchBoxRef} className="bg-white/75 backdrop-blur-md rounded-2xl shadow-2xl overflow-hidden max-w-2xl mx-auto border border-white/60">
                   <div className="flex items-center gap-2 px-4 py-1">
@@ -378,12 +372,6 @@ export default function HomePage() {
                   <Download size={13} />
                   <span className="hidden sm:inline">Install App</span>
                   <span className="sm:hidden">Install</span>
-                </button>
-              )}
-              {mediaType === 'youtube' && (
-                <button className="p-2 bg-black/40 text-white rounded-full backdrop-blur-sm hover:bg-black/60 shrink-0"
-                  onClick={() => setMuted(v => !v)}>
-                  {muted ? <VolumeX size={16} /> : <Volume2 size={16} />}
                 </button>
               )}
             </div>

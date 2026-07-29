@@ -217,7 +217,11 @@ export const adminApi = {
   getHeroSlides: () => api.get('/admin/hero-slides'),
   getPublicHeroSlides: (country?: string) => api.get(`/admin/public/hero-slides${country ? `?country=${encodeURIComponent(country)}` : ''}`),
   getSeoSettings: () => api.get('/admin/seo-settings'),
-  saveSeoSettings: (data: { title?: string; description?: string; thumbnailUrl?: string; url?: string }) => api.post('/admin/seo-settings', data),
+  saveSeoSettings: (data: {
+    title?: string; description?: string; thumbnailUrl?: string; url?: string;
+    keywords?: string; twitterCard?: string; twitterHandle?: string;
+    author?: string; robots?: string; jsonLd?: string;
+  }) => api.post('/admin/seo-settings', data),
   getPublicSeoSettings: () => api.get('/admin/public/seo-settings'),
   getThemeSettings: () => api.get('/admin/theme-settings'),
   saveThemeSettings: (data: { overrides: Record<string, { primary?: string; secondary?: string; accent?: string; text?: string }> }) => api.post('/admin/theme-settings', data),

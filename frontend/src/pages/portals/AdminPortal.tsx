@@ -7,7 +7,8 @@ import {
   AlertTriangle, Tv, Database, Paintbrush, RefreshCw, Briefcase, BarChart2,
   Zap, ArrowUpRight, Plus, Edit2, Trash2, Eye, EyeOff, Play,
   CreditCard, Phone, Mail, Info, Lightbulb, Bug, ChevronUp,
-  Clock, CheckCheck, XCircle, AlertCircle,
+  Clock, CheckCheck, XCircle, AlertCircle, Search, Link, Twitter, Image as ImageIcon,
+  FileCode, Tag, RotateCcw, ExternalLink,
 } from 'lucide-react';
 import { adminApi, adsApi, analyticsApi, feedbackApi } from '../../services/api';
 import { useAuthStore } from '../../store/auth';
@@ -41,7 +42,7 @@ interface PendingListing {
 interface PendingPayout  { id: string; amount: number; method: string; ambassador: { user: { name: string; phone: string; country: string } } }
 interface LoanApp        { id: string; amount: number; purpose: string; status: string; createdAt: string; user: { name: string; phone: string; country: string } }
 
-type Tab = 'overview' | 'listings' | 'payouts' | 'loans' | 'finance' | 'adcms' | 'promote' | 'scraper' | 'branding' | 'salesreps' | 'analytics' | 'banking' | 'feedback';
+type Tab = 'overview' | 'listings' | 'payouts' | 'loans' | 'finance' | 'adcms' | 'promote' | 'scraper' | 'branding' | 'salesreps' | 'analytics' | 'banking' | 'feedback' | 'seo';
 
 interface HeroConfig {
   mediaType: 'youtube' | 'image' | 'video' | 'default';
@@ -275,11 +276,18 @@ export default function AdminPortal() {
   const [openRouterApiKey, setOpenRouterApiKey] = useState('');
   const [openRouterModel, setOpenRouterModel] = useState('openai/gpt-4o-mini');
   const [aiSettingsMsg, setAiSettingsMsg] = useState('');
-  const [seoTitle, setSeoTitle] = useState('Seshaa Africa — Directory for All 54 Countries');
-  const [seoDescription, setSeoDescription] = useState('Find businesses, services, and people across all 54 African countries on Seshaa.');
-  const [seoThumbnailUrl, setSeoThumbnailUrl] = useState('https://www.seshaa.africa/og-image.svg');
-  const [seoUrl, setSeoUrl] = useState('https://www.seshaa.africa');
-  const [seoSaved, setSeoSaved] = useState('');
+  const [seoTitle, setSeoTitle]           = useState('Seshaa — Africa\'s Directory. Seshaa and you will find.');
+  const [seoDescription, setSeoDescription] = useState('Find any business, person or service across all 54 African countries. Real phone numbers, addresses, reviews & bookings. Available in 14 African languages.');
+  const [seoThumbnailUrl, setSeoThumbnailUrl] = useState('https://seshaa.africa/og-image.svg');
+  const [seoUrl, setSeoUrl]               = useState('https://seshaa.africa');
+  const [seoKeywords, setSeoKeywords]     = useState('Africa directory, business directory Africa, phone numbers Africa, seshaa, listings Africa');
+  const [seoTwitterCard, setSeoTwitterCard] = useState<'summary' | 'summary_large_image'>('summary_large_image');
+  const [seoTwitterHandle, setSeoTwitterHandle] = useState('@SeshaaAfrica');
+  const [seoAuthor, setSeoAuthor]         = useState('Seshaa Africa');
+  const [seoRobots, setSeoRobots]         = useState('index,follow');
+  const [seoJsonLd, setSeoJsonLd]         = useState('');
+  const [seoSaved, setSeoSaved]           = useState('');
+  const [seoLoaded, setSeoLoaded]         = useState(false);
   const [printifyApiKey, setPrintifyApiKey] = useState('');
   const [printfulApiKey, setPrintfulApiKey] = useState('');
   const [podMsg, setPodMsg] = useState('');
@@ -704,6 +712,26 @@ export default function AdminPortal() {
     }
   };
 
+  // Load SEO settings once when the admin portal mounts
+  useEffect(() => {
+    if (seoLoaded) return;
+    adminApi.getSeoSettings().then(r => {
+      const d = r.data;
+      if (!d) return;
+      if (d.title)         setSeoTitle(d.title);
+      if (d.description)   setSeoDescription(d.description);
+      if (d.thumbnailUrl)  setSeoThumbnailUrl(d.thumbnailUrl);
+      if (d.url)           setSeoUrl(d.url);
+      if (d.keywords)      setSeoKeywords(d.keywords);
+      if (d.twitterCard)   setSeoTwitterCard(d.twitterCard);
+      if (d.twitterHandle) setSeoTwitterHandle(d.twitterHandle);
+      if (d.author)        setSeoAuthor(d.author);
+      if (d.robots)        setSeoRobots(d.robots);
+      if (d.jsonLd)        setSeoJsonLd(d.jsonLd);
+      setSeoLoaded(true);
+    }).catch(() => setSeoLoaded(true));
+  }, [seoLoaded]);
+
   const saveSeoSettings = async () => {
     try {
       await adminApi.saveSeoSettings({
@@ -711,8 +739,14 @@ export default function AdminPortal() {
         description: seoDescription,
         thumbnailUrl: seoThumbnailUrl,
         url: seoUrl,
+        keywords: seoKeywords,
+        twitterCard: seoTwitterCard,
+        twitterHandle: seoTwitterHandle,
+        author: seoAuthor,
+        robots: seoRobots,
+        jsonLd: seoJsonLd,
       });
-      setSeoSaved('Saved social share SEO settings.');
+      setSeoSaved('✓ SEO settings saved.');
       setTimeout(() => setSeoSaved(''), 2500);
     } catch {
       setSeoSaved('Failed to save SEO settings.');
@@ -808,6 +842,7 @@ export default function AdminPortal() {
     { key: 'analytics', label: t('admin.behaviour'), icon: <Activity size={20} strokeWidth={1.5} /> },
     { key: 'banking',   label: t('admin.banking'),   icon: <CreditCard  size={20} strokeWidth={1.5} /> },
     { key: 'feedback',  label: 'Feedback',           icon: <Lightbulb  size={20} strokeWidth={1.5} /> },
+    { key: 'seo',       label: 'SEO & Social',       icon: <Search     size={20} strokeWidth={1.5} /> },
   ];
 
   // Derived data for charts
@@ -3876,6 +3911,24 @@ export default function AdminPortal() {
         {/* ── FEEDBACK & WISHLIST ── */}
         {tab === 'feedback' && <AdminFeedbackPanel />}
 
+        {/* ── SEO & SOCIAL ── */}
+        {tab === 'seo' && (
+          <AdminSeoPanel
+            seoTitle={seoTitle}               setSeoTitle={setSeoTitle}
+            seoDescription={seoDescription}   setSeoDescription={setSeoDescription}
+            seoThumbnailUrl={seoThumbnailUrl} setSeoThumbnailUrl={setSeoThumbnailUrl}
+            seoUrl={seoUrl}                   setSeoUrl={setSeoUrl}
+            seoKeywords={seoKeywords}         setSeoKeywords={setSeoKeywords}
+            seoTwitterCard={seoTwitterCard}   setSeoTwitterCard={setSeoTwitterCard}
+            seoTwitterHandle={seoTwitterHandle} setSeoTwitterHandle={setSeoTwitterHandle}
+            seoAuthor={seoAuthor}             setSeoAuthor={setSeoAuthor}
+            seoRobots={seoRobots}             setSeoRobots={setSeoRobots}
+            seoJsonLd={seoJsonLd}             setSeoJsonLd={setSeoJsonLd}
+            seoSaved={seoSaved}
+            onSave={saveSeoSettings}
+          />
+        )}
+
       </div>
     </div>
   );
@@ -4067,6 +4120,294 @@ function ActiveAdsList() {
           <HBar label="Impressions" value={ad.impressions} max={maxImpr} color="bg-orange-500" />
         </div>
       ))}
+    </div>
+  );
+}
+
+// ─── Admin SEO & Social Panel ──────────────────────────────────────────────────
+interface AdminSeoPanelProps {
+  seoTitle: string;           setSeoTitle: (v: string) => void;
+  seoDescription: string;     setSeoDescription: (v: string) => void;
+  seoThumbnailUrl: string;    setSeoThumbnailUrl: (v: string) => void;
+  seoUrl: string;             setSeoUrl: (v: string) => void;
+  seoKeywords: string;        setSeoKeywords: (v: string) => void;
+  seoTwitterCard: 'summary' | 'summary_large_image';
+  setSeoTwitterCard: (v: 'summary' | 'summary_large_image') => void;
+  seoTwitterHandle: string;   setSeoTwitterHandle: (v: string) => void;
+  seoAuthor: string;          setSeoAuthor: (v: string) => void;
+  seoRobots: string;          setSeoRobots: (v: string) => void;
+  seoJsonLd: string;          setSeoJsonLd: (v: string) => void;
+  seoSaved: string;
+  onSave: () => void;
+}
+
+function AdminSeoPanel({
+  seoTitle, setSeoTitle, seoDescription, setSeoDescription,
+  seoThumbnailUrl, setSeoThumbnailUrl, seoUrl, setSeoUrl,
+  seoKeywords, setSeoKeywords, seoTwitterCard, setSeoTwitterCard,
+  seoTwitterHandle, setSeoTwitterHandle, seoAuthor, setSeoAuthor,
+  seoRobots, setSeoRobots, seoJsonLd, setSeoJsonLd,
+  seoSaved, onSave,
+}: AdminSeoPanelProps) {
+
+  const [preview, setPreview] = useState<'whatsapp' | 'twitter' | 'google' | 'facebook'>('whatsapp');
+  const ogDomain = (() => { try { return new URL(seoUrl).hostname; } catch { return 'seshaa.africa'; } })();
+
+  const Section = ({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) => (
+    <div className="bg-gray-900 rounded-2xl border border-gray-800 p-5 space-y-4">
+      <h3 className="font-bold text-white flex items-center gap-2 text-sm">{icon} {title}</h3>
+      {children}
+    </div>
+  );
+
+  const Field = ({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) => (
+    <label className="block text-xs text-gray-400">
+      {label}
+      {hint && <span className="text-gray-600 ml-1">— {hint}</span>}
+      <div className="mt-1">{children}</div>
+    </label>
+  );
+
+  const Input = (props: React.InputHTMLAttributes<HTMLInputElement>) => (
+    <input {...props} className="w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-sm text-gray-100 focus:border-green-500 outline-none transition-colors" />
+  );
+  const Textarea = (props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) => (
+    <textarea {...props} className="w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-sm text-gray-100 focus:border-green-500 outline-none resize-y transition-colors" />
+  );
+
+  return (
+    <div className="space-y-6 max-w-4xl">
+
+      {/* ── Header ── */}
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h2 className="text-xl font-black text-white flex items-center gap-2">
+            <Search size={20} className="text-green-400" /> SEO & Social Sharing
+          </h2>
+          <p className="text-sm text-gray-500 mt-1">
+            Control how Seshaa appears in Google, WhatsApp previews, X/Twitter cards, and Facebook Open Graph.
+          </p>
+        </div>
+        <a href="https://seshaa.africa" target="_blank" rel="noopener noreferrer"
+          className="flex items-center gap-1.5 text-xs text-green-400 hover:text-green-300">
+          <ExternalLink size={13} /> Live site
+        </a>
+      </div>
+
+      {/* ── Primary content ── */}
+      <Section title="Page Title & Description" icon={<Tag size={15} className="text-indigo-400" />}>
+        <Field label="Site title" hint="shown in browser tab + Google result headline">
+          <Input value={seoTitle} onChange={e => setSeoTitle(e.target.value)}
+            placeholder="Seshaa — Africa's Directory. Seshaa and you will find." />
+          <p className="text-[10px] text-gray-600 mt-1">{seoTitle.length}/200 chars — keep under 60 for Google</p>
+        </Field>
+        <Field label="Meta description" hint="snippet shown in Google & social previews">
+          <Textarea rows={3} value={seoDescription} onChange={e => setSeoDescription(e.target.value)}
+            placeholder="Find any business, person or service across all 54 African countries…" />
+          <p className={`text-[10px] mt-1 ${seoDescription.length > 160 ? 'text-yellow-500' : 'text-gray-600'}`}>
+            {seoDescription.length}/500 chars — ideal 120–160 for Google
+          </p>
+        </Field>
+        <Field label="Keywords" hint="comma-separated (for search engines & internal search)">
+          <Input value={seoKeywords} onChange={e => setSeoKeywords(e.target.value)}
+            placeholder="Africa directory, business directory Africa, seshaa..." />
+        </Field>
+        <Field label="Author">
+          <Input value={seoAuthor} onChange={e => setSeoAuthor(e.target.value)} placeholder="Seshaa Africa" />
+        </Field>
+      </Section>
+
+      {/* ── OG Image & URL ── */}
+      <Section title="Thumbnail Image & URL" icon={<ImageIcon size={15} className="text-orange-400" />}>
+        <div className="grid sm:grid-cols-2 gap-4">
+          <Field label="OG image URL" hint="1200×630 recommended">
+            <Input value={seoThumbnailUrl} onChange={e => setSeoThumbnailUrl(e.target.value)}
+              placeholder="https://seshaa.africa/og-image.svg" />
+            <div className="flex gap-2 mt-1.5 flex-wrap">
+              {[
+                { label: '🖼️ Default', url: 'https://seshaa.africa/og-image.svg' },
+              ].map(p => (
+                <button key={p.url} onClick={() => setSeoThumbnailUrl(p.url)}
+                  className="text-[10px] px-2 py-1 rounded-full bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700">
+                  {p.label}
+                </button>
+              ))}
+            </div>
+          </Field>
+          <Field label="Canonical URL">
+            <Input value={seoUrl} onChange={e => setSeoUrl(e.target.value)} placeholder="https://seshaa.africa" />
+            <p className="text-[10px] text-gray-600 mt-1">Without trailing slash</p>
+          </Field>
+        </div>
+        {seoThumbnailUrl && (
+          <div className="rounded-2xl border border-gray-800 overflow-hidden bg-black">
+            <img src={seoThumbnailUrl} alt="OG preview" className="w-full max-h-52 object-cover" />
+          </div>
+        )}
+      </Section>
+
+      {/* ── Twitter / X ── */}
+      <Section title="Twitter / X Settings" icon={<Twitter size={15} className="text-sky-400" />}>
+        <div className="grid sm:grid-cols-2 gap-4">
+          <Field label="Card type">
+            <div className="flex gap-2 mt-1">
+              {(['summary', 'summary_large_image'] as const).map(c => (
+                <button key={c} onClick={() => setSeoTwitterCard(c)}
+                  className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-colors ${
+                    seoTwitterCard === c ? 'bg-sky-600 border-sky-500 text-white' : 'bg-gray-950 border-gray-700 text-gray-400 hover:border-gray-600'
+                  }`}>
+                  {c === 'summary' ? '📄 Summary (small)' : '🖼️ Large image'}
+                </button>
+              ))}
+            </div>
+          </Field>
+          <Field label="Twitter handle" hint="with @">
+            <Input value={seoTwitterHandle} onChange={e => setSeoTwitterHandle(e.target.value)} placeholder="@SeshaaAfrica" />
+          </Field>
+        </div>
+      </Section>
+
+      {/* ── Robots ── */}
+      <Section title="Search Engine Indexing" icon={<Globe size={15} className="text-green-400" />}>
+        <Field label="Robots meta" hint="controls whether Google indexes and follows links">
+          <div className="flex gap-2 flex-wrap mt-1">
+            {['index,follow', 'noindex,nofollow', 'index,nofollow', 'noindex,follow'].map(r => (
+              <button key={r} onClick={() => setSeoRobots(r)}
+                className={`px-3 py-1.5 rounded-full text-xs font-mono border transition-colors ${
+                  seoRobots === r ? 'bg-green-700 border-green-600 text-white' : 'bg-gray-950 border-gray-700 text-gray-400 hover:border-gray-500'
+                }`}>
+                {r}
+              </button>
+            ))}
+          </div>
+          <Input className="mt-2" value={seoRobots} onChange={e => setSeoRobots(e.target.value)} placeholder="index,follow" />
+        </Field>
+      </Section>
+
+      {/* ── JSON-LD ── */}
+      <Section title="Schema.org JSON-LD" icon={<FileCode size={15} className="text-yellow-400" />}>
+        <p className="text-xs text-gray-500">Structured data helps Google show rich results (sitelinks searchbox, business info). Paste valid JSON-LD here.</p>
+        <Field label="JSON-LD" hint="must be valid JSON">
+          <Textarea rows={8} value={seoJsonLd} onChange={e => setSeoJsonLd(e.target.value)}
+            placeholder={'{\n  "@context": "https://schema.org",\n  "@type": "WebSite",\n  ...\n}'} />
+        </Field>
+        <button onClick={() => {
+          setSeoJsonLd(JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'WebSite',
+            name: 'Seshaa Africa',
+            url: seoUrl || 'https://seshaa.africa',
+            description: seoDescription,
+            potentialAction: {
+              '@type': 'SearchAction',
+              target: `${seoUrl || 'https://seshaa.africa'}/search?q={search_term_string}`,
+              'query-input': 'required name=search_term_string',
+            },
+          }, null, 2));
+        }} className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-white">
+          <RotateCcw size={12} /> Reset to Seshaa default schema
+        </button>
+      </Section>
+
+      {/* ── Social preview simulator ── */}
+      <Section title="Social Share Preview" icon={<Eye size={15} className="text-pink-400" />}>
+        <p className="text-xs text-gray-500">Approximate preview of how this page appears when shared on each platform.</p>
+        <div className="flex gap-1.5 flex-wrap">
+          {(['whatsapp','twitter','google','facebook'] as const).map(p => (
+            <button key={p} onClick={() => setPreview(p)}
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${
+                preview === p ? 'bg-gray-100 text-gray-900 border-gray-100' : 'bg-gray-950 border-gray-700 text-gray-400 hover:border-gray-500'
+              }`}>
+              {p === 'whatsapp' ? '💬 WhatsApp' : p === 'twitter' ? '🐦 X / Twitter' : p === 'google' ? '🔍 Google' : '👤 Facebook'}
+            </button>
+          ))}
+        </div>
+
+        {/* WhatsApp */}
+        {preview === 'whatsapp' && (
+          <div className="bg-[#111b21] rounded-2xl p-4 max-w-sm">
+            <div className="bg-[#202c33] rounded-xl overflow-hidden text-left">
+              {seoThumbnailUrl && (
+                <img src={seoThumbnailUrl} alt="" className="w-full h-36 object-cover" />
+              )}
+              <div className="p-3">
+                <p className="text-[#00a884] text-xs font-semibold truncate">{ogDomain}</p>
+                <p className="text-white text-sm font-bold line-clamp-2 mt-0.5">{seoTitle}</p>
+                <p className="text-[#8696a0] text-xs line-clamp-2 mt-0.5">{seoDescription}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Twitter */}
+        {preview === 'twitter' && (
+          <div className="bg-black rounded-2xl p-4 max-w-md border border-gray-800">
+            <div className="rounded-2xl overflow-hidden border border-gray-800">
+              {seoTwitterCard === 'summary_large_image' && seoThumbnailUrl && (
+                <img src={seoThumbnailUrl} alt="" className="w-full h-48 object-cover" />
+              )}
+              <div className="bg-black px-3 py-2.5">
+                <div className="flex items-start gap-2">
+                  {seoTwitterCard === 'summary' && seoThumbnailUrl && (
+                    <img src={seoThumbnailUrl} alt="" className="w-16 h-16 object-cover rounded-xl shrink-0" />
+                  )}
+                  <div className="min-w-0">
+                    <p className="text-white text-sm font-bold line-clamp-1">{seoTitle}</p>
+                    <p className="text-gray-500 text-xs line-clamp-2 mt-0.5">{seoDescription}</p>
+                    <p className="text-gray-600 text-xs mt-1 flex items-center gap-1"><Link size={10} /> {ogDomain}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Google */}
+        {preview === 'google' && (
+          <div className="bg-white rounded-2xl p-4 max-w-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-4 h-4 rounded-full bg-green-500" />
+              <div>
+                <p className="text-xs text-gray-800 font-medium leading-none">{ogDomain}</p>
+                <p className="text-[11px] text-gray-500 leading-none">{seoUrl}</p>
+              </div>
+            </div>
+            <p className="text-[#1a0dab] text-lg hover:underline cursor-pointer leading-snug">{seoTitle}</p>
+            <p className="text-gray-600 text-sm mt-1 line-clamp-2">{seoDescription}</p>
+          </div>
+        )}
+
+        {/* Facebook */}
+        {preview === 'facebook' && (
+          <div className="bg-[#1c1e21] rounded-2xl p-4 max-w-sm border border-gray-800">
+            <div className="rounded-xl overflow-hidden border border-gray-700">
+              {seoThumbnailUrl && (
+                <img src={seoThumbnailUrl} alt="" className="w-full h-44 object-cover" />
+              )}
+              <div className="bg-[#3a3b3c] px-3 py-2.5">
+                <p className="text-[#b0b3b8] text-[10px] uppercase tracking-wider">{ogDomain}</p>
+                <p className="text-white text-sm font-bold line-clamp-1 mt-0.5">{seoTitle}</p>
+                <p className="text-[#b0b3b8] text-xs line-clamp-2 mt-0.5">{seoDescription}</p>
+              </div>
+            </div>
+          </div>
+        )}
+      </Section>
+
+      {/* ── Save ── */}
+      <div className="flex items-center gap-4 sticky bottom-0 bg-gray-950 border-t border-gray-800 -mx-1 px-1 py-4 mt-4">
+        <button onClick={onSave}
+          className="px-6 py-2.5 bg-green-600 hover:bg-green-500 text-white text-sm font-bold rounded-xl transition-colors flex items-center gap-2">
+          <CheckCircle size={15} /> Save SEO Settings
+        </button>
+        {seoSaved && (
+          <span className={`text-sm ${seoSaved.startsWith('✓') ? 'text-green-400' : 'text-red-400'}`}>{seoSaved}</span>
+        )}
+        <a href="https://validator.w3.org/feed/" target="_blank" rel="noopener noreferrer"
+          className="ml-auto text-xs text-gray-600 hover:text-gray-400 flex items-center gap-1">
+          <ExternalLink size={11} /> Test rich results
+        </a>
+      </div>
     </div>
   );
 }

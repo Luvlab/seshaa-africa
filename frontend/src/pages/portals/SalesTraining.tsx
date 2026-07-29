@@ -49,7 +49,7 @@ const MODULES: Module[] = [
     lessons: [
       {
         id: 'intro-1',
-        title: 'Africa's Digital Directory',
+        title: "Africa's Digital Directory",
         emoji: '🗺️',
         content: (
           <div className="space-y-4">

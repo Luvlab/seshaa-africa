@@ -31,8 +31,10 @@ import MobileTabBar from './components/layout/MobileTabBar';
 // ChatFAB removed — chat lives at /messages
 import Footer, { initFontSize } from './components/layout/Footer';
 import { useThemeStore } from './store/theme';
+import { useSeoStore } from './store/seo';
+import SeoHead from './components/SeoHead';
 import InterestSurvey from './components/ads/InterestSurvey';
-import { adminApi } from './services/api';
+
 
 // Primary tabs — loaded eagerly once, kept alive in the background
 import HomePage from './pages/HomePage';
@@ -203,17 +205,8 @@ function TabContainer() {
 // ── Root app ─────────────────────────────────────────────────────────────────
 export default function App() {
   const { detectFromIP, applyTheme, countryCode, loadThemeOverrides } = useThemeStore();
+  const loadSeo = useSeoStore(s => s.load);
   const [showSurvey, setShowSurvey] = useState(false);
-
-  const upsertMeta = (selector: string, attr: 'name' | 'property', key: string, content: string) => {
-    let el = document.head.querySelector(selector) as HTMLMetaElement | null;
-    if (!el) {
-      el = document.createElement('meta');
-      el.setAttribute(attr, key);
-      document.head.appendChild(el);
-    }
-    el.setAttribute('content', content);
-  };
 
   useEffect(() => {
     initFontSize(); // restore user's saved text-size preference
@@ -282,38 +275,21 @@ export default function App() {
     const langDir = LANGUAGES.find(l => l.code === storedLang)?.dir || 'ltr';
     document.documentElement.dir = langDir;
     loadThemeOverrides().catch(() => {});
-    applyTheme(countryCode);
+    applyTheme(''); // always start at Africa — detectFromIP will set the real geo country
     detectFromIP();
+    loadSeo();          // fetch SEO config → SeoHead picks it up reactively
     // Show personalisation survey only for brand-new signups (flag set by AuthPage after register)
     if (sessionStorage.getItem('seshaa-new-signup')) {
       sessionStorage.removeItem('seshaa-new-signup');
       setShowSurvey(true);
     }
-
-    adminApi.getPublicSeoSettings().then(r => {
-      const title = r.data?.title || 'Seshaa Africa — Directory for All 54 Countries';
-      const description = r.data?.description || 'Find businesses, services, and people across all 54 African countries on Seshaa.';
-      const image = r.data?.thumbnailUrl || 'https://www.seshaa.africa/og-image.svg';
-      const url = r.data?.url || 'https://www.seshaa.africa';
-
-      document.title = title;
-      upsertMeta('meta[name="description"]', 'name', 'description', description);
-
-      upsertMeta('meta[property="og:title"]', 'property', 'og:title', title);
-      upsertMeta('meta[property="og:description"]', 'property', 'og:description', description);
-      upsertMeta('meta[property="og:image"]', 'property', 'og:image', image);
-      upsertMeta('meta[property="og:url"]', 'property', 'og:url', url);
-
-      upsertMeta('meta[name="twitter:title"]', 'name', 'twitter:title', title);
-      upsertMeta('meta[name="twitter:description"]', 'name', 'twitter:description', description);
-      upsertMeta('meta[name="twitter:image"]', 'name', 'twitter:image', image);
-    }).catch(() => {});
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <ErrorBoundary>
       <BrowserRouter>
         <ScrollToTop />
+        <SeoHead />
         <div className="min-h-screen flex flex-col bg-gray-50">
           <Navbar />
           <main className="flex-1 pt-14 md:pt-[92px]" style={{ paddingBottom: 'calc(4rem + var(--player-bar-h, 0px))' }}>

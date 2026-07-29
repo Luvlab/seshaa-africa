@@ -13,11 +13,12 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Car, Package, Truck, MapPin, ArrowRight, Clock, CheckCircle,
-  AlertCircle, Star, Shield, Plus, ChevronDown, Navigation,
+  AlertCircle, Star, Shield, Plus, ChevronDown, Navigation, BookOpen,
 } from 'lucide-react';
 import { useAuthStore } from '../store/auth';
 import api from '../services/api';
 import SeshaaTitle from '../components/brand/SeshaaTitle';
+import DriverTraining, { DriverTrainingBanner } from './DriverTraining';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type ServiceType = 'RIDE' | 'DELIVERY' | 'TRANSPORT';
@@ -365,16 +366,18 @@ interface Props { defaultType?: ServiceType }
 
 export default function RidePage({ defaultType = 'RIDE' }: Props) {
   const { t } = useTranslation();
+  const { user } = useAuthStore();
   const [serviceType, setServiceType] = useState<ServiceType>(defaultType);
-  const [section, setSection]         = useState<'book' | 'my' | 'drivers' | 'register'>('book');
+  const [section, setSection]         = useState<'book' | 'my' | 'drivers' | 'training'>('book');
   const [refreshKey, setRefreshKey]   = useState(0);
   const [showDriverReg, setShowDriverReg] = useState(false);
   const meta = TYPE_META[serviceType];
 
   const SECTIONS = [
-    { id: 'book' as const,    label: t('ride.tabs.book'),        icon: <Plus size={13} /> },
-    { id: 'my' as const,      label: t('ride.tabs.myRides'),     icon: <Clock size={13} /> },
-    { id: 'drivers' as const, label: t('ride.tabs.drivers'),     icon: <Car size={13} /> },
+    { id: 'book' as const,     label: t('ride.tabs.book'),    icon: <Plus size={13} /> },
+    { id: 'my' as const,       label: t('ride.tabs.myRides'), icon: <Clock size={13} /> },
+    { id: 'drivers' as const,  label: t('ride.tabs.drivers'), icon: <Car size={13} /> },
+    { id: 'training' as const, label: 'Training',             icon: <BookOpen size={13} /> },
   ];
 
   return (
@@ -421,6 +424,13 @@ export default function RidePage({ defaultType = 'RIDE' }: Props) {
       {section === 'my' && <MyRides type={serviceType} refresh={refreshKey} />}
       {section === 'drivers' && (
         <div className="space-y-4">
+          {user && (
+            <DriverTrainingBanner
+              userId={user.id}
+              userName={user.name}
+              onStart={() => setSection('training')}
+            />
+          )}
           <DriversPanel type={serviceType} />
           <button onClick={() => setShowDriverReg(v => !v)}
             className="w-full flex items-center justify-between px-4 py-3 bg-white border rounded-xl hover:bg-gray-50 transition-colors">
@@ -428,6 +438,20 @@ export default function RidePage({ defaultType = 'RIDE' }: Props) {
             <ChevronDown size={16} className={`text-gray-400 transition-transform ${showDriverReg ? 'rotate-180' : ''}`} />
           </button>
           {showDriverReg && <DriverRegForm />}
+        </div>
+      )}
+      {section === 'training' && user && (
+        <DriverTraining
+          userId={user.id}
+          userName={user.name}
+          serviceFilter={serviceType}
+          onClose={() => setSection('drivers')}
+        />
+      )}
+      {section === 'training' && !user && (
+        <div className="bg-white rounded-2xl border p-6 text-center">
+          <p className="text-gray-600 mb-4">Sign in to access driver training.</p>
+          <a href="/auth" className="px-5 py-2.5 rounded-xl text-white font-semibold text-sm" style={{ backgroundColor: 'var(--cp,#008751)' }}>Sign In</a>
         </div>
       )}
 
