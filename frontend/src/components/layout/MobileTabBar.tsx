@@ -81,19 +81,19 @@ export default function MobileTabBar() {
               key={tab.path}
               to={dest}
               onClick={dismissAll}
-              className="min-w-0 flex-1 flex flex-col items-center justify-center px-1 py-2.5 gap-1 transition-colors active:scale-95 rounded-lg"
+              className="min-w-0 flex-1 flex flex-col items-center justify-center px-1 py-3 gap-1.5 transition-colors active:scale-95 rounded-xl"
               style={{
                 color: isActive ? colors.active : colors.inactive,
                 backgroundColor: isActive ? colors.activeBg : 'transparent',
               }}
             >
               <Icon
-                size={24}
+                size={26}
                 strokeWidth={isActive ? 2 : 1.5}
-                className={clsx('transition-transform', isActive && 'scale-110')}
+                className={clsx('transition-transform', isActive && 'scale-105')}
               />
               <span className={clsx(
-                'max-w-full truncate text-[10px] leading-none',
+                'max-w-full truncate text-[10px] leading-none tracking-wide',
                 isActive ? 'font-bold' : 'font-medium',
               )}>
                 {t(tab.tKey)}

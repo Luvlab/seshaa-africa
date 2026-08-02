@@ -137,9 +137,9 @@ export default function SearchPage() {
   return (
     <div className="w-full max-w-full overflow-x-hidden px-4 sm:px-6 lg:px-10 py-4">
       {/* Search bar */}
-      <div className="flex gap-2 mb-3">
-        <div className="flex-1 flex items-center gap-2 bg-white rounded-xl border px-4 py-2.5 shadow-sm min-w-0">
-          {aiMode ? <Sparkles size={16} className="text-purple-500 shrink-0" /> : <Search size={16} className="text-gray-400 shrink-0" />}
+      <div className="flex gap-2 mb-4">
+        <div className="flex-1 flex items-center gap-2 bg-white rounded-2xl border border-gray-200 px-4 py-3 shadow-sm min-w-0">
+          {aiMode ? <Sparkles size={17} className="text-theme shrink-0" /> : <Search size={17} className="text-gray-400 shrink-0" />}
           <input
             className="flex-1 min-w-0 outline-none text-sm text-gray-800 placeholder-gray-400"
             placeholder={t('search.placeholder')}
@@ -148,39 +148,39 @@ export default function SearchPage() {
             onKeyDown={e => e.key === 'Enter' && update({ q: filters.q })}
           />
           {filters.q && (
-            <button onClick={() => update({ q: '' })} className="shrink-0">
-              <X size={14} className="text-gray-400" />
+            <button onClick={() => update({ q: '' })} className="shrink-0 p-1">
+              <X size={15} className="text-gray-400" />
             </button>
           )}
         </div>
         <button
-          className="shrink-0 px-5 rounded-xl font-semibold text-sm text-white hover:opacity-90"
+          className="shrink-0 px-5 rounded-2xl font-bold text-sm text-white hover:opacity-90 min-h-[48px]"
           style={{ background: 'var(--cp, #008751)' }}
           onClick={() => update({ q: filters.q })}
         >
           {t('search.findBtn', { defaultValue: 'Find' })}
         </button>
         <button
-          className="shrink-0 bg-white border px-3 rounded-xl hover:bg-gray-50"
+          className="shrink-0 bg-white border border-gray-200 px-3.5 rounded-2xl hover:bg-gray-50 min-h-[48px]"
           onClick={() => setShowFilters(v => !v)}
           title="More filters"
         >
-          <SlidersHorizontal size={16} />
+          <SlidersHorizontal size={17} className="text-gray-500" />
         </button>
       </div>
 
-      {/* Category pills + actions row */}
-      <div className="flex items-center gap-2 mb-3">
+      {/* Category pills */}
+      <div className="flex items-center gap-2 mb-4">
         <div className="flex-1 min-w-0 flex gap-2 overflow-x-auto pb-1 scrollbar-none">
           <button
             onClick={() => update({ category: '' })}
             className={clsx(
-              'shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors',
+              'shrink-0 px-4 py-2 rounded-full text-xs font-bold border transition-colors',
               !filters.category
                 ? 'text-white border-transparent'
                 : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
             )}
-            style={!filters.category ? { background: 'var(--cp, #008751)' } : {}}
+            style={!filters.category ? { background: 'var(--cp)' } : {}}
           >
             {t('search.all')}
           </button>
@@ -191,12 +191,12 @@ export default function SearchPage() {
                 key={cat}
                 onClick={() => update({ category: cat })}
                 className={clsx(
-                  'shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors',
+                  'shrink-0 px-4 py-2 rounded-full text-xs font-bold border transition-colors',
                   active
                     ? 'text-white border-transparent'
                     : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                 )}
-                style={active ? { background: 'var(--cp, #008751)' } : {}}
+                style={active ? { background: 'var(--cp)' } : {}}
               >
                 {t(`categories.${cat}`)}
               </button>
@@ -224,22 +224,22 @@ export default function SearchPage() {
 
       {/* Filters */}
       {showFilters && (
-        <div className="bg-white rounded-xl border p-4 mb-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="bg-white rounded-2xl border border-gray-200 p-4 mb-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
           <div>
-            <label className="text-xs text-gray-500 font-medium">{t('search.country')}</label>
-            <input className="w-full border rounded-lg px-3 py-2 text-sm mt-1" value={filters.country} onChange={e => update({ country: e.target.value })} placeholder="e.g. Nigeria" />
+            <label className="text-xs text-gray-500 font-semibold">{t('search.country')}</label>
+            <input className="w-full border border-gray-200 rounded-xl px-3 py-3 text-sm mt-1.5" value={filters.country} onChange={e => update({ country: e.target.value })} placeholder="e.g. Nigeria" />
           </div>
           <div>
-            <label className="text-xs text-gray-500 font-medium">{t('search.city')}</label>
-            <input className="w-full border rounded-lg px-3 py-2 text-sm mt-1" value={filters.city} onChange={e => update({ city: e.target.value })} placeholder="e.g. Lagos" />
+            <label className="text-xs text-gray-500 font-semibold">{t('search.city')}</label>
+            <input className="w-full border border-gray-200 rounded-xl px-3 py-3 text-sm mt-1.5" value={filters.city} onChange={e => update({ city: e.target.value })} placeholder="e.g. Lagos" />
           </div>
           <div>
-            <label className="text-xs text-gray-500 font-medium">{t('search.category')}</label>
-            <input className="w-full border rounded-lg px-3 py-2 text-sm mt-1" value={filters.category} onChange={e => update({ category: e.target.value })} placeholder="e.g. health" />
+            <label className="text-xs text-gray-500 font-semibold">{t('search.category')}</label>
+            <input className="w-full border border-gray-200 rounded-xl px-3 py-3 text-sm mt-1.5" value={filters.category} onChange={e => update({ category: e.target.value })} placeholder="e.g. health" />
           </div>
           <div>
-            <label className="text-xs text-gray-500 font-medium">{t('search.type')}</label>
-            <select className="w-full border rounded-lg px-3 py-2 text-sm mt-1" value={filters.type || ''} onChange={e => update({ type: (e.target.value as SearchFilters['type']) || undefined })}>
+            <label className="text-xs text-gray-500 font-semibold">{t('search.type')}</label>
+            <select className="w-full border border-gray-200 rounded-xl px-3 py-3 text-sm mt-1.5" value={filters.type || ''} onChange={e => update({ type: (e.target.value as SearchFilters['type']) || undefined })}>
               <option value="">{t('search.all')}</option>
               {TYPES.map(t => <option key={t} value={t}>{t}</option>)}
             </select>

@@ -9,16 +9,16 @@ import BookingModal from './BookingModal';
 import FavoriteButton from '../ui/FavoriteButton';
 
 const TYPE_COLORS = {
-  PERSONAL: 'bg-blue-100 text-blue-700',
-  BUSINESS: 'bg-green-100 text-green-700',
-  GOVERNMENT: 'bg-gray-100 text-gray-700',
-  NGO: 'bg-orange-100 text-orange-700',
+  PERSONAL:   'bg-[color:var(--cp-light)] text-[color:var(--cp)]',
+  BUSINESS:   'bg-[color:var(--cp-light)] text-[color:var(--cp)]',
+  GOVERNMENT: 'bg-gray-100 text-gray-600',
+  NGO:        'bg-[color:var(--cp-light)] text-[color:var(--cp)]',
 };
 
 const CERT_COLORS = {
-  STANDARD: 'bg-yellow-50 text-yellow-700 border-yellow-200',
-  GOLD: 'bg-amber-50 text-amber-700 border-amber-300',
-  PLATINUM: 'bg-purple-50 text-purple-700 border-purple-200',
+  STANDARD: 'bg-[color:var(--cp-light)] text-[color:var(--cp)] border-[color:var(--cp)]/30',
+  GOLD:     'bg-[color:var(--cp-light)] text-[color:var(--cp)] border-[color:var(--cp)]/40',
+  PLATINUM: 'bg-[color:var(--cp-light)] text-[color:var(--cp)] border-[color:var(--cp)]/40',
 };
 
 interface Props {
@@ -37,8 +37,8 @@ export default function ListingCard({ listing, compact }: Props) {
     <>
       <div
         className={clsx(
-          'relative bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-md hover:border-opacity-60 transition-all',
-          compact ? 'p-3' : 'p-4',
+          'relative bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-all',
+          compact ? 'p-3' : 'p-4 sm:p-5',
           listing.isPro && 'border-l-4',
           certLevel === 'PLATINUM' ? 'border-l-purple-400' :
           certLevel === 'GOLD' ? 'border-l-amber-400' :
@@ -74,7 +74,7 @@ export default function ListingCard({ listing, compact }: Props) {
                   {listing.name}
                 </h3>
                 {listing.verified && (
-                  <BadgeCheck size={15} className="text-blue-500 shrink-0" />
+                  <BadgeCheck size={15} className="text-theme shrink-0" />
                 )}
                 {certLevel && (
                   <span className={clsx('text-[10px] font-bold px-1.5 py-0.5 rounded border', CERT_COLORS[certLevel])}>
@@ -82,7 +82,7 @@ export default function ListingCard({ listing, compact }: Props) {
                   </span>
                 )}
                 {topAward && (
-                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200 flex items-center gap-0.5">
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[color:var(--cp-light)] text-[color:var(--cp)] border border-[color:var(--cp)]/30 flex items-center gap-0.5">
                     <Award size={9} /> {topAward.year} Award
                   </span>
                 )}
@@ -97,7 +97,7 @@ export default function ListingCard({ listing, compact }: Props) {
                   <span className="text-xs text-gray-500">{listing.category}</span>
                 )}
                 {listing.bookable && (
-                  <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-blue-50 text-blue-600 flex items-center gap-1">
+                  <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-[color:var(--cp-light)] text-[color:var(--cp)] flex items-center gap-1">
                     <Calendar size={9} /> Bookable
                   </span>
                 )}
@@ -114,23 +114,23 @@ export default function ListingCard({ listing, compact }: Props) {
                 <div className="mt-2 space-y-1">
                   {listing.phone && (
                     <div className="flex items-start gap-1.5 text-sm text-gray-600">
-                      <Phone size={13} className="text-green-500 shrink-0 mt-0.5" />
-                      <a href={`tel:${listing.phone}`} className="hover:underline break-all min-w-0" style={{ color: 'var(--cp)' }} onClick={e => e.stopPropagation()}>
+                      <Phone size={13} className="text-theme shrink-0 mt-0.5" />
+                      <a href={`tel:${listing.phone}`} className="hover:underline break-all min-w-0 text-theme" onClick={e => e.stopPropagation()}>
                         {listing.phone}
                       </a>
                     </div>
                   )}
                   {(listing.address || listing.city) && (
                     <div className="flex items-start gap-1.5 text-sm text-gray-600">
-                      <MapPin size={13} className="text-red-400 shrink-0 mt-0.5" />
+                      <MapPin size={13} className="text-theme shrink-0 mt-0.5" />
                       <span className="break-words min-w-0">{[listing.address, listing.city, listing.country].filter(Boolean).join(', ')}</span>
                     </div>
                   )}
                   {listing.website && (
                     <div className="flex items-start gap-1.5 text-sm text-gray-600">
-                      <Globe size={13} className="text-blue-400 shrink-0 mt-0.5" />
+                      <Globe size={13} className="text-theme shrink-0 mt-0.5" />
                       <a href={listing.website} target="_blank" rel="noopener noreferrer"
-                        className="hover:underline text-blue-500 break-all min-w-0" onClick={e => e.stopPropagation()}>
+                        className="hover:underline text-theme break-all min-w-0" onClick={e => e.stopPropagation()}>
                         {listing.website.replace(/^https?:\/\/(www\.)?/, '')}
                       </a>
                     </div>
@@ -147,35 +147,39 @@ export default function ListingCard({ listing, compact }: Props) {
 
             {/* Quick actions */}
             {!compact && (
-              <div className="flex flex-col gap-1.5 shrink-0" onClick={e => e.stopPropagation()}>
+              <div className="flex flex-col gap-2 shrink-0" onClick={e => e.stopPropagation()}>
                 {listing.phone && (
                   <a href={`tel:${listing.phone}`}
-                    className="w-9 h-9 rounded-full bg-green-50 text-green-600 flex items-center justify-center hover:bg-green-100"
+                    className="action-btn w-11 h-11"
+                    style={{ backgroundColor: 'var(--cp-light)', color: 'var(--cp)' }}
                     title="Call now">
-                    <Phone size={15} />
+                    <Phone size={17} />
                   </a>
                 )}
                 {listing.whatsapp && (
                   <a href={`https://wa.me/${listing.whatsapp.replace(/\D/g, '')}`}
                     target="_blank" rel="noopener noreferrer"
-                    className="w-9 h-9 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center hover:bg-emerald-100"
+                    className="action-btn w-11 h-11"
+                    style={{ backgroundColor: 'var(--cp-light)', color: 'var(--cp)' }}
                     title="WhatsApp">
-                    <MessageCircle size={15} />
+                    <MessageCircle size={17} />
                   </a>
                 )}
                 {listing.website && (
                   <a href={listing.website} target="_blank" rel="noopener noreferrer"
-                    className="w-9 h-9 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-100"
+                    className="action-btn w-11 h-11"
+                    style={{ backgroundColor: 'var(--cp-light)', color: 'var(--cp)' }}
                     title="Website">
-                    <ExternalLink size={15} />
+                    <ExternalLink size={17} />
                   </a>
                 )}
                 {listing.isPro && (
                   <Link to={`/listing/${listing.id}`}
-                    className="w-9 h-9 rounded-full bg-yellow-50 text-yellow-600 flex items-center justify-center hover:bg-yellow-100"
+                    className="action-btn w-11 h-11"
+                    style={{ backgroundColor: 'var(--cp-light)', color: 'var(--cp)' }}
                     title="Seshaa Pro Verified"
                     onClick={e => e.stopPropagation()}>
-                    <Ribbon size={15} />
+                    <Ribbon size={17} />
                   </Link>
                 )}
               </div>
@@ -191,11 +195,11 @@ export default function ListingCard({ listing, compact }: Props) {
         {!compact && listing.bookable && listing.isPro && (
           <div className="mt-3 pt-3 border-t border-gray-100">
             <button
-              className="w-full py-2 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90"
+              className="w-full py-3 rounded-2xl text-sm font-bold text-white transition-opacity hover:opacity-90 flex items-center justify-center gap-2"
               style={{ backgroundColor: 'var(--cp)' }}
               onClick={() => setShowBooking(true)}
             >
-              <Calendar size={14} className="inline mr-1.5 -mt-0.5" />
+              <Calendar size={15} />
               Book Now
             </button>
           </div>

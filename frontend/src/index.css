@@ -206,6 +206,49 @@ svg.lucide {
   flex-shrink: 0;
 }
 
+/* ── Monochrome icons: override hardcoded colors → theme primary ─────────── */
+/* Targets only SVG Lucide icons, not text elements with the same class */
+svg.lucide.text-green-500, svg.lucide.text-green-600, svg.lucide.text-green-700,
+svg.lucide.text-emerald-500, svg.lucide.text-emerald-600,
+svg.lucide.text-blue-400, svg.lucide.text-blue-500, svg.lucide.text-blue-600,
+svg.lucide.text-indigo-400, svg.lucide.text-indigo-500,
+svg.lucide.text-red-400, svg.lucide.text-red-500,
+svg.lucide.text-orange-500, svg.lucide.text-orange-600,
+svg.lucide.text-yellow-500, svg.lucide.text-yellow-600,
+svg.lucide.text-purple-500, svg.lucide.text-purple-600,
+svg.lucide.text-rose-500, svg.lucide.text-rose-600,
+svg.lucide.text-amber-500, svg.lucide.text-amber-600 {
+  color: var(--cp) !important;
+}
+/* Icons on theme-colored or dark backgrounds stay white */
+[class*="bg-theme"] svg.lucide,
+.bg-gray-800 svg.lucide, .bg-gray-900 svg.lucide,
+[style*="background-color: var(--cp)"] svg.lucide {
+  color: inherit !important;
+}
+
+/* ── Touch-friendly: minimum tap targets for interactive elements ─────────── */
+.btn-touch {
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+/* All icon-only action buttons (round quick-action buttons) */
+a.action-btn, button.action-btn {
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: opacity 0.15s, background-color 0.15s;
+}
+a.action-btn:hover, button.action-btn:hover {
+  opacity: 0.85;
+}
+
 /* ── Contrast helpers for themed buttons/badges ─────────────────────────── */
 /* When a background is the theme primary, force white or dark text */
 [class*="bg-theme"]:not(.bg-theme-light) {

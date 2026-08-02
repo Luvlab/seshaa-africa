@@ -113,11 +113,12 @@ function normalizeMediaType(raw: string | undefined, source: string): 'youtube' 
 }
 
 
+// All categories now use the theme primary color (monochrome / country-themed)
 const CATEGORY_COLORS: Record<string, string> = {
-  restaurant: '#e67e22', health: '#e74c3c', education: '#3498db',
-  finance: '#27ae60', transport: '#9b59b6', hotel: '#1abc9c',
-  tech: '#2980b9', beauty: '#e91e8c', auto: '#7f8c8d',
-  agriculture: '#f39c12', church: '#8e44ad', construction: '#d35400',
+  restaurant: 'var(--cp)', health: 'var(--cp)', education: 'var(--cp)',
+  finance: 'var(--cp)', transport: 'var(--cp)', hotel: 'var(--cp)',
+  tech: 'var(--cp)', beauty: 'var(--cp)', auto: 'var(--cp)',
+  agriculture: 'var(--cp)', church: 'var(--cp)', construction: 'var(--cp)',
 };
 
 const CATEGORY_ICONS: Record<string, React.ReactNode> = {
@@ -381,17 +382,17 @@ export default function HomePage() {
 
       {/* ── CATEGORIES — full viewport width ── */}
       <div className="w-full px-4 sm:px-6 lg:px-10 py-6">
-        <h2 className="text-xl font-black text-gray-800 mb-3">📂 {t('home.browseCategory')}</h2>
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-6 xl:grid-cols-12 gap-3">
+        <h2 className="text-xl font-black text-gray-800 mb-4">{t('home.browseCategory')}</h2>
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 xl:grid-cols-12 gap-3">
           {CATEGORY_KEYS.map(key => (
             <button key={key}
-              className="flex flex-col items-center gap-2 py-4 px-2 bg-white rounded-2xl border border-gray-100 hover:shadow-lg active:scale-95 transition-all group"
+              className="flex flex-col items-center gap-2.5 py-5 px-2 bg-white rounded-2xl border border-gray-100 hover:shadow-md active:scale-95 transition-all group"
               onClick={() => navigate(`/search?category=${key}${countryCode ? `&country=${encodeURIComponent(countryCode)}` : ''}`)}>
-              <div className="w-14 h-14 sm:w-[72px] sm:h-[72px] rounded-2xl flex items-center justify-center shadow-md group-hover:scale-105 transition-transform"
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center group-hover:opacity-90 transition-opacity"
                 style={{ backgroundColor: CATEGORY_COLORS[key] }}>
-                <span className="text-white [&>svg]:w-8 [&>svg]:h-8 sm:[&>svg]:w-11 sm:[&>svg]:h-11">{CATEGORY_ICONS[key]}</span>
+                <span className="text-white [&>svg]:w-7 [&>svg]:h-7 sm:[&>svg]:w-9 sm:[&>svg]:h-9">{CATEGORY_ICONS[key]}</span>
               </div>
-              <span className="text-xs sm:text-sm font-bold text-gray-700 text-center leading-tight">
+              <span className="text-[11px] sm:text-xs font-bold text-gray-700 text-center leading-tight">
                 {t(`categories.${key}`)}
               </span>
             </button>

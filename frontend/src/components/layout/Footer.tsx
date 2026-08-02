@@ -116,7 +116,8 @@ export default function Footer() {
               value={fontSize}
               onChange={e => handleFontSize(Number(e.target.value))}
               aria-label="Adjust text size for accessibility"
-              className="flex-1 accent-green-500 h-1.5 cursor-pointer"
+              className="flex-1 h-1.5 cursor-pointer"
+              style={{ accentColor: 'var(--cp)' }}
               style={{ minWidth: 80, maxWidth: 220 }}
             />
             <span className="text-xs text-gray-500 tabular-nums w-10 shrink-0">
