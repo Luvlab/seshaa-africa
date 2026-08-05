@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { useCountriesStore } from './countries';
 
 export interface CountryTheme {
   primary: string;
@@ -165,7 +166,6 @@ export const useThemeStore = create<ThemeState>()(
           const data = await r.json() as { countryCode: string; suggestedLang?: string };
           // Only apply country theme if that country is active; else stay on Africa default
           if (data.countryCode) {
-            const { useCountriesStore } = await import('./countries');
             const active = useCountriesStore.getState().activeCountries;
             if (active.length === 0 || active.includes(data.countryCode)) {
               get().applyTheme(data.countryCode);
