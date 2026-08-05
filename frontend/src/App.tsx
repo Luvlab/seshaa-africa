@@ -205,7 +205,7 @@ function TabContainer() {
 
 // ── Root app ─────────────────────────────────────────────────────────────────
 export default function App() {
-  const { detectFromIP, applyTheme, countryCode, loadThemeOverrides } = useThemeStore();
+  const { detectFromIP, applyTheme, loadThemeOverrides } = useThemeStore();
   const loadSeo = useSeoStore(s => s.load);
   const loadCountries = useCountriesStore(s => s.load);
   const [showSurvey, setShowSurvey] = useState(false);

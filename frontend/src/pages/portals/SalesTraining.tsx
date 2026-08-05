@@ -3,12 +3,12 @@
  * Modules with slide-through lessons, objection cards, and scripts.
  * Progress persisted in localStorage per user.
  */
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
-  BookOpen, ChevronRight, ChevronLeft, CheckCircle, Lock,
-  Zap, DollarSign, MessageCircle, Target, Shield, Star,
-  TrendingUp, Users, Globe, Phone, Award, Lightbulb,
-  BarChart2, X, ArrowRight,
+  ChevronRight, ChevronLeft, CheckCircle, Lock,
+  DollarSign, Target, Star,
+  TrendingUp, Globe, Award, Lightbulb,
+  X, ArrowRight,
 } from 'lucide-react';
 
 // ─── Progress helpers ─────────────────────────────────────────────────────────

@@ -5,9 +5,8 @@
 import { useState } from 'react';
 import {
   ChevronRight, ChevronLeft, CheckCircle, Lock,
-  Star, Shield, DollarSign, Phone, MessageCircle,
-  Package, Truck, Car, Navigation, Clock, AlertCircle,
-  ThumbsUp, MapPin, Zap, X, ArrowRight, BookOpen,
+  Star, Shield, DollarSign, Clock,
+  X, ArrowRight,
 } from 'lucide-react';
 
 // ─── Progress helpers ─────────────────────────────────────────────────────────

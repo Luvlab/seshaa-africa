@@ -7,7 +7,7 @@ import {
   AlertTriangle, Tv, Database, Paintbrush, RefreshCw, Briefcase, BarChart2,
   Zap, ArrowUpRight, Plus, Edit2, Trash2, Eye, EyeOff, Play,
   CreditCard, Phone, Mail, Info, Lightbulb, Bug, ChevronUp,
-  Clock, CheckCheck, XCircle, AlertCircle, Search, Link, Twitter, Image as ImageIcon,
+  AlertCircle, Search, Link, Share2, Image as ImageIcon,
   FileCode, Tag, RotateCcw, ExternalLink,
 } from 'lucide-react';
 import { adminApi, adsApi, analyticsApi, feedbackApi } from '../../services/api';
@@ -4323,7 +4323,7 @@ function AdminSeoPanel({
       </Section>
 
       {/* ── Twitter / X ── */}
-      <Section title="Twitter / X Settings" icon={<Twitter size={15} className="text-sky-400" />}>
+      <Section title="Twitter / X Settings" icon={<Share2 size={15} className="text-sky-400" />}>
         <div className="grid sm:grid-cols-2 gap-4">
           <Field label="Card type">
             <div className="flex gap-2 mt-1">

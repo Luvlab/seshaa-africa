@@ -207,7 +207,7 @@ export default function HomePage() {
   const { activeCountries } = useCountriesStore();
   const [query, setQuery]         = useState('');
   const [aiMode, setAiMode]       = useState(false);
-  const [muted, setMuted]         = useState(true);
+  const [muted]                   = useState(true);
   const [slideIdx, setSlideIdx]   = useState(0);
   const [heroSlides, setHeroSlides] = useState<HeroSlide[]>(() => shuffle(FALLBACK_SLIDES));
   const searchBoxRef = useRef<HTMLDivElement>(null);
