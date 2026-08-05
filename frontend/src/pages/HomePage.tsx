@@ -211,6 +211,8 @@ export default function HomePage() {
   const [slideIdx, setSlideIdx]   = useState(0);
   const [heroSlides, setHeroSlides] = useState<HeroSlide[]>(() => shuffle(FALLBACK_SLIDES));
   const searchBoxRef = useRef<HTMLDivElement>(null);
+  const countriesScrollRef = useRef<HTMLDivElement>(null);
+  const ugandaRef = useRef<HTMLButtonElement>(null);
   const { isInstallable, install } = usePWAInstall();
 
   // Load live hero slides from DB; pass country so geo-targeted slides are filtered correctly
@@ -235,6 +237,26 @@ export default function HomePage() {
     const id = setTimeout(() => setSlideIdx(i => (i + 1) % len), ms);
     return () => clearTimeout(id);
   }, [heroSlides, slideIdx]);
+
+  // On mount: animate scroll from Algeria → Uganda (A to U)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const container = countriesScrollRef.current;
+      const ugandaEl  = ugandaRef.current;
+      if (!container || !ugandaEl) return;
+      const target = ugandaEl.offsetLeft - container.offsetWidth / 2 + ugandaEl.offsetWidth / 2;
+      const duration = 2800;
+      const startTime = performance.now();
+      function ease(t: number) { return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t; }
+      function step(now: number) {
+        const p = Math.min((now - startTime) / duration, 1);
+        container.scrollLeft = target * ease(p);
+        if (p < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }, 600);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleSearch = () => {
     if (!query.trim()) return;
@@ -295,6 +317,11 @@ export default function HomePage() {
               className="absolute inset-0 z-10 flex flex-col items-center justify-start pt-3 px-4 text-center text-white"
             >
               <div className="w-full">
+                {/* Slogan — always visible, no slide subtitles */}
+                <p className="text-white font-black drop-shadow-lg mb-3 tracking-tight"
+                  style={{ fontSize: 'clamp(1.1rem, 3.5vw, 2.4rem)', textShadow: '0 2px 12px rgba(0,0,0,0.5)' }}>
+                  {t('app.tagline')}
+                </p>
                 <div ref={searchBoxRef} className="bg-white/75 backdrop-blur-md rounded-2xl shadow-2xl overflow-hidden max-w-3xl mx-auto border border-white/60">
                   <div className="flex flex-col md:flex-row items-stretch">
                     <div className="flex items-center gap-2 px-4 py-1 flex-1">
@@ -386,29 +413,33 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* ── COUNTRIES — full viewport width ── */}
-      <div className="w-full px-4 sm:px-6 lg:px-10 pb-6">
-        <h2 className="text-xl font-black text-gray-800 mb-3">🌍 {t('home.browseCountry')}</h2>
-        <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-9 lg:grid-cols-11 gap-2 sm:gap-3">
-          {AFRICAN_COUNTRIES.map(c => {
+      {/* ── COUNTRIES — horizontal scroll, A→Z, auto-scrolls to Uganda on load ── */}
+      <div className="w-full pb-6">
+        <h2 className="text-xl font-black text-gray-800 mb-3 px-4 sm:px-6 lg:px-10">🌍 {t('home.browseCountry')}</h2>
+        <div
+          ref={countriesScrollRef}
+          className="flex gap-2 sm:gap-3 overflow-x-auto px-4 sm:px-6 lg:px-10 pb-2"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          {[...AFRICAN_COUNTRIES].sort((a, b) => a.name.localeCompare(b.name)).map(c => {
             const isActive = activeCountries.includes(c.code);
             return (
               <button
                 key={c.code}
-                className={`country-flag-btn flex flex-col items-center gap-1.5 py-3 px-1 bg-white rounded-2xl border border-gray-100 transition-all ${
+                ref={c.code === 'UG' ? ugandaRef : undefined}
+                className={`country-flag-btn flex-shrink-0 flex flex-col items-center gap-1 py-3 px-2 w-16 sm:w-20 bg-white rounded-2xl border-2 transition-all ${
                   isActive
-                    ? 'hover:border-gray-300 hover:shadow-md active:scale-95'
-                    : 'opacity-30 grayscale cursor-not-allowed pointer-events-none'
+                    ? 'border-[color:var(--cp)] shadow-md ring-2 ring-[color:var(--cp)] ring-offset-1'
+                    : 'border-gray-100 opacity-30 grayscale cursor-not-allowed pointer-events-none'
                 }`}
                 onClick={isActive ? () => navigate(`/search?country=${encodeURIComponent(c.name)}`) : undefined}
                 disabled={!isActive}>
-                <span className="flag-emoji text-4xl sm:text-5xl leading-none select-none">
+                <span className="flag-emoji text-3xl sm:text-4xl leading-none select-none">
                   {c.flag}
                 </span>
-                <span className="text-[11px] sm:text-xs font-semibold text-gray-900 text-center leading-tight w-full truncate px-0.5">
+                <span className="text-[10px] sm:text-[11px] font-semibold text-gray-900 text-center leading-tight w-full truncate px-0.5">
                   {t(`countries.${c.code}`, c.name)}
                 </span>
-                {!isActive && <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wide">Soon</span>}
+                {!isActive && <span className="text-[8px] text-gray-400 font-bold uppercase tracking-wide">Soon</span>}
               </button>
             );
           })}
