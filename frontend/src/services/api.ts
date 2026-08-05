@@ -247,6 +247,8 @@ export const adminApi = {
   savePodSettings: (data: { printifyApiKey?: string; printfulApiKey?: string }) => api.post('/admin/pod-settings', data),
   scrapePodServices: () => api.post('/admin/pod-services/scrape'),
   userAnalytics: () => api.get('/admin/user-analytics'),
+  getCountrySettings: () => api.get<{ activeCountries: string[] }>('/admin/country-settings'),
+  saveCountrySettings: (data: { activeCountries: string[] }) => api.post('/admin/country-settings', data),
 };
 
 // Community Translations

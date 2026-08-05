@@ -1126,4 +1126,39 @@ router.post('/pod-services/scrape', requireAuth, adminOnly, async (_req, res) =>
   res.json({ ok: true, services: scraped });
 });
 
+// ── Country Active/Inactive Settings ─────────────────────────────────────────
+const COUNTRY_SETTINGS_DEFAULT = { activeCountries: ['UG'] };
+
+function parseCountrySettings(raw: string | null | undefined): { activeCountries: string[] } {
+  if (!raw) return { ...COUNTRY_SETTINGS_DEFAULT };
+  try {
+    const p = JSON.parse(raw) as { activeCountries?: string[] };
+    return { activeCountries: Array.isArray(p.activeCountries) ? p.activeCountries : COUNTRY_SETTINGS_DEFAULT.activeCountries };
+  } catch { return { ...COUNTRY_SETTINGS_DEFAULT }; }
+}
+
+// GET /admin/country-settings — fetch active country list (admin auth)
+router.get('/country-settings', requireAuth, adminOnly, async (_req, res) => {
+  const record = await prisma.listing.findUnique({ where: { osmId: 'seshaa-country-config' } });
+  return res.json(parseCountrySettings(record?.description));
+});
+
+// POST /admin/country-settings — save active country list (admin auth)
+router.post('/country-settings', requireAuth, adminOnly, async (req, res) => {
+  const body = req.body as { activeCountries?: string[] };
+  const activeCountries = Array.isArray(body.activeCountries) ? body.activeCountries.map(String) : COUNTRY_SETTINGS_DEFAULT.activeCountries;
+  await prisma.listing.upsert({
+    where:  { osmId: 'seshaa-country-config' },
+    update: { name: 'Country Config', description: JSON.stringify({ activeCountries }), active: true, verified: true },
+    create: { name: 'Country Config', description: JSON.stringify({ activeCountries }), osmId: 'seshaa-country-config', country: 'ZZ', city: 'Global', type: 'BUSINESS', active: true, verified: true },
+  });
+  res.json({ ok: true, activeCountries });
+});
+
+// GET /admin/public/country-settings — public (no auth) — used by frontend
+router.get('/public/country-settings', async (_req, res) => {
+  const record = await prisma.listing.findUnique({ where: { osmId: 'seshaa-country-config' } });
+  return res.json(parseCountrySettings(record?.description));
+});
+
 export default router;

@@ -163,7 +163,15 @@ export const useThemeStore = create<ThemeState>()(
         try {
           const r = await fetch(`${BASE_URL}/geo/detect`);
           const data = await r.json() as { countryCode: string; suggestedLang?: string };
-          if (data.countryCode) get().applyTheme(data.countryCode);
+          // Only apply country theme if that country is active; else stay on Africa default
+          if (data.countryCode) {
+            const { useCountriesStore } = await import('./countries');
+            const active = useCountriesStore.getState().activeCountries;
+            if (active.length === 0 || active.includes(data.countryCode)) {
+              get().applyTheme(data.countryCode);
+            }
+            // else: stay at Africa theme (already applied in App.tsx)
+          }
 
           // Auto-set language only if the user has never explicitly picked one
           if (data.suggestedLang && !localStorage.getItem('seshaa-lang')) {

@@ -42,7 +42,7 @@ interface PendingListing {
 interface PendingPayout  { id: string; amount: number; method: string; ambassador: { user: { name: string; phone: string; country: string } } }
 interface LoanApp        { id: string; amount: number; purpose: string; status: string; createdAt: string; user: { name: string; phone: string; country: string } }
 
-type Tab = 'overview' | 'listings' | 'payouts' | 'loans' | 'finance' | 'adcms' | 'promote' | 'scraper' | 'branding' | 'salesreps' | 'analytics' | 'banking' | 'feedback' | 'seo';
+type Tab = 'overview' | 'listings' | 'payouts' | 'loans' | 'finance' | 'adcms' | 'promote' | 'scraper' | 'branding' | 'salesreps' | 'analytics' | 'banking' | 'feedback' | 'seo' | 'countries';
 
 interface HeroConfig {
   mediaType: 'youtube' | 'image' | 'video' | 'default';
@@ -288,6 +288,9 @@ export default function AdminPortal() {
   const [seoJsonLd, setSeoJsonLd]         = useState('');
   const [seoSaved, setSeoSaved]           = useState('');
   const [seoLoaded, setSeoLoaded]         = useState(false);
+  const [activeCountries, setActiveCountries] = useState<string[]>(['UG']);
+  const [countriesSaved, setCountriesSaved]   = useState('');
+  const [countriesLoaded, setCountriesLoaded] = useState(false);
   const [printifyApiKey, setPrintifyApiKey] = useState('');
   const [printfulApiKey, setPrintfulApiKey] = useState('');
   const [podMsg, setPodMsg] = useState('');
@@ -732,6 +735,26 @@ export default function AdminPortal() {
     }).catch(() => setSeoLoaded(true));
   }, [seoLoaded]);
 
+  // Load country settings once
+  useEffect(() => {
+    if (countriesLoaded) return;
+    adminApi.getCountrySettings().then(r => {
+      const d = r.data;
+      if (Array.isArray(d?.activeCountries)) setActiveCountries(d.activeCountries);
+      setCountriesLoaded(true);
+    }).catch(() => setCountriesLoaded(true));
+  }, [countriesLoaded]);
+
+  const saveCountrySettings = async () => {
+    try {
+      await adminApi.saveCountrySettings({ activeCountries });
+      setCountriesSaved('✓ Saved.');
+      setTimeout(() => setCountriesSaved(''), 2500);
+    } catch {
+      setCountriesSaved('Failed to save.');
+    }
+  };
+
   const saveSeoSettings = async () => {
     try {
       await adminApi.saveSeoSettings({
@@ -843,6 +866,7 @@ export default function AdminPortal() {
     { key: 'banking',   label: t('admin.banking'),   icon: <CreditCard  size={20} strokeWidth={1.5} /> },
     { key: 'feedback',  label: 'Feedback',           icon: <Lightbulb  size={20} strokeWidth={1.5} /> },
     { key: 'seo',       label: 'SEO & Social',       icon: <Search     size={20} strokeWidth={1.5} /> },
+    { key: 'countries', label: 'Countries',          icon: <Globe      size={20} strokeWidth={1.5} /> },
   ];
 
   // Derived data for charts
@@ -3927,6 +3951,58 @@ export default function AdminPortal() {
             seoSaved={seoSaved}
             onSave={saveSeoSettings}
           />
+        )}
+
+        {/* ── COUNTRIES ── */}
+        {tab === 'countries' && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-black text-gray-800">Country Management</h2>
+                <p className="text-sm text-gray-500 mt-1">Toggle which countries are active on Seshaa. Inactive countries appear greyed-out on the home page.</p>
+              </div>
+              <div className="flex items-center gap-3">
+                {countriesSaved && (
+                  <span className={`text-sm ${countriesSaved.startsWith('✓') ? 'text-green-600' : 'text-red-500'}`}>{countriesSaved}</span>
+                )}
+                <button
+                  onClick={saveCountrySettings}
+                  className="px-5 py-2.5 bg-green-600 hover:bg-green-500 text-white text-sm font-bold rounded-xl transition-colors flex items-center gap-2">
+                  <CheckCircle size={15} /> Save
+                </button>
+              </div>
+            </div>
+            <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-800">
+              <strong>{activeCountries.length}</strong> of <strong>{COUNTRIES.length}</strong> countries active.
+              {activeCountries.length === 1 && activeCountries[0] === 'UG' && (
+                <span className="ml-2">Uganda-only mode — perfect for launch.</span>
+              )}
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+              {[...COUNTRIES].sort((a, b) => a.name.localeCompare(b.name)).map(c => {
+                const on = activeCountries.includes(c.code);
+                return (
+                  <button
+                    key={c.code}
+                    onClick={() => setActiveCountries(prev =>
+                      on ? prev.filter(x => x !== c.code) : [...prev, c.code]
+                    )}
+                    className={`flex items-center gap-3 p-3 rounded-2xl border-2 transition-all text-left ${
+                      on
+                        ? 'border-green-400 bg-green-50 hover:bg-green-100'
+                        : 'border-gray-200 bg-gray-50 hover:bg-gray-100 opacity-60'
+                    }`}>
+                    <span className="text-2xl leading-none shrink-0">{c.flag}</span>
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-gray-800 truncate">{c.name}</p>
+                      <p className="text-[10px] text-gray-500">{c.code}</p>
+                    </div>
+                    <div className={`ml-auto w-4 h-4 rounded-full shrink-0 ${on ? 'bg-green-500' : 'bg-gray-300'}`} />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         )}
 
       </div>

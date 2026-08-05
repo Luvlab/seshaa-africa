@@ -9,6 +9,7 @@ import {
 import { adminApi } from '../services/api';
 import VisitorDashboard from '../components/home/VisitorDashboard';
 import { useThemeStore } from '../store/theme';
+import { useCountriesStore } from '../store/countries';
 import { usePWAInstall } from '../hooks/usePWAInstall';
 
 // ── Hero slide type ─────────────────────────────────────────────────────────
@@ -203,6 +204,7 @@ export default function HomePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { countryCode } = useThemeStore();
+  const { activeCountries } = useCountriesStore();
   const [query, setQuery]         = useState('');
   const [aiMode, setAiMode]       = useState(false);
   const [muted, setMuted]         = useState(true);
@@ -288,44 +290,28 @@ export default function HomePage() {
             </div>
             {/* no darkening overlay — keep background fully visible */}
 
-            {/* ── Hero content overlay ─────────────────────────────────────
-                Mobile: search sits at the VERY TOP of the hero (pt-2) so it
-                  (a) appears immediately below the navbar — no scroll needed
-                  (b) keyboard push-up doesn't hide it
-                Desktop (md+): centred vertically with pb-20 offset.
-            ─────────────────────────────────────────────────────────────── */}
+            {/* ── Hero content overlay — search pinned at top on all viewports ── */}
             <div
-              className="absolute inset-0 z-10 flex flex-col items-center justify-start pt-2 md:justify-center md:pt-0 md:pb-20 px-4 text-center text-white"
+              className="absolute inset-0 z-10 flex flex-col items-center justify-start pt-3 px-4 text-center text-white"
             >
               <div className="w-full">
-                {/* Title — hidden on mobile (navbar has the brand already) */}
-                <div className="hidden md:block">
-                  <h1 className="font-black mb-2 drop-shadow-lg" style={{ fontSize: 'clamp(1.15rem, 4.5vw, 3.2rem)', lineHeight: 1.15 }}>
-                    {t('app.tagline')}
-                  </h1>
-                  <p className="text-white/85 text-base md:text-lg mb-6 leading-relaxed drop-shadow">
-                    {slide?.overlaySubtitle || t('app.description')}
-                  </p>
-                </div>
-                {/* Mobile title — compact, single line */}
-                <p className="md:hidden text-white/90 text-sm font-semibold mb-3 drop-shadow tracking-wide">
-                  {t('app.tagline')}
-                </p>
-                <div ref={searchBoxRef} className="bg-white/75 backdrop-blur-md rounded-2xl shadow-2xl overflow-hidden max-w-2xl mx-auto border border-white/60">
-                  <div className="flex items-center gap-2 px-4 py-1">
-                    {aiMode ? <Sparkles size={22} className="text-purple-500 shrink-0" /> : <Search size={22} className="text-gray-500 shrink-0" />}
-                    <input className="flex-1 outline-none text-gray-800 text-lg py-3 placeholder-gray-400 min-w-0 bg-transparent"
-                      placeholder={t('search.placeholder')}
-                      value={query} onChange={e => setQuery(e.target.value)}
-                      onKeyDown={e => e.key === 'Enter' && handleSearch()} />
-                    <button className={`flex items-center gap-1 text-sm px-3 py-2 rounded-xl font-bold transition-colors shrink-0 ${aiMode ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-500'}`}
-                      onClick={() => setAiMode(v => !v)}>
-                      <Zap size={16} /> AI
+                <div ref={searchBoxRef} className="bg-white/75 backdrop-blur-md rounded-2xl shadow-2xl overflow-hidden max-w-3xl mx-auto border border-white/60">
+                  <div className="flex flex-col md:flex-row items-stretch">
+                    <div className="flex items-center gap-2 px-4 py-1 flex-1">
+                      {aiMode ? <Sparkles size={22} className="text-purple-500 shrink-0" /> : <Search size={22} className="text-gray-500 shrink-0" />}
+                      <input className="flex-1 outline-none text-gray-800 text-lg py-3 placeholder-gray-400 min-w-0 bg-transparent"
+                        placeholder={t('search.placeholder')}
+                        value={query} onChange={e => setQuery(e.target.value)}
+                        onKeyDown={e => e.key === 'Enter' && handleSearch()} />
+                      <button className={`flex items-center gap-1 text-sm px-3 py-2 rounded-xl font-bold transition-colors shrink-0 ${aiMode ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-500'}`}
+                        onClick={() => setAiMode(v => !v)}>
+                        <Zap size={16} /> AI
+                      </button>
+                    </div>
+                    <button className="py-3.5 md:py-0 md:px-8 font-bold text-white text-lg md:text-base shrink-0" style={{ backgroundColor: 'var(--cp)' }} onClick={handleSearch}>
+                      {t('search.findBtn')} →
                     </button>
                   </div>
-                  <button className="w-full py-3.5 font-bold text-white text-lg" style={{ backgroundColor: 'var(--cp)' }} onClick={handleSearch}>
-                    {t('search.findBtn')} →
-                  </button>
                 </div>
                 <div className="flex flex-wrap justify-center gap-2 mt-5">
                   {[
@@ -404,19 +390,28 @@ export default function HomePage() {
       <div className="w-full px-4 sm:px-6 lg:px-10 pb-6">
         <h2 className="text-xl font-black text-gray-800 mb-3">🌍 {t('home.browseCountry')}</h2>
         <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-9 lg:grid-cols-11 gap-2 sm:gap-3">
-          {AFRICAN_COUNTRIES.map(c => (
-            <button
-              key={c.code}
-              className="country-flag-btn flex flex-col items-center gap-1.5 py-3 px-1 bg-white rounded-2xl border border-gray-100 hover:border-gray-300 hover:shadow-md active:scale-95 transition-all"
-              onClick={() => navigate(`/search?country=${encodeURIComponent(c.name)}`)}>
-              <span className="flag-emoji text-4xl sm:text-5xl leading-none select-none">
-                {c.flag}
-              </span>
-              <span className="text-[11px] sm:text-xs font-semibold text-gray-900 text-center leading-tight w-full truncate px-0.5">
-                {t(`countries.${c.code}`, c.name)}
-              </span>
-            </button>
-          ))}
+          {AFRICAN_COUNTRIES.map(c => {
+            const isActive = activeCountries.includes(c.code);
+            return (
+              <button
+                key={c.code}
+                className={`country-flag-btn flex flex-col items-center gap-1.5 py-3 px-1 bg-white rounded-2xl border border-gray-100 transition-all ${
+                  isActive
+                    ? 'hover:border-gray-300 hover:shadow-md active:scale-95'
+                    : 'opacity-30 grayscale cursor-not-allowed pointer-events-none'
+                }`}
+                onClick={isActive ? () => navigate(`/search?country=${encodeURIComponent(c.name)}`) : undefined}
+                disabled={!isActive}>
+                <span className="flag-emoji text-4xl sm:text-5xl leading-none select-none">
+                  {c.flag}
+                </span>
+                <span className="text-[11px] sm:text-xs font-semibold text-gray-900 text-center leading-tight w-full truncate px-0.5">
+                  {t(`countries.${c.code}`, c.name)}
+                </span>
+                {!isActive && <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wide">Soon</span>}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -530,12 +525,36 @@ export default function HomePage() {
                 </div>
               </div>
             ))}
+            {/* Commission breakdown */}
             <div className="bg-white/15 border border-white/30 rounded-2xl p-5 mt-2">
-              <p className="font-black text-white mb-3">💡 {t('home.rep.earnings')}</p>
+              <p className="font-black text-white mb-3">💰 Commission Structure</p>
+              <div className="space-y-2 mb-4">
+                <div className="flex items-center justify-between bg-white/10 rounded-xl px-4 py-3">
+                  <div>
+                    <p className="text-white font-bold text-sm">Monthly Subscriptions</p>
+                    <p className="text-purple-300 text-xs mt-0.5">Every plan you sign up — recurring every month</p>
+                  </div>
+                  <div className="text-right shrink-0 ml-4">
+                    <p className="text-green-300 font-black text-xl">70%</p>
+                    <p className="text-purple-300 text-xs">to you · 30% Seshaa</p>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between bg-white/10 rounded-xl px-4 py-3">
+                  <div>
+                    <p className="text-white font-bold text-sm">Physical &amp; Digital Sales</p>
+                    <p className="text-purple-300 text-xs mt-0.5">Items sold through Seshaa marketplace</p>
+                  </div>
+                  <div className="text-right shrink-0 ml-4">
+                    <p className="text-green-300 font-black text-xl">π%</p>
+                    <p className="text-purple-300 text-xs">3.14159… Seshaa fee only</p>
+                  </div>
+                </div>
+              </div>
+              <p className="font-black text-white mb-2 text-sm">💡 {t('home.rep.earnings')}</p>
               {[
-                { deals: '5 deals/month',  avg: '$60 avg',  earn: '$60/mo'  },
-                { deals: '10 deals/month', avg: '$100 avg', earn: '$200/mo' },
-                { deals: '20 deals/month', avg: '$150 avg', earn: '$600/mo' },
+                { deals: '5 subs/month',  avg: '$60 avg',  earn: '$210/mo'  },
+                { deals: '10 subs/month', avg: '$100 avg', earn: '$700/mo' },
+                { deals: '20 subs/month', avg: '$150 avg', earn: '$2,100/mo' },
               ].map(e => (
                 <div key={e.deals} className="flex justify-between text-sm py-2 border-b border-white/10 last:border-0">
                   <span className="text-purple-200">{e.deals} · {e.avg}</span>

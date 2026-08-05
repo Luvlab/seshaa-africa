@@ -32,6 +32,7 @@ import MobileTabBar from './components/layout/MobileTabBar';
 import Footer, { initFontSize } from './components/layout/Footer';
 import { useThemeStore } from './store/theme';
 import { useSeoStore } from './store/seo';
+import { useCountriesStore } from './store/countries';
 import SeoHead from './components/SeoHead';
 import InterestSurvey from './components/ads/InterestSurvey';
 
@@ -206,6 +207,7 @@ function TabContainer() {
 export default function App() {
   const { detectFromIP, applyTheme, countryCode, loadThemeOverrides } = useThemeStore();
   const loadSeo = useSeoStore(s => s.load);
+  const loadCountries = useCountriesStore(s => s.load);
   const [showSurvey, setShowSurvey] = useState(false);
 
   useEffect(() => {
@@ -277,7 +279,8 @@ export default function App() {
     loadThemeOverrides().catch(() => {});
     applyTheme(''); // always start at Africa — detectFromIP will set the real geo country
     detectFromIP();
-    loadSeo();          // fetch SEO config → SeoHead picks it up reactively
+    loadSeo();
+    loadCountries();    // fetch active country list
     // Show personalisation survey only for brand-new signups (flag set by AuthPage after register)
     if (sessionStorage.getItem('seshaa-new-signup')) {
       sessionStorage.removeItem('seshaa-new-signup');
