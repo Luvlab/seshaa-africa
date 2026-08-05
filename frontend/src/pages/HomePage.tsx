@@ -244,13 +244,14 @@ export default function HomePage() {
       const container = countriesScrollRef.current;
       const ugandaEl  = ugandaRef.current;
       if (!container || !ugandaEl) return;
-      const target = ugandaEl.offsetLeft - container.offsetWidth / 2 + ugandaEl.offsetWidth / 2;
+      const el = container;
+      const target = ugandaEl.offsetLeft - el.offsetWidth / 2 + ugandaEl.offsetWidth / 2;
       const duration = 2800;
       const startTime = performance.now();
       function ease(t: number) { return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t; }
       function step(now: number) {
         const p = Math.min((now - startTime) / duration, 1);
-        container.scrollLeft = target * ease(p);
+        el.scrollLeft = target * ease(p);
         if (p < 1) requestAnimationFrame(step);
       }
       requestAnimationFrame(step);
