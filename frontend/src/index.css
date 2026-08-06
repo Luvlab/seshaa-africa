@@ -206,24 +206,44 @@ svg.lucide {
   flex-shrink: 0;
 }
 
-/* ── Monochrome icons: override hardcoded colors → theme primary ─────────── */
-/* Targets only SVG Lucide icons, not text elements with the same class */
-svg.lucide.text-green-500, svg.lucide.text-green-600, svg.lucide.text-green-700,
-svg.lucide.text-emerald-500, svg.lucide.text-emerald-600,
-svg.lucide.text-blue-400, svg.lucide.text-blue-500, svg.lucide.text-blue-600,
-svg.lucide.text-indigo-400, svg.lucide.text-indigo-500,
-svg.lucide.text-red-400, svg.lucide.text-red-500,
-svg.lucide.text-orange-500, svg.lucide.text-orange-600,
-svg.lucide.text-yellow-500, svg.lucide.text-yellow-600,
-svg.lucide.text-purple-500, svg.lucide.text-purple-600,
-svg.lucide.text-rose-500, svg.lucide.text-rose-600,
-svg.lucide.text-amber-500, svg.lucide.text-amber-600 {
+/* ── Monochrome icons: all bright-colored Lucide icons → theme primary ─────── */
+/* Uses attribute substring selector to catch every shade (300-900) at once.    */
+/* Specificity [0,2,1] beats Tailwind's [0,1,0] without !important needed,      */
+/* but !important is kept to also override inline `color=` props.                */
+svg.lucide[class*="text-green"],
+svg.lucide[class*="text-emerald"],
+svg.lucide[class*="text-teal"],
+svg.lucide[class*="text-cyan"],
+svg.lucide[class*="text-sky"],
+svg.lucide[class*="text-blue"],
+svg.lucide[class*="text-indigo"],
+svg.lucide[class*="text-violet"],
+svg.lucide[class*="text-purple"],
+svg.lucide[class*="text-pink"],
+svg.lucide[class*="text-rose"],
+svg.lucide[class*="text-orange"],
+svg.lucide[class*="text-amber"],
+svg.lucide[class*="text-yellow"],
+svg.lucide[class*="text-lime"],
+svg.lucide[class*="text-red"] {
   color: var(--cp) !important;
 }
-/* Icons on theme-colored or dark backgrounds stay white */
-[class*="bg-theme"] svg.lucide,
-.bg-gray-800 svg.lucide, .bg-gray-900 svg.lucide,
-[style*="background-color: var(--cp)"] svg.lucide {
+/* Inherited-color cases: icon has no class but parent container is colored */
+.text-emerald-300 svg.lucide, .text-emerald-400 svg.lucide,
+.text-emerald-500 svg.lucide, .text-emerald-600 svg.lucide,
+.text-green-400 svg.lucide, .text-green-500 svg.lucide, .text-green-600 svg.lucide,
+.text-blue-600 svg.lucide, .text-blue-700 svg.lucide, .text-blue-800 svg.lucide,
+.text-yellow-500 svg.lucide, .text-amber-500 svg.lucide, .text-amber-600 svg.lucide {
+  color: var(--cp) !important;
+}
+/* Exception: icons on dark/themed backgrounds keep their color (usually white). */
+/* Placed AFTER main rules with equal specificity [0,2,1] so they win.          */
+[class*="bg-gray-8"] svg.lucide[class*="text-"],
+[class*="bg-gray-9"] svg.lucide[class*="text-"],
+.bg-black svg.lucide[class*="text-"],
+[class*="bg-theme"] svg.lucide[class*="text-"],
+[style*="var(--cp)"] svg.lucide[class*="text-"],
+[style*="var(--cs)"] svg.lucide[class*="text-"] {
   color: inherit !important;
 }
 
