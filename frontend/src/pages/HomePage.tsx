@@ -75,6 +75,7 @@ function ytSrc(videoId: string, muted: boolean, startTime?: number, endTime?: nu
     `&modestbranding=1`,
     `&rel=0`,
     `&iv_load_policy=3`,
+    `&cc_load_policy=0`,
     `&enablejsapi=1`,
     `&origin=${encodeURIComponent(origin)}`,
   ];
@@ -238,24 +239,27 @@ export default function HomePage() {
     return () => clearTimeout(id);
   }, [heroSlides, slideIdx]);
 
-  // On mount: animate scroll from Algeria → Uganda (A to U)
+  // On mount: animate scroll from Algeria → Uganda (A to U), centred in view
   useEffect(() => {
     const timer = setTimeout(() => {
-      const container = countriesScrollRef.current;
-      const ugandaEl  = ugandaRef.current;
-      if (!container || !ugandaEl) return;
-      const el = container;
-      const target = ugandaEl.offsetLeft - el.offsetWidth / 2 + ugandaEl.offsetWidth / 2;
+      const el  = countriesScrollRef.current;
+      const uga = ugandaRef.current;
+      if (!el || !uga) return;
+      // getBoundingClientRect gives accurate positions regardless of offsetParent
+      const cRect = el.getBoundingClientRect();
+      const uRect = uga.getBoundingClientRect();
+      const target = el.scrollLeft + (uRect.left - cRect.left) - (cRect.width / 2 - uRect.width / 2);
+      const from = 0;
       const duration = 2800;
-      const startTime = performance.now();
+      const t0 = performance.now();
       function ease(t: number) { return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t; }
       function step(now: number) {
-        const p = Math.min((now - startTime) / duration, 1);
-        el.scrollLeft = target * ease(p);
+        const p = Math.min((now - t0) / duration, 1);
+        el.scrollLeft = from + (target - from) * ease(p);
         if (p < 1) requestAnimationFrame(step);
       }
       requestAnimationFrame(step);
-    }, 600);
+    }, 900);
     return () => clearTimeout(timer);
   }, []);
 
@@ -358,16 +362,8 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Bottom bar: advertiser label, dots, mute */}
-            <div className="absolute bottom-4 left-0 right-0 z-10 flex items-center justify-between px-4 gap-3">
-              <div className="flex items-center gap-2 flex-1 min-w-0">
-                <span className="text-xs bg-black/50 text-white/70 px-2.5 py-1 rounded-full backdrop-blur-sm truncate">
-                  📢 {slide?.advertiser}
-                </span>
-                <a href={ctaHref} className="text-xs bg-white/90 text-gray-900 font-bold px-3 py-1.5 rounded-full hover:bg-white whitespace-nowrap">
-                  {ctaLabel}
-                </a>
-              </div>
+            {/* Bottom bar: dots + CTA only — no advertiser name */}
+            <div className="absolute bottom-4 left-0 right-0 z-10 flex items-center justify-end px-4 gap-3">
               {heroSlides.length > 1 && (
                 <div className="flex items-center gap-1.5 shrink-0">
                   {heroSlides.map((_, i) => (
