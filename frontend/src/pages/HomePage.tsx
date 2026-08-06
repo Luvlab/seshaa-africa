@@ -245,17 +245,17 @@ export default function HomePage() {
       const el  = countriesScrollRef.current;
       const uga = ugandaRef.current;
       if (!el || !uga) return;
-      // getBoundingClientRect gives accurate positions regardless of offsetParent
-      const cRect = el.getBoundingClientRect();
+      const scroller = el; // captured non-null for closure
+      const cRect = scroller.getBoundingClientRect();
       const uRect = uga.getBoundingClientRect();
-      const target = el.scrollLeft + (uRect.left - cRect.left) - (cRect.width / 2 - uRect.width / 2);
+      const target = scroller.scrollLeft + (uRect.left - cRect.left) - (cRect.width / 2 - uRect.width / 2);
       const from = 0;
       const duration = 2800;
       const t0 = performance.now();
       function ease(t: number) { return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t; }
       function step(now: number) {
         const p = Math.min((now - t0) / duration, 1);
-        el.scrollLeft = from + (target - from) * ease(p);
+        scroller.scrollLeft = from + (target - from) * ease(p);
         if (p < 1) requestAnimationFrame(step);
       }
       requestAnimationFrame(step);
@@ -280,8 +280,6 @@ export default function HomePage() {
         const rawUrl = slide?.mediaUrl ?? slide?.youtubeId ?? slide?.imageUrl ?? '';
         const mediaType = normalizeMediaType(slide?.mediaType, rawUrl);
         const ytId = mediaType === 'youtube' ? (slide?.youtubeId || extractYoutubeId(rawUrl)) : '';
-        const ctaHref = slide?.targetUrl ?? slide?.ctaUrl ?? '/advertise';
-        const ctaLabel = slide?.ctaText ?? t('home.ad.slot');
 
         return (
           <div className="relative w-full overflow-hidden" style={{ height: 'calc(100svh - 86px - var(--player-bar-h, 0px))', minHeight: 360 }}>
