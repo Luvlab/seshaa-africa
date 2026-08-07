@@ -174,17 +174,22 @@ export const useThemeStore = create<ThemeState>()(
           }
 
           // Auto-set language only if the user has never explicitly picked one
-          if (data.suggestedLang && !localStorage.getItem('seshaa-lang')) {
-            const prevGeo = localStorage.getItem('seshaa-lang-geo');
-            if (prevGeo !== data.suggestedLang) {
-              // Lazy-import i18n to avoid circular dep at module load time
-              import('../i18n').then(({ default: i18n, LANGUAGES }) => {
-                i18n.changeLanguage(data.suggestedLang!);
-                const dir = LANGUAGES.find(l => l.code === data.suggestedLang)?.dir || 'ltr';
-                document.documentElement.dir = dir;
-              }).catch(() => {});
+          if (!localStorage.getItem('seshaa-lang')) {
+            // Admin-configured language overrides the IP-suggested one
+            const { countryLanguages } = useCountriesStore.getState();
+            const configuredLang = data.countryCode ? countryLanguages[data.countryCode] : undefined;
+            const langToApply = configuredLang || data.suggestedLang;
+            if (langToApply) {
+              const prevGeo = localStorage.getItem('seshaa-lang-geo');
+              if (prevGeo !== langToApply) {
+                import('../i18n').then(({ default: i18n, LANGUAGES }) => {
+                  i18n.changeLanguage(langToApply);
+                  const dir = LANGUAGES.find(l => l.code === langToApply)?.dir || 'ltr';
+                  document.documentElement.dir = dir;
+                }).catch(() => {});
+              }
+              localStorage.setItem('seshaa-lang-geo', langToApply);
             }
-            localStorage.setItem('seshaa-lang-geo', data.suggestedLang);
           }
         } catch {
           get().applyTheme(''); // fallback → Africa/global, never a specific country

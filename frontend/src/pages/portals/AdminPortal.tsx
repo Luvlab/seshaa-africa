@@ -14,6 +14,7 @@ import { adminApi, adsApi, analyticsApi, feedbackApi } from '../../services/api'
 import { useAuthStore } from '../../store/auth';
 import { ALL_LOGOS, saveEnabled, type LogoId } from '../../components/brand/LogoRotator';
 import { COUNTRIES } from '../../components/layout/CountryPicker';
+import { LANGUAGES } from '../../i18n';
 import { ENGLISH_SLUGS } from '../../components/brand/SeshaaTitle';
 import { getThemeForCode } from '../../store/theme';
 import type { PortalType } from '../../types';
@@ -289,6 +290,7 @@ export default function AdminPortal() {
   const [seoSaved, setSeoSaved]           = useState('');
   const [seoLoaded, setSeoLoaded]         = useState(false);
   const [activeCountries, setActiveCountries] = useState<string[]>(['UG']);
+  const [countryLanguages, setCountryLanguages] = useState<Record<string, string>>({ UG: 'en' });
   const [countriesSaved, setCountriesSaved]   = useState('');
   const [countriesLoaded, setCountriesLoaded] = useState(false);
   const [printifyApiKey, setPrintifyApiKey] = useState('');
@@ -741,13 +743,14 @@ export default function AdminPortal() {
     adminApi.getCountrySettings().then(r => {
       const d = r.data;
       if (Array.isArray(d?.activeCountries)) setActiveCountries(d.activeCountries);
+      if (d?.countryLanguages && typeof d.countryLanguages === 'object') setCountryLanguages(d.countryLanguages);
       setCountriesLoaded(true);
     }).catch(() => setCountriesLoaded(true));
   }, [countriesLoaded]);
 
   const saveCountrySettings = async () => {
     try {
-      await adminApi.saveCountrySettings({ activeCountries });
+      await adminApi.saveCountrySettings({ activeCountries, countryLanguages });
       setCountriesSaved('✓ Saved.');
       setTimeout(() => setCountriesSaved(''), 2500);
     } catch {
@@ -3979,7 +3982,12 @@ export default function AdminPortal() {
               )}
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-              {[...COUNTRIES].sort((a, b) => a.name.localeCompare(b.name)).map(c => {
+              {[...COUNTRIES].sort((a, b) => {
+                const aOn = activeCountries.includes(a.code);
+                const bOn = activeCountries.includes(b.code);
+                if (aOn !== bOn) return aOn ? -1 : 1;
+                return a.name.localeCompare(b.name);
+              }).map(c => {
                 const on = activeCountries.includes(c.code);
                 return (
                   <button
@@ -4001,6 +4009,41 @@ export default function AdminPortal() {
                   </button>
                 );
               })}
+            </div>
+
+            {/* ── Geo & Language Config ── */}
+            <div className="mt-8">
+              <h3 className="text-base font-black text-gray-800 mb-1">Geo & Language Settings</h3>
+              <p className="text-sm text-gray-500 mb-4">Set the default language for visitors detected in each active country. This overrides the IP-suggested language.</p>
+              {activeCountries.length === 0 ? (
+                <p className="text-sm text-gray-400 italic">No active countries — activate at least one above.</p>
+              ) : (
+                <div className="space-y-2">
+                  {activeCountries.map(code => {
+                    const country = COUNTRIES.find(c => c.code === code);
+                    if (!country) return null;
+                    const currentLang = countryLanguages[code] || '';
+                    return (
+                      <div key={code} className="flex items-center gap-4 bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3">
+                        <span className="text-2xl leading-none shrink-0">{country.flag}</span>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-bold text-gray-800">{country.name}</p>
+                          <p className="text-xs text-gray-400">{code}</p>
+                        </div>
+                        <select
+                          value={currentLang}
+                          onChange={e => setCountryLanguages(prev => ({ ...prev, [code]: e.target.value }))}
+                          className="border border-gray-200 rounded-xl px-3 py-2 text-sm bg-white text-gray-800 min-w-[180px]">
+                          <option value="">— Auto (use IP detection) —</option>
+                          {LANGUAGES.map(l => (
+                            <option key={l.code} value={l.code}>{l.nativeName} ({l.name})</option>
+                          ))}
+                        </select>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         )}

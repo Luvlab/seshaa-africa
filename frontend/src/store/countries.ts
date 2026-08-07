@@ -4,22 +4,28 @@ const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 interface CountriesState {
   activeCountries: string[];
+  countryLanguages: Record<string, string>;
   loaded: boolean;
   load: () => Promise<void>;
 }
 
 export const useCountriesStore = create<CountriesState>((set, get) => ({
   activeCountries: ['UG'],
+  countryLanguages: { UG: 'en' },
   loaded: false,
 
   load: async () => {
     if (get().loaded) return;
     try {
       const r = await fetch(`${BASE_URL}/admin/public/country-settings`);
-      const data = await r.json() as { activeCountries?: string[] };
-      set({ activeCountries: Array.isArray(data.activeCountries) ? data.activeCountries : ['UG'], loaded: true });
+      const data = await r.json() as { activeCountries?: string[]; countryLanguages?: Record<string, string> };
+      set({
+        activeCountries: Array.isArray(data.activeCountries) ? data.activeCountries : ['UG'],
+        countryLanguages: (data.countryLanguages && typeof data.countryLanguages === 'object') ? data.countryLanguages : { UG: 'en' },
+        loaded: true,
+      });
     } catch {
-      set({ activeCountries: ['UG'], loaded: true });
+      set({ activeCountries: ['UG'], countryLanguages: { UG: 'en' }, loaded: true });
     }
   },
 }));

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -239,29 +239,43 @@ export default function HomePage() {
     return () => clearTimeout(id);
   }, [heroSlides, slideIdx]);
 
-  // On mount: animate scroll from Algeria → Uganda (A to U), centred in view
+  // Pre-position scroll at far right before first paint — no flash
+  useLayoutEffect(() => {
+    const el = countriesScrollRef.current;
+    if (el) el.scrollLeft = el.scrollWidth;
+  }, []);
+
+  // On mount: sweep from far right → Uganda (first/active, centred), then switch theme after 2s
   useEffect(() => {
+    let themeTimer: ReturnType<typeof setTimeout>;
     const timer = setTimeout(() => {
       const el  = countriesScrollRef.current;
       const uga = ugandaRef.current;
       if (!el || !uga) return;
-      const scroller = el; // captured non-null for closure
+      const scroller = el;
       const cRect = scroller.getBoundingClientRect();
       const uRect = uga.getBoundingClientRect();
       const target = scroller.scrollLeft + (uRect.left - cRect.left) - (cRect.width / 2 - uRect.width / 2);
-      const from = 0;
+      const from = scroller.scrollLeft;
       const duration = 2800;
       const t0 = performance.now();
       function ease(t: number) { return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t; }
       function step(now: number) {
         const p = Math.min((now - t0) / duration, 1);
         scroller.scrollLeft = from + (target - from) * ease(p);
-        if (p < 1) requestAnimationFrame(step);
+        if (p < 1) {
+          requestAnimationFrame(step);
+        } else {
+          // Scroll done — wait 2s then switch to Uganda theme
+          themeTimer = setTimeout(() => {
+            useThemeStore.getState().applyTheme('UG');
+          }, 2000);
+        }
       }
       requestAnimationFrame(step);
     }, 900);
-    return () => clearTimeout(timer);
-  }, []);
+    return () => { clearTimeout(timer); clearTimeout(themeTimer); };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSearch = () => {
     if (!query.trim()) return;
@@ -415,7 +429,12 @@ export default function HomePage() {
           ref={countriesScrollRef}
           className="flex gap-2 sm:gap-3 overflow-x-auto px-4 sm:px-6 lg:px-10 pb-2"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-          {[...AFRICAN_COUNTRIES].sort((a, b) => a.name.localeCompare(b.name)).map(c => {
+          {[...AFRICAN_COUNTRIES].sort((a, b) => {
+              const aA = activeCountries.includes(a.code);
+              const bA = activeCountries.includes(b.code);
+              if (aA !== bA) return aA ? -1 : 1;
+              return a.name.localeCompare(b.name);
+            }).map(c => {
             const isActive = activeCountries.includes(c.code);
             return (
               <button

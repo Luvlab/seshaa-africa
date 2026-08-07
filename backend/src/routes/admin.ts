@@ -1127,32 +1127,38 @@ router.post('/pod-services/scrape', requireAuth, adminOnly, async (_req, res) =>
 });
 
 // ── Country Active/Inactive Settings ─────────────────────────────────────────
-const COUNTRY_SETTINGS_DEFAULT = { activeCountries: ['UG'] };
+type CountrySettings = { activeCountries: string[]; countryLanguages: Record<string, string> };
+const COUNTRY_SETTINGS_DEFAULT: CountrySettings = { activeCountries: ['UG'], countryLanguages: { UG: 'en' } };
 
-function parseCountrySettings(raw: string | null | undefined): { activeCountries: string[] } {
+function parseCountrySettings(raw: string | null | undefined): CountrySettings {
   if (!raw) return { ...COUNTRY_SETTINGS_DEFAULT };
   try {
-    const p = JSON.parse(raw) as { activeCountries?: string[] };
-    return { activeCountries: Array.isArray(p.activeCountries) ? p.activeCountries : COUNTRY_SETTINGS_DEFAULT.activeCountries };
+    const p = JSON.parse(raw) as { activeCountries?: string[]; countryLanguages?: Record<string, string> };
+    return {
+      activeCountries: Array.isArray(p.activeCountries) ? p.activeCountries : COUNTRY_SETTINGS_DEFAULT.activeCountries,
+      countryLanguages: (p.countryLanguages && typeof p.countryLanguages === 'object') ? p.countryLanguages : COUNTRY_SETTINGS_DEFAULT.countryLanguages,
+    };
   } catch { return { ...COUNTRY_SETTINGS_DEFAULT }; }
 }
 
-// GET /admin/country-settings — fetch active country list (admin auth)
+// GET /admin/country-settings — fetch country config (admin auth)
 router.get('/country-settings', requireAuth, adminOnly, async (_req, res) => {
   const record = await prisma.listing.findUnique({ where: { osmId: 'seshaa-country-config' } });
   return res.json(parseCountrySettings(record?.description));
 });
 
-// POST /admin/country-settings — save active country list (admin auth)
+// POST /admin/country-settings — save country config (admin auth)
 router.post('/country-settings', requireAuth, adminOnly, async (req, res) => {
-  const body = req.body as { activeCountries?: string[] };
+  const body = req.body as { activeCountries?: string[]; countryLanguages?: Record<string, string> };
   const activeCountries = Array.isArray(body.activeCountries) ? body.activeCountries.map(String) : COUNTRY_SETTINGS_DEFAULT.activeCountries;
+  const countryLanguages = (body.countryLanguages && typeof body.countryLanguages === 'object') ? body.countryLanguages : COUNTRY_SETTINGS_DEFAULT.countryLanguages;
+  const payload: CountrySettings = { activeCountries, countryLanguages };
   await prisma.listing.upsert({
     where:  { osmId: 'seshaa-country-config' },
-    update: { name: 'Country Config', description: JSON.stringify({ activeCountries }), active: true, verified: true },
-    create: { name: 'Country Config', description: JSON.stringify({ activeCountries }), osmId: 'seshaa-country-config', country: 'ZZ', city: 'Global', type: 'BUSINESS', active: true, verified: true },
+    update: { name: 'Country Config', description: JSON.stringify(payload), active: true, verified: true },
+    create: { name: 'Country Config', description: JSON.stringify(payload), osmId: 'seshaa-country-config', country: 'ZZ', city: 'Global', type: 'BUSINESS', active: true, verified: true },
   });
-  res.json({ ok: true, activeCountries });
+  res.json({ ok: true, ...payload });
 });
 
 // GET /admin/public/country-settings — public (no auth) — used by frontend
