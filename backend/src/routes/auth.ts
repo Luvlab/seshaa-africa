@@ -19,12 +19,16 @@ function safeUser(u: { id: string; name: string; role: string; language: string;
 
 // ── Schemas ──────────────────────────────────────────────────────────────────
 const RegisterSchema = z.object({
-  name:     z.string().min(2),
-  email:    z.string().email().optional().or(z.literal('')),
-  phone:    z.string().optional(),
-  password: z.string().min(6),
-  language: z.string().default('en'),
-  country:  z.string().optional(),
+  name:      z.string().min(2),
+  email:     z.string().email().optional().or(z.literal('')),
+  phone:     z.string().optional(),
+  password:  z.string().min(6),
+  language:  z.string().default('en'),
+  country:   z.string().optional(),
+  instagram: z.string().optional(),
+  snapchat:  z.string().optional(),
+  tiktok:    z.string().optional(),
+  facebook:  z.string().optional(),
 });
 
 const LoginSchema = z.object({

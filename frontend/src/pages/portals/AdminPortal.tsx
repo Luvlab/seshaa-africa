@@ -8,9 +8,9 @@ import {
   Zap, ArrowUpRight, Plus, Edit2, Trash2, Eye, EyeOff, Play,
   CreditCard, Phone, Mail, Info, Lightbulb, Bug, ChevronUp,
   AlertCircle, Search, Link, Share2, Image as ImageIcon,
-  FileCode, Tag, RotateCcw, ExternalLink, Menu,
+  FileCode, Tag, RotateCcw, ExternalLink, Menu, Inbox,
 } from 'lucide-react';
-import { adminApi, adsApi, analyticsApi, feedbackApi } from '../../services/api';
+import { adminApi, adsApi, analyticsApi, feedbackApi, contactApi } from '../../services/api';
 import { useAuthStore } from '../../store/auth';
 import { ALL_LOGOS, saveEnabled, type LogoId } from '../../components/brand/LogoRotator';
 import { COUNTRIES } from '../../components/layout/CountryPicker';
@@ -43,7 +43,7 @@ interface PendingListing {
 interface PendingPayout  { id: string; amount: number; method: string; ambassador: { user: { name: string; phone: string; country: string } } }
 interface LoanApp        { id: string; amount: number; purpose: string; status: string; createdAt: string; user: { name: string; phone: string; country: string } }
 
-type Tab = 'overview' | 'listings' | 'payouts' | 'loans' | 'finance' | 'adcms' | 'promote' | 'scraper' | 'branding' | 'salesreps' | 'analytics' | 'banking' | 'feedback' | 'seo' | 'countries' | 'nav';
+type Tab = 'overview' | 'listings' | 'payouts' | 'loans' | 'finance' | 'adcms' | 'promote' | 'scraper' | 'branding' | 'salesreps' | 'analytics' | 'banking' | 'feedback' | 'seo' | 'countries' | 'nav' | 'contacts';
 
 interface HeroConfig {
   mediaType: 'youtube' | 'image' | 'video' | 'default';
@@ -300,6 +300,10 @@ export default function AdminPortal() {
   const [visibleNavItems, setVisibleNavItems] = useState<string[]>([...ALL_NAV_ITEMS]);
   const [navSaved, setNavSaved]               = useState('');
   const [navLoaded, setNavLoaded]             = useState(false);
+
+  type ContactEntry = { id: string; createdAt: string; name?: string; email?: string; phone?: string; subject?: string; message?: string };
+  const [contacts, setContacts]               = useState<ContactEntry[]>([]);
+  const [contactsLoaded, setContactsLoaded]   = useState(false);
   const [printifyApiKey, setPrintifyApiKey] = useState('');
   const [printfulApiKey, setPrintfulApiKey] = useState('');
   const [podMsg, setPodMsg] = useState('');
@@ -434,6 +438,9 @@ export default function AdminPortal() {
   // Re-fetch slides whenever the adcms tab is opened
   useEffect(() => {
     if (tab === 'adcms') reloadSlides();
+    if (tab === 'contacts' && !contactsLoaded) {
+      contactApi.list().then(r => { setContacts(r.data || []); setContactsLoaded(true); }).catch(() => setContactsLoaded(true));
+    }
   }, [tab]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -918,6 +925,7 @@ export default function AdminPortal() {
     { key: 'seo',       label: 'SEO & Social',       icon: <Search     size={20} strokeWidth={1.5} /> },
     { key: 'countries', label: 'Countries',          icon: <Globe      size={20} strokeWidth={1.5} /> },
     { key: 'nav',       label: 'Navigation',         icon: <Menu       size={20} strokeWidth={1.5} /> },
+    { key: 'contacts',  label: 'Contacts',           icon: <Inbox      size={20} strokeWidth={1.5} /> },
   ];
 
   // Derived data for charts
@@ -4192,6 +4200,56 @@ export default function AdminPortal() {
                 <span className={`text-sm ${navSaved.startsWith('✓') ? 'text-emerald-600' : 'text-red-500'}`}>{navSaved}</span>
               )}
             </div>
+          </div>
+        )}
+
+        {tab === 'contacts' && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-bold text-gray-800">Contact Form Submissions</h2>
+                <p className="text-sm text-gray-500">{contacts.length} message{contacts.length !== 1 ? 's' : ''} received</p>
+              </div>
+              <button
+                onClick={() => { setContactsLoaded(false); contactApi.list().then(r => { setContacts(r.data || []); setContactsLoaded(true); }).catch(() => setContactsLoaded(true)); }}
+                className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-700 px-3 py-1.5 rounded-lg border hover:bg-gray-50 transition-colors"
+                style={{ borderColor: 'var(--border, #e5e7eb)' }}>
+                <RefreshCw size={12} className={!contactsLoaded ? 'animate-spin' : ''} /> Refresh
+              </button>
+            </div>
+
+            {!contactsLoaded ? (
+              <div className="text-center py-12 text-gray-400 text-sm">Loading contacts…</div>
+            ) : contacts.length === 0 ? (
+              <div className="bg-white rounded-2xl border p-12 text-center" style={{ borderColor: 'var(--border, #e5e7eb)' }}>
+                <Inbox size={36} className="mx-auto mb-3 text-gray-300" />
+                <p className="text-gray-500 text-sm">No contact submissions yet.</p>
+                <p className="text-xs text-gray-400 mt-1">Messages from the Contact page will appear here.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {contacts.map(c => (
+                  <div key={c.id} className="bg-white rounded-2xl border p-5" style={{ borderColor: 'var(--border, #e5e7eb)' }}>
+                    <div className="flex items-start justify-between gap-3 mb-3">
+                      <div>
+                        <p className="font-bold text-gray-800">{c.name || 'Unknown'}</p>
+                        {c.subject && <p className="text-sm text-gray-500 mt-0.5">{c.subject}</p>}
+                      </div>
+                      <span className="text-xs text-gray-400 shrink-0">
+                        {c.createdAt ? new Date(c.createdAt).toLocaleDateString('en-UG', { day: 'numeric', month: 'short', year: 'numeric' }) : ''}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-3 text-xs text-gray-500 mb-3">
+                      {c.email && <a href={`mailto:${c.email}`} className="flex items-center gap-1 hover:text-gray-700 underline"><Mail size={11} />{c.email}</a>}
+                      {c.phone && <a href={`tel:${c.phone}`} className="flex items-center gap-1 hover:text-gray-700"><Phone size={11} />{c.phone}</a>}
+                    </div>
+                    {c.message && (
+                      <p className="text-sm text-gray-600 bg-gray-50 rounded-xl p-3 leading-relaxed">{c.message}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

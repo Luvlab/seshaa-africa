@@ -9,6 +9,7 @@
  * matching the pattern used on the news page.
  */
 import { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Calendar, MapPin, Users, Ticket, Plus, ChevronDown,
@@ -17,8 +18,6 @@ import {
 import { eventsApi } from '../services/api';
 import type { DiscoveredEvent } from '../services/api';
 import { useAuthStore } from '../store/auth';
-import { useThemeStore } from '../store/theme';
-import { COUNTRIES } from '../components/layout/CountryPicker';
 import clsx from 'clsx';
 import FavoriteButton from '../components/ui/FavoriteButton';
 
@@ -254,7 +253,6 @@ function DBEventCard({ event, onAttend, attending }: { event: DBEvent; onAttend:
 export default function EventsPage() {
   const { t } = useTranslation();
   const { user }        = useAuthStore();
-  const { countryCode } = useThemeStore();
 
   const [dbEvents,          setDbEvents]          = useState<DBEvent[]>([]);
   const [discovered,        setDiscovered]         = useState<DiscoveredEvent[]>([]);
@@ -278,11 +276,10 @@ export default function EventsPage() {
   });
   const setF = (k: string, v: string | boolean) => setForm(f => ({ ...f, [k]: v }));
 
-  // Auto-detect user's country
+  // Default to Uganda regardless of user's selected country
   useEffect(() => {
-    const mapped = countryCode ? (COUNTRIES.find(c => c.code === countryCode)?.name || '') : '';
-    setCountry(mapped);
-  }, [countryCode]);
+    setCountry('Uganda');
+  }, []);
 
   // Load DB events
   const loadDbEvents = useCallback(async () => {
@@ -406,14 +403,12 @@ export default function EventsPage() {
           </button>
 
           {/* Submit */}
-          {user && (
-            <button
-              onClick={() => setShowSubmitForm(s => !s)}
-              className="shrink-0 inline-flex items-center gap-1.5 bg-purple-600 text-white font-bold px-4 py-2 rounded-xl hover:bg-purple-700 text-sm transition-colors"
-            >
-              <Plus size={15} /> {t('events.create')}
-            </button>
-          )}
+          <button
+            onClick={() => setShowSubmitForm(s => !s)}
+            className="shrink-0 inline-flex items-center gap-1.5 bg-purple-600 text-white font-bold px-4 py-2 rounded-xl hover:bg-purple-700 text-sm transition-colors"
+          >
+            <Plus size={15} /> {t('events.create')}
+          </button>
         </div>
 
         {/* ── Category chips ── */}
@@ -517,14 +512,12 @@ export default function EventsPage() {
                 <div className="text-5xl mb-4">🎪</div>
                 <p className="text-gray-500 text-lg font-semibold">{t('events.noEvents')}</p>
                 <p className="text-gray-400 text-sm mt-1">Be the first to submit one!</p>
-                {user && (
-                  <button
-                    onClick={() => setShowSubmitForm(true)}
-                    className="mt-4 inline-flex items-center gap-2 bg-purple-600 text-white font-bold px-6 py-3 rounded-2xl hover:bg-purple-700"
-                  >
-                    <Plus size={18} /> {t('events.create')}
-                  </button>
-                )}
+                <button
+                  onClick={() => setShowSubmitForm(true)}
+                  className="mt-4 inline-flex items-center gap-2 bg-purple-600 text-white font-bold px-6 py-3 rounded-2xl hover:bg-purple-700"
+                >
+                  <Plus size={18} /> {t('events.create')}
+                </button>
               </div>
             ) : (
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -541,6 +534,19 @@ export default function EventsPage() {
         )}
 
         {/* ── Submit form ── */}
+        {showSubmitForm && !user && (
+          <div className="mt-10 bg-white rounded-2xl border border-gray-200 p-8 text-center">
+            <div className="text-4xl mb-3">🎪</div>
+            <h3 className="text-xl font-black text-gray-900 mb-2">Sign in to submit an event</h3>
+            <p className="text-gray-500 text-sm mb-6">Create a free Seshaa account to add your event to the community.</p>
+            <Link
+              to="/auth"
+              className="inline-flex items-center gap-2 bg-purple-600 text-white font-bold px-8 py-3 rounded-2xl hover:bg-purple-700 transition-colors"
+            >
+              Sign in / Register
+            </Link>
+          </div>
+        )}
         {showSubmitForm && user && (
           <div className="mt-10 bg-white rounded-2xl border border-gray-200 p-6">
             <h2 className="text-xl font-black text-gray-900 mb-5">{t('events.create')}</h2>

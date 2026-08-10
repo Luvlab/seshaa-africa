@@ -27,7 +27,7 @@ export default function AuthPage() {
   const { setAuth } = useAuthStore();
   const [mode, setMode] = useState<Mode>('login');
   const [inputType, setInputType] = useState<'phone' | 'email'>('phone');
-  const [form, setForm] = useState({ name: '', identifier: '', password: '', country: '' });
+  const [form, setForm] = useState({ name: '', identifier: '', password: '', country: '', instagram: '', snapchat: '', tiktok: '', facebook: '' });
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -80,6 +80,10 @@ export default function AuthPage() {
         if (inputType === 'phone') payload.phone = form.identifier;
         else payload.email = form.identifier;
         if (form.country) payload.country = form.country;
+        if (form.instagram) payload.instagram = form.instagram;
+        if (form.snapchat) payload.snapchat = form.snapchat;
+        if (form.tiktok) payload.tiktok = form.tiktok;
+        if (form.facebook) payload.facebook = form.facebook;
         res = await authApi.register(payload as Parameters<typeof authApi.register>[0]);
       } else {
         res = await authApi.login(form.identifier, form.password);
@@ -195,6 +199,52 @@ export default function AuthPage() {
                 onChange={e => set('country', e.target.value)}
               />
             </div>
+          )}
+
+          {mode === 'register' && (
+            <>
+              <p className="text-sm font-semibold text-gray-500 pt-1">Social handles (optional)</p>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-bold">IG</span>
+                <input
+                  type="text"
+                  placeholder="Instagram @username"
+                  className="w-full border-2 border-gray-200 rounded-2xl pl-12 pr-4 py-4 text-base outline-none focus:border-[var(--cp)] bg-white"
+                  value={form.instagram}
+                  onChange={e => set('instagram', e.target.value)}
+                />
+              </div>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-bold">SC</span>
+                <input
+                  type="text"
+                  placeholder="Snapchat @username"
+                  className="w-full border-2 border-gray-200 rounded-2xl pl-12 pr-4 py-4 text-base outline-none focus:border-[var(--cp)] bg-white"
+                  value={form.snapchat}
+                  onChange={e => set('snapchat', e.target.value)}
+                />
+              </div>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-bold">TK</span>
+                <input
+                  type="text"
+                  placeholder="TikTok @username"
+                  className="w-full border-2 border-gray-200 rounded-2xl pl-12 pr-4 py-4 text-base outline-none focus:border-[var(--cp)] bg-white"
+                  value={form.tiktok}
+                  onChange={e => set('tiktok', e.target.value)}
+                />
+              </div>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-bold">FB</span>
+                <input
+                  type="text"
+                  placeholder="Facebook handle or profile URL"
+                  className="w-full border-2 border-gray-200 rounded-2xl pl-12 pr-4 py-4 text-base outline-none focus:border-[var(--cp)] bg-white"
+                  value={form.facebook}
+                  onChange={e => set('facebook', e.target.value)}
+                />
+              </div>
+            </>
           )}
         </div>
 

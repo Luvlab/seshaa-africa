@@ -461,8 +461,8 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* ── ADVERTISE — full viewport width, edge-to-edge ── */}
-      <section className="w-full py-14 px-6 sm:px-8 lg:px-12"
+      {/* ── ADVERTISE — hidden for now ── */}
+      {false && <section className="w-full py-14 px-6 sm:px-8 lg:px-12"
         style={{ background: 'linear-gradient(135deg, #f97316, #eab308)' }}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-16 items-center">
           <div className="text-white">
@@ -486,41 +486,8 @@ export default function HomePage() {
               </a>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            {[
-              { value: '54',   label: t('home.ad.countries'), icon: '🌍' },
-              { value: '36',   label: t('home.ad.languages'), icon: '🗣️' },
-              { value: '50K+', label: t('home.ad.users'),     icon: '👥' },
-              { value: '20%',  label: t('home.ad.commission'),icon: '💰' },
-            ].map(s => (
-              <div key={s.label} className="bg-white/20 backdrop-blur-sm border border-white/30 rounded-2xl p-4 text-white text-center">
-                <p className="text-3xl mb-1">{s.icon}</p>
-                <p className="text-2xl font-black">{s.value}</p>
-                <p className="text-xs text-white/80 mt-0.5">{s.label}</p>
-              </div>
-            ))}
-          </div>
         </div>
-        <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {[
-            { name: t('home.ad.banner'),   price: '$20/mo', desc: t('home.ad.bannerDesc'),   color: 'bg-white/10', popular: false },
-            { name: t('home.ad.featured'), price: '$60/mo', desc: t('home.ad.featuredDesc'), color: 'bg-white/20', popular: true  },
-            { name: t('home.ad.premium'),  price: '$150/mo',desc: t('home.ad.premiumDesc'),  color: 'bg-white/10', popular: false },
-          ].map(p => (
-            <a key={p.name} href="/advertise"
-              className={`${p.color} border border-white/30 rounded-2xl p-5 text-white hover:bg-white/30 transition-colors relative`}>
-              {p.popular && (
-                <span className="absolute -top-2.5 left-4 bg-white text-orange-600 text-xs font-black px-3 py-0.5 rounded-full">
-                  {t('home.ad.popular')}
-                </span>
-              )}
-              <p className="font-black text-lg">{p.name}</p>
-              <p className="text-2xl font-black text-white mt-1">{p.price}</p>
-              <p className="text-sm text-white/75 mt-1">{p.desc}</p>
-            </a>
-          ))}
-        </div>
-      </section>
+      </section>}
 
       {/* ── SALES REP — hidden by default; enable via Admin > Navigation ── */}
       {false && <section className="w-full py-14 px-6 sm:px-8 lg:px-12"
@@ -612,8 +579,8 @@ export default function HomePage() {
         </div>
       </section>}
 
-      {/* ── VISITOR DASHBOARD — before footer ── */}
-      <VisitorDashboard />
+      {/* ── VISITOR DASHBOARD — hidden for now ── */}
+      {false && <VisitorDashboard />}
 
     </div>
   );

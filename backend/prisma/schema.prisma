@@ -17,6 +17,10 @@ model User {
   passwordHash  String?
   googleId      String?      @unique
   avatarUrl     String?
+  instagram     String?
+  snapchat      String?
+  tiktok        String?
+  facebook      String?
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
   // lastSeen   DateTime?   -- re-add after: ALTER TABLE "User" ADD COLUMN "lastSeen" TIMESTAMP(3);
@@ -35,6 +39,8 @@ model User {
   following          Follow[]     @relation("UserFollows")
   followers          Follow[]     @relation("UserFollowers")
   chatGroups         ChatGroup[]  @relation("GroupCreator")
+  hireProfile        HireProfile?
+  hireBookings       HireBooking[] @relation("HireBookingClient")
 }
 
 enum Role {
@@ -677,6 +683,57 @@ model Follow {
   @@index([followerId])
   @@index([followingUserId])
   @@index([followingListingId])
+}
+
+// ─── Hire Professionals ───────────────────────────────────────────────────────
+// Any user can set up a hire profile to be discovered and booked.
+model HireProfile {
+  id          String        @id @default(uuid())
+  userId      String        @unique
+  user        User          @relation(fields: [userId], references: [id])
+  profession  String        // DJ, Musician, Electrician, Chef, etc.
+  bio         String?
+  hourlyRate  Float?
+  dayRate     Float?
+  currency    String        @default("UGX")
+  available   Boolean       @default(true)
+  country     String        @default("Uganda")
+  city        String?
+  skills      String[]
+  photos      String[]
+  avgRating   Float         @default(0)
+  ratingCount Int           @default(0)
+  bookings    HireBooking[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([profession, country])
+  @@index([available, country])
+}
+
+model HireBooking {
+  id          String            @id @default(uuid())
+  profile     HireProfile       @relation(fields: [profileId], references: [id])
+  profileId   String
+  client      User              @relation("HireBookingClient", fields: [clientId], references: [id])
+  clientId    String
+  date        DateTime?
+  duration    Int?              // hours
+  message     String
+  status      HireBookingStatus @default(PENDING)
+  totalPrice  Float?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@index([profileId])
+  @@index([clientId])
+}
+
+enum HireBookingStatus {
+  PENDING
+  CONFIRMED
+  REJECTED
+  COMPLETED
 }
 
 // ─── Group Chats ──────────────────────────────────────────────────────────────

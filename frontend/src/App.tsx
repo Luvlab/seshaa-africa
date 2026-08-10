@@ -33,6 +33,7 @@ import Footer, { initFontSize } from './components/layout/Footer';
 import { useThemeStore } from './store/theme';
 import { useSeoStore } from './store/seo';
 import { useCountriesStore } from './store/countries';
+import { useAuthStore } from './store/auth';
 import SeoHead from './components/SeoHead';
 import InterestSurvey from './components/ads/InterestSurvey';
 
@@ -63,6 +64,7 @@ import ObituariesPage from './pages/ObituariesPage';
 import RidePage from './pages/RidePage';
 import DeliveryPage from './pages/DeliveryPage';
 import TransportPage from './pages/TransportPage';
+import ProfessionalsPage from './pages/ProfessionalsPage';
 
 // Detail/modal pages — still lazy-loaded (rarely visited)
 const ListingDetail    = lazy(() => import('./pages/ListingDetail'));
@@ -71,6 +73,10 @@ const AuthPage         = lazy(() => import('./pages/AuthPage'));
 const ProfilePage      = lazy(() => import('./pages/ProfilePage'));
 const CountryPage      = lazy(() => import('./pages/CountryPage'));
 const NewsArticlePage  = lazy(() => import('./pages/NewsArticlePage'));
+const AboutPage        = lazy(() => import('./pages/AboutPage'));
+const PrivacyPage      = lazy(() => import('./pages/PrivacyPage'));
+const TermsPage        = lazy(() => import('./pages/TermsPage'));
+const ContactPage      = lazy(() => import('./pages/ContactPage'));
 
 // Tab paths — all kept mounted simultaneously
 const TAB_PATHS = [
@@ -79,7 +85,7 @@ const TAB_PATHS = [
   '/messages', '/bookings', '/advertise',
   '/ambassador', '/salesrep', '/admin',
   '/add-listing', '/translate', '/business', '/events', '/diaspora', '/travels', '/archive',
-  '/ride', '/delivery', '/transport', '/obituaries',
+  '/ride', '/delivery', '/transport', '/obituaries', '/hire',
 ];
 
 // ── Error Boundary ──────────────────────────────────────────────────────────
@@ -166,6 +172,7 @@ function TabContainer() {
     { path: '/ride',        el: <ErrorBoundary key="ride"><RidePage defaultType="RIDE" /></ErrorBoundary> },
     { path: '/delivery',    el: <ErrorBoundary key="delivery"><DeliveryPage /></ErrorBoundary> },
     { path: '/transport',   el: <ErrorBoundary key="transport"><TransportPage /></ErrorBoundary> },
+    { path: '/hire',        el: <ErrorBoundary key="hire"><ProfessionalsPage /></ErrorBoundary> },
   ];
 
   return (
@@ -188,6 +195,10 @@ function TabContainer() {
             <Route path="/verify/:code" element={<VerifyPage />} />
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
+            <Route path="/terms" element={<TermsPage />} />
+            <Route path="/contact" element={<ContactPage />} />
             <Route path="/country/:code" element={<Suspense fallback={<div className="h-screen flex items-center justify-center"><div className="animate-spin w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full" /></div>}><CountryPage /></Suspense>} />
             <Route path="*" element={
               <div className="text-center py-20 text-gray-400">
@@ -210,7 +221,15 @@ export default function App() {
   const { detectFromIP, applyTheme, loadThemeOverrides } = useThemeStore();
   const loadSeo = useSeoStore(s => s.load);
   const loadCountries = useCountriesStore(s => s.load);
+  const logout = useAuthStore(s => s.logout);
   const [showSurvey, setShowSurvey] = useState(false);
+
+  // Auto-logout when the API intercepts an expired/invalid JWT
+  useEffect(() => {
+    const handler = () => { logout(); window.location.href = '/auth'; };
+    window.addEventListener('seshaa:auth:expired', handler);
+    return () => window.removeEventListener('seshaa:auth:expired', handler);
+  }, [logout]);
 
   useEffect(() => {
     initFontSize(); // restore user's saved text-size preference

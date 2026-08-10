@@ -16,6 +16,22 @@ api.interceptors.request.use(cfg => {
   return cfg;
 });
 
+// Auto-logout on 401 "Invalid token" — clears stale JWT and redirects to auth
+api.interceptors.response.use(
+  res => res,
+  err => {
+    const status = err?.response?.status;
+    const msg = err?.response?.data?.error as string | undefined;
+    if (status === 401 && msg?.toLowerCase().includes('token')) {
+      // Clear persisted auth state
+      localStorage.removeItem('seshaa-auth');
+      // Notify any listeners (App.tsx) to reset Zustand state
+      window.dispatchEvent(new CustomEvent('seshaa:auth:expired'));
+    }
+    return Promise.reject(err);
+  }
+);
+
 // Listings
 export const listingsApi = {
   search: (filters: SearchFilters) => api.get<SearchResult>('/listings', { params: filters }),
@@ -82,7 +98,7 @@ export const pricesApi = {
 
 // Auth
 export const authApi = {
-  register: (data: { name: string; email?: string; phone?: string; password: string; language: string; country?: string }) =>
+  register: (data: { name: string; email?: string; phone?: string; password: string; language: string; country?: string; instagram?: string; snapchat?: string; tiktok?: string; facebook?: string }) =>
     api.post('/auth/register', data),
   login: (identifier: string, password: string) => api.post('/auth/login', { identifier, password }),
   changePassword: (currentPassword: string, newPassword: string) =>
@@ -403,6 +419,10 @@ export const analyticsApi = {
   }>('/analytics/admin/prognosis'),
 };
 
+export const contactApi = {
+  list: () => api.get<{ id: string; createdAt: string; name?: string; email?: string; phone?: string; subject?: string; message?: string }[]>('/contact/admin'),
+};
+
 export const feedbackApi = {
   list: (params?: { type?: string; status?: string }) =>
     api.get('/feedback', { params }),
@@ -414,6 +434,52 @@ export const feedbackApi = {
     api.patch(`/feedback/${id}`, data),
   delete: (id: string) =>
     api.delete(`/feedback/${id}`),
+};
+
+export type HireProfile = {
+  id: string;
+  userId: string;
+  profession: string;
+  bio?: string;
+  hourlyRate?: number;
+  dayRate?: number;
+  currency: string;
+  available: boolean;
+  country: string;
+  city?: string;
+  skills: string[];
+  photos: string[];
+  avgRating: number;
+  ratingCount: number;
+  createdAt: string;
+  user: { id: string; name: string; avatarUrl?: string; country?: string; instagram?: string; tiktok?: string };
+};
+
+export type HireBooking = {
+  id: string;
+  profileId: string;
+  clientId: string;
+  date?: string;
+  duration?: number;
+  message: string;
+  status: 'PENDING' | 'CONFIRMED' | 'REJECTED' | 'COMPLETED';
+  totalPrice?: number;
+  createdAt: string;
+};
+
+export const hireApi = {
+  list: (params?: { profession?: string; country?: string; city?: string; search?: string }) =>
+    api.get<HireProfile[]>('/hire', { params }),
+  professions: () => api.get<string[]>('/hire/professions'),
+  me: () => api.get<HireProfile | null>('/hire/me'),
+  saveProfile: (data: Partial<HireProfile> & { profession: string }) =>
+    api.post<HireProfile>('/hire/profile', data),
+  get: (id: string) => api.get<HireProfile>(`/hire/${id}`),
+  book: (id: string, data: { date?: string; duration?: number; message: string; totalPrice?: number }) =>
+    api.post<HireBooking>(`/hire/${id}/book`, data),
+  sentBookings: () => api.get<(HireBooking & { profile: HireProfile })[]>('/hire/bookings/sent'),
+  receivedBookings: () => api.get<(HireBooking & { client: { id: string; name: string; avatarUrl?: string; phone?: string; email?: string } })[]>('/hire/bookings/received'),
+  updateBooking: (id: string, status: string) => api.patch<HireBooking>(`/hire/bookings/${id}`, { status }),
 };
 
 export default api;
