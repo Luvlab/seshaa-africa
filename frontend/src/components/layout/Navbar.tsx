@@ -259,7 +259,7 @@ export default function Navbar() {
   }, [mobileOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <nav ref={navRef} className={clsx('fixed top-0 left-0 right-0 z-50', !mobileOpen && 'shadow-md')} style={{ backgroundColor: 'var(--cp)' }}>
+    <nav ref={navRef} className={clsx('fixed top-0 left-0 right-0 z-50', !mobileOpen && 'shadow-md')} style={{ backgroundColor: 'var(--cp)', paddingTop: 'env(safe-area-inset-top)' }}>
       {/* ── Main header row — full viewport width, 56px fixed height ── */}
       <div className="w-full px-4 sm:px-6 h-14 flex items-center gap-2">
 
