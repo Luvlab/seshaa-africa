@@ -6,7 +6,6 @@ import clsx from 'clsx';
 import { listingsApi, aiSearchApi } from '../services/api';
 import ListingCard from '../components/directory/ListingCard';
 import AdBanner from '../components/ads/AdBanner';
-import { useThemeStore } from '../store/theme';
 import { useCountriesStore } from '../store/countries';
 import type { Listing, SearchFilters } from '../types';
 
@@ -39,14 +38,13 @@ function resolveCountry(val: string): string {
 export default function SearchPage() {
   const { t } = useTranslation();
   const [params, setParams] = useSearchParams();
-  const { countryCode } = useThemeStore();
   const { defaultCountry: storeDefault } = useCountriesStore();
 
   // If ?tag= is in URL, don't auto-apply country (diaspora tags cross all countries)
   const initialTag = params.get('tag') || '';
   const [filters, setFilters] = useState<SearchFilters>({
     q: params.get('q') || '',
-    country: initialTag ? '' : resolveCountry(params.get('country') || countryCode || storeDefault),
+    country: initialTag ? '' : resolveCountry(params.get('country') || storeDefault || 'Uganda'),
     city: params.get('city') || '',
     category: params.get('category') || '',
     type: (params.get('type') as SearchFilters['type']) || undefined,
@@ -107,20 +105,6 @@ export default function SearchPage() {
     });
   }, [params]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Header country picker → always update search country, UNLESS we're filtering by tag
-  useEffect(() => {
-    if (filters.tag) return; // don't override when tag filter is active
-    const name = resolveCountry(countryCode || '');
-    setFilters(prev => {
-      if ((prev.country || '') === name) return prev;
-      const next = { ...prev, country: name, page: 1 };
-      const p = new URLSearchParams(params);
-      if (name) p.set('country', name);
-      else p.delete('country');
-      setParams(p, { replace: true });
-      return next;
-    });
-  }, [countryCode]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const update = (patch: Partial<SearchFilters>) => {
     if (patch.country) patch.country = resolveCountry(patch.country);

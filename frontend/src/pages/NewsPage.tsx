@@ -11,8 +11,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { RefreshCw, Clock, Newspaper, Search, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useThemeStore } from '../store/theme';
-import { COUNTRIES } from '../components/layout/CountryPicker';
 import api from '../services/api';
 import FavoriteButton from '../components/ui/FavoriteButton';
 
@@ -29,6 +27,32 @@ const CATEGORY_EMOJIS: Record<string,string> = {
   general:'🌍', politics:'🏛️', business:'📈', technology:'💻', health:'🏥',
   sports:'⚽', entertainment:'🎭', agriculture:'🌾', finance:'💰', travel:'✈️',
 };
+
+const COUNTRY_FLAGS: Record<string, string> = {
+  Uganda: '🇺🇬', Kenya: '🇰🇪', Tanzania: '🇹🇿', Nigeria: '🇳🇬', Ghana: '🇬🇭',
+  'South Africa': '🇿🇦', Ethiopia: '🇪🇹', Rwanda: '🇷🇼', Senegal: '🇸🇳',
+  'Ivory Coast': '🇨🇮', Cameroon: '🇨🇲', Mozambique: '🇲🇿', Zambia: '🇿🇲',
+  Zimbabwe: '🇿🇼', Egypt: '🇪🇬', Morocco: '🇲🇦', Tunisia: '🇹🇳', Algeria: '🇩🇿',
+  Angola: '🇦🇴', Sudan: '🇸🇩', Somalia: '🇸🇴', Mali: '🇲🇱', Niger: '🇳🇪',
+  Burkina: '🇧🇫', Malawi: '🇲🇼', Namibia: '🇳🇦', Botswana: '🇧🇼', Libya: '🇱🇾',
+  Liberia: '🇱🇷', Sierra: '🇸🇱', Togo: '🇹🇬', Benin: '🇧🇯', Gabon: '🇬🇦',
+  Congo: '🇨🇩', Chad: '🇹🇩', 'East Africa': '🌍', 'Pan-Africa': '🌍',
+};
+
+function countryFlag(country: string): string {
+  if (!country) return '🌍';
+  for (const [key, flag] of Object.entries(COUNTRY_FLAGS)) {
+    if (country.toLowerCase().includes(key.toLowerCase())) return flag;
+  }
+  return '🌍';
+}
+
+// Uganda = 1, East Africa = 2, everything else = 3
+function countryPriority(country: string): number {
+  if (country === 'Uganda') return 1;
+  if (country === 'East Africa') return 2;
+  return 3;
+}
 
 /* Build the internal reader URL for a NewsItem */
 function articlePath(item: NewsItem): string {
@@ -75,7 +99,7 @@ function HeroCard({ item, t }: { item: NewsItem; t: (k: string, opts?: Record<st
           <span className="text-xs text-white/60 flex items-center gap-1">
             <Clock size={10} /> {timeAgo(item.publishedAt, t)}
           </span>
-          <span className="text-xs text-white/40 uppercase">{item.country}</span>
+          <span className="text-xs text-white/40">{countryFlag(item.country)} {item.country}</span>
         </div>
         <h2 className="font-black text-white text-xl sm:text-2xl leading-tight line-clamp-4 group-hover:underline underline-offset-2">
           {item.title}
@@ -104,7 +128,7 @@ function SecondaryCard({ item }: { item: NewsItem }) {
         </h3>
         <div className="flex items-center gap-2 mt-1">
           <span className="text-xs font-semibold" style={{ color: 'var(--cp)' }}>{item.source}</span>
-          <span className="text-xs text-gray-400">{item.country}</span>
+          <span className="text-xs text-gray-400">{countryFlag(item.country)} {item.country}</span>
         </div>
       </div>
     </a>
@@ -136,7 +160,7 @@ function GridCard({ item, size = 'md' }: { item: NewsItem; size?: 'sm' | 'md' | 
         )}
         <div className="flex items-center gap-2 mt-2">
           <span className="text-xs font-semibold text-[var(--cp)] truncate">{item.source}</span>
-          <span className="text-xs text-gray-400 shrink-0">{item.country}</span>
+          <span className="text-xs text-gray-400 shrink-0">{countryFlag(item.country)} {item.country}</span>
         </div>
         <span className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
           <Clock size={9} /> {new Date(item.publishedAt).toLocaleDateString()}
@@ -234,7 +258,6 @@ function NewsSkeleton() {
 /* ── Main page ──────────────────────────────────────────────────────────── */
 export default function NewsPage() {
   const { t } = useTranslation();
-  const { countryCode } = useThemeStore();
   const [activeCategory, setActiveCategory] = useState('general');
   const [items, setItems]     = useState<NewsItem[]>([]);
   const [sources, setSources] = useState<{ name: string; country: string }[]>([]);
@@ -248,19 +271,17 @@ export default function NewsPage() {
     return stored ? Math.max(20, Math.min(200, parseInt(stored))) : 60;
   });
 
-  const selectedCountry = countryCode ? (COUNTRIES.find(c => c.code === countryCode)?.name || countryCode) : '';
 
   const fetchNews = useCallback(async (cat: string) => {
     setLoading(true);
     try {
-      const params = new URLSearchParams({ category: cat, limit: '60' });
-      if (selectedCountry) params.set('country', selectedCountry);
+      const params = new URLSearchParams({ category: cat, limit: '80' });
       const r = await api.get(`/news?${params.toString()}`);
       setItems(r.data.items || []);
       setSources(r.data.sources || []);
     } catch { setItems([]); }
     finally { setLoading(false); }
-  }, [selectedCountry]);
+  }, []);
 
   useEffect(() => {
     fetchNews(activeCategory);
@@ -268,12 +289,19 @@ export default function NewsPage() {
     return () => { if (autoRefreshRef.current) clearInterval(autoRefreshRef.current); };
   }, [activeCategory, fetchNews]);
 
-  const filtered = searchQ
+  const baseFiltered = searchQ
     ? items.filter(i =>
         i.title.toLowerCase().includes(searchQ.toLowerCase()) ||
         i.source.toLowerCase().includes(searchQ.toLowerCase()) ||
         i.country.toLowerCase().includes(searchQ.toLowerCase()))
     : items;
+
+  // Uganda first, East Africa second, rest of Africa after
+  const filtered = [...baseFiltered].sort((a, b) => {
+    const pd = countryPriority(a.country) - countryPriority(b.country);
+    if (pd !== 0) return pd;
+    return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
+  });
 
   const withImage = filtered.filter(i => i.image);
   const hero      = withImage[0];
@@ -387,7 +415,7 @@ export default function NewsPage() {
                           </p>
                           <div className="flex items-center gap-1.5 mt-1">
                             <span className="text-[10px] font-bold" style={{ color: 'var(--cp)' }}>{item.source}</span>
-                            <span className="text-[10px] text-gray-400">{item.country}</span>
+                            <span className="text-[10px] text-gray-400">{countryFlag(item.country)} {item.country}</span>
                           </div>
                         </a>
                       ))}
