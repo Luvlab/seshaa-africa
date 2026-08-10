@@ -172,6 +172,7 @@ export default function AdminPortal() {
   };
   const [heroSlides, setHeroSlides]       = useState<HeroSlide[]>([]);
   const [slidesLoaded, setSlidesLoaded]   = useState(false);
+  const [slidesError, setSlidesError]     = useState('');
   const [editingSlide, setEditingSlide]   = useState<HeroSlide | null>(null);
   const [showSlideForm, setShowSlideForm] = useState(false);
   const [slideForm, setSlideForm]         = useState<SlideForm>(BLANK_SLIDE);
@@ -395,7 +396,11 @@ export default function AdminPortal() {
     adminApi.getHeroSlides().then(r => {
       setHeroSlides(r.data || []);
       setSlidesLoaded(true);
-    }).catch(() => { setSlidesLoaded(true); });
+      setSlidesError('');
+    }).catch((e) => {
+      setSlidesLoaded(true);
+      setSlidesError(e?.response?.data?.error || e?.message || 'Failed to load slides');
+    });
     adminApi.getAiSettings().then(r => {
       if (r.data?.openRouterModel) setOpenRouterModel(r.data.openRouterModel);
     }).catch(() => {});
@@ -425,6 +430,11 @@ export default function AdminPortal() {
       setPodServices(r.data?.services || []);
     }).catch(() => {});
   }, []);
+
+  // Re-fetch slides whenever the adcms tab is opened
+  useEffect(() => {
+    if (tab === 'adcms') reloadSlides();
+  }, [tab]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const base = getThemeForCode(themeCountryCode);
@@ -594,6 +604,17 @@ export default function AdminPortal() {
       finally { setYtMetaLoading(false); }
     }, 600);
   }, []);
+
+  const reloadSlides = () => {
+    setSlidesLoaded(false);
+    setSlidesError('');
+    adminApi.getHeroSlides().then(r => {
+      setHeroSlides(r.data || []);
+      setSlidesError('');
+    }).catch((e) => {
+      setSlidesError(e?.response?.data?.error || e?.message || 'Failed to load slides');
+    }).finally(() => setSlidesLoaded(true));
+  };
 
   const deleteSlide = async (id: string) => {
     if (!confirm('Delete this slide? This cannot be undone.')) return;
@@ -2034,6 +2055,12 @@ export default function AdminPortal() {
                 <div className="ml-auto flex items-center gap-2">
                   <span className="text-xs text-gray-500">{heroSlides.filter(s => s.active).length} active · {heroSlides.length} total</span>
                   <button
+                    onClick={reloadSlides}
+                    title="Reload slides"
+                    className="p-1.5 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors">
+                    <RefreshCw size={13} className={!slidesLoaded ? 'animate-spin' : ''} />
+                  </button>
+                  <button
                     onClick={() => { setEditingSlide(null); setSlideForm(BLANK_SLIDE); setShowSlideForm(v => !v); setSlideMsg(''); }}
                     className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-500 hover:bg-orange-400 text-white text-xs font-bold rounded-xl transition-colors">
                     <Plus size={13} /> New Slide
@@ -2054,6 +2081,13 @@ export default function AdminPortal() {
               {showSlideForm && !editingSlide && (
                 <div className="-mx-5 -mb-5 overflow-hidden rounded-b-2xl border-t border-gray-800">
                   {renderSlideForm()}
+                </div>
+              )}
+
+              {slidesError && (
+                <div className="mb-4 p-3 rounded-xl text-xs text-red-400 bg-red-500/10 border border-red-500/20 flex items-center gap-2">
+                  ⚠️ {slidesError}
+                  <button onClick={reloadSlides} className="ml-auto underline hover:no-underline">Retry</button>
                 </div>
               )}
 
