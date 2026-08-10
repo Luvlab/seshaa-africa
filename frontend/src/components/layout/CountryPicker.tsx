@@ -6,6 +6,7 @@
 import { useState, useMemo } from 'react';
 import { Search, X } from 'lucide-react';
 import { useThemeStore } from '../../store/theme';
+import { useCountriesStore } from '../../store/countries';
 
 // ── Country → languages map ─────────────────────────────────────────────────
 // Format: primary official first, then major spoken languages
@@ -174,6 +175,7 @@ interface Props {
 export default function CountryPicker({ onSelect, onClose, currentCode }: Props) {
   const [q, setQ] = useState('');
   const { countryClicks } = useThemeStore();
+  const { activeCountries } = useCountriesStore();
 
   // Countries sorted alphabetically within each region
   const COUNTRIES_ALPHA = useMemo(() =>
@@ -276,6 +278,45 @@ export default function CountryPicker({ onSelect, onClose, currentCode }: Props)
             </div>
             <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${currentCode === '' ? 'bg-green-100 text-green-700' : 'bg-green-50 text-green-600'}`}>ALL</span>
           </button>
+
+          {/* Active countries — live on Seshaa now */}
+          {!q.trim() && activeCountries.length > 0 && (
+            <div className="mb-4">
+              <p className="text-xs font-bold uppercase tracking-wider mb-2 px-1" style={{ color: 'var(--cp)' }}>
+                🟢 Live Now
+              </p>
+              <div className="space-y-1">
+                {activeCountries.map(code => {
+                  const c = COUNTRIES.find(x => x.code === code);
+                  if (!c) return null;
+                  const isCurrent = code === currentCode;
+                  return (
+                    <button
+                      key={code}
+                      onClick={() => { onSelect(code); onClose(); }}
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-left transition-colors border-2 ${
+                        isCurrent
+                          ? 'border-[color:var(--cp)] bg-white shadow-sm'
+                          : 'border-[color:var(--cp)]/30 bg-white/70 hover:border-[color:var(--cp)] hover:bg-white'
+                      }`}
+                    >
+                      <span className="text-3xl leading-none shrink-0">{c.flag}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-black text-sm text-gray-900">
+                          {c.name}
+                          {isCurrent && <span className="ml-2 text-xs font-semibold" style={{ color: 'var(--cp)' }}>✓ current</span>}
+                        </p>
+                        <p className="text-xs text-gray-400 truncate mt-0.5">
+                          {c.langs.slice(0, 3).join(' · ')}
+                        </p>
+                      </div>
+                      <span className="text-xs font-black px-2 py-0.5 rounded-full shrink-0 text-white" style={{ backgroundColor: 'var(--cp)' }}>{code}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Frequent / recently used countries */}
           {!q.trim() && frequentCountries.length > 0 && (
