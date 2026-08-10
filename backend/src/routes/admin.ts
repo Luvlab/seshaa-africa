@@ -146,7 +146,8 @@ router.patch('/listings/:id', requireAuth, adminOnly, async (req, res) => {
     if (verified !== undefined)     data.verified = verified;
     if (active !== undefined)       data.active = active;
 
-    const listing = await prisma.listing.update({ where: { id }, data });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const listing = await prisma.listing.update({ where: { id: id as string }, data: data as any });
     res.json(listing);
   } catch (err) {
     res.status(500).json({ error: 'Update failed', detail: String(err) });
@@ -476,8 +477,8 @@ router.post('/scrape/blackowned', requireAuth, adminOnly, async (req, res) => {
   void (async () => {
     try {
       await scrapeBlackOwned({
-        source: source as Parameters<typeof scrapeBlackOwned>[0]['source'],
-        region:  region  as Parameters<typeof scrapeBlackOwned>[0]['region'],
+        source: source as 'yelp' | 'html' | 'all',
+        region:  region  as 'us' | 'uk' | 'ca' | 'au' | 'eu' | 'caribbean' | 'brazil' | 'asia' | 'all',
         dryRun,
         onProgress: (msg) => console.log(msg),
       });
