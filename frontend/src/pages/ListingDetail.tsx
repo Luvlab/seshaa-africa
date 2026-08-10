@@ -368,9 +368,9 @@ export default function ListingDetail() {
               </h2>
             </div>
 
-            {user && (
+            {user ? (
               <div className="mb-6 p-4 bg-gray-50 rounded-xl">
-                <p className="text-sm font-semibold text-gray-700 mb-2">{/* TODO: translate */ }Leave a review</p>
+                <p className="text-sm font-semibold text-gray-700 mb-2">Leave a review</p>
                 <StarRating value={myRating} interactive onChange={v => setMyRating(v)} size={24} showCount={false} />
                 <textarea
                   className="w-full mt-3 border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--cp)] resize-none"
@@ -384,6 +384,21 @@ export default function ListingDetail() {
                   {submitting ? t('common.loading') : t('listing.submit')}
                 </button>
               </div>
+            ) : (
+              <Link
+                to="/auth"
+                className="mb-6 flex items-center gap-3 p-4 rounded-xl border-2 border-dashed transition-colors hover:border-[var(--cp)] group"
+                style={{ borderColor: 'var(--border, #e5e7eb)' }}
+              >
+                <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-lg"
+                  style={{ background: 'var(--bg, #f8f7f4)' }}>⭐</div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-800 group-hover:text-[var(--cp)]">Sign in to leave a review</p>
+                  <p className="text-xs text-gray-500 mt-0.5">Create a free account or log in — it only takes a moment.</p>
+                </div>
+                <span className="ml-auto text-xs font-semibold px-3 py-1.5 rounded-lg text-white shrink-0"
+                  style={{ backgroundColor: 'var(--cp, #008751)' }}>Sign in</span>
+              </Link>
             )}
 
             {reviews.length === 0 ? (
