@@ -1127,16 +1127,17 @@ router.post('/pod-services/scrape', requireAuth, adminOnly, async (_req, res) =>
 });
 
 // ── Country Active/Inactive Settings ─────────────────────────────────────────
-type CountrySettings = { activeCountries: string[]; countryLanguages: Record<string, string> };
-const COUNTRY_SETTINGS_DEFAULT: CountrySettings = { activeCountries: ['UG'], countryLanguages: { UG: 'en' } };
+type CountrySettings = { activeCountries: string[]; countryLanguages: Record<string, string>; defaultCountry: string };
+const COUNTRY_SETTINGS_DEFAULT: CountrySettings = { activeCountries: ['UG'], countryLanguages: { UG: 'en' }, defaultCountry: 'UG' };
 
 function parseCountrySettings(raw: string | null | undefined): CountrySettings {
   if (!raw) return { ...COUNTRY_SETTINGS_DEFAULT };
   try {
-    const p = JSON.parse(raw) as { activeCountries?: string[]; countryLanguages?: Record<string, string> };
+    const p = JSON.parse(raw) as { activeCountries?: string[]; countryLanguages?: Record<string, string>; defaultCountry?: string };
     return {
       activeCountries: Array.isArray(p.activeCountries) ? p.activeCountries : COUNTRY_SETTINGS_DEFAULT.activeCountries,
       countryLanguages: (p.countryLanguages && typeof p.countryLanguages === 'object') ? p.countryLanguages : COUNTRY_SETTINGS_DEFAULT.countryLanguages,
+      defaultCountry: typeof p.defaultCountry === 'string' ? p.defaultCountry : COUNTRY_SETTINGS_DEFAULT.defaultCountry,
     };
   } catch { return { ...COUNTRY_SETTINGS_DEFAULT }; }
 }
@@ -1149,10 +1150,11 @@ router.get('/country-settings', requireAuth, adminOnly, async (_req, res) => {
 
 // POST /admin/country-settings — save country config (admin auth)
 router.post('/country-settings', requireAuth, adminOnly, async (req, res) => {
-  const body = req.body as { activeCountries?: string[]; countryLanguages?: Record<string, string> };
+  const body = req.body as { activeCountries?: string[]; countryLanguages?: Record<string, string>; defaultCountry?: string };
   const activeCountries = Array.isArray(body.activeCountries) ? body.activeCountries.map(String) : COUNTRY_SETTINGS_DEFAULT.activeCountries;
   const countryLanguages = (body.countryLanguages && typeof body.countryLanguages === 'object') ? body.countryLanguages : COUNTRY_SETTINGS_DEFAULT.countryLanguages;
-  const payload: CountrySettings = { activeCountries, countryLanguages };
+  const defaultCountry = typeof body.defaultCountry === 'string' ? body.defaultCountry : (activeCountries[0] || COUNTRY_SETTINGS_DEFAULT.defaultCountry);
+  const payload: CountrySettings = { activeCountries, countryLanguages, defaultCountry };
   await prisma.listing.upsert({
     where:  { osmId: 'seshaa-country-config' },
     update: { name: 'Country Config', description: JSON.stringify(payload), active: true, verified: true },

@@ -169,8 +169,10 @@ export const useThemeStore = create<ThemeState>()(
             const active = useCountriesStore.getState().activeCountries;
             if (active.length === 0 || active.includes(data.countryCode)) {
               get().applyTheme(data.countryCode);
+            } else {
+              // IP country not active — keep persisted/default theme but mark detected
+              set({ detected: true });
             }
-            // else: stay at Africa theme (already applied in App.tsx)
           }
 
           // Auto-set language only if the user has never explicitly picked one
@@ -197,8 +199,8 @@ export const useThemeStore = create<ThemeState>()(
       },
     }),
     {
-      name: 'seshaa-theme-v3', // bumped to flush stale countryCode from localStorage
-      partialize: (s) => ({ countryClicks: s.countryClicks }), // never persist countryCode — always start at Africa
+      name: 'seshaa-theme-v4', // v4: persist countryCode so selected country survives refresh
+      partialize: (s) => ({ countryClicks: s.countryClicks, countryCode: s.countryCode }),
     }
   )
 );

@@ -7,6 +7,7 @@ import { listingsApi, aiSearchApi } from '../services/api';
 import ListingCard from '../components/directory/ListingCard';
 import AdBanner from '../components/ads/AdBanner';
 import { useThemeStore } from '../store/theme';
+import { useCountriesStore } from '../store/countries';
 import type { Listing, SearchFilters } from '../types';
 
 const TYPES = ['PERSONAL', 'BUSINESS', 'GOVERNMENT', 'NGO'] as const;
@@ -39,12 +40,13 @@ export default function SearchPage() {
   const { t } = useTranslation();
   const [params, setParams] = useSearchParams();
   const { countryCode } = useThemeStore();
+  const { defaultCountry: storeDefault } = useCountriesStore();
 
   // If ?tag= is in URL, don't auto-apply country (diaspora tags cross all countries)
   const initialTag = params.get('tag') || '';
   const [filters, setFilters] = useState<SearchFilters>({
     q: params.get('q') || '',
-    country: initialTag ? '' : resolveCountry(params.get('country') || countryCode || ''),
+    country: initialTag ? '' : resolveCountry(params.get('country') || countryCode || storeDefault),
     city: params.get('city') || '',
     category: params.get('category') || '',
     type: (params.get('type') as SearchFilters['type']) || undefined,

@@ -205,7 +205,7 @@ export default function HomePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { countryCode } = useThemeStore();
-  const { activeCountries } = useCountriesStore();
+  const { activeCountries, defaultCountry } = useCountriesStore();
   const [query, setQuery]         = useState('');
   const [aiMode, setAiMode]       = useState(false);
   const [muted]                   = useState(true);
@@ -281,7 +281,8 @@ export default function HomePage() {
     if (!query.trim()) return;
     const p = new URLSearchParams({ q: query.trim() });
     if (aiMode) p.set('ai', '1');
-    if (countryCode) p.set('country', countryCode);
+    const cc = countryCode || defaultCountry;
+    if (cc) p.set('country', cc);
     navigate(`/search?${p.toString()}`);
   };
 
@@ -409,7 +410,7 @@ export default function HomePage() {
           {CATEGORY_KEYS.map(key => (
             <button key={key}
               className="flex flex-col items-center gap-2.5 py-5 px-2 bg-white rounded-2xl border border-gray-100 hover:shadow-md active:scale-95 transition-all group"
-              onClick={() => navigate(`/search?category=${key}${countryCode ? `&country=${encodeURIComponent(countryCode)}` : ''}`)}>
+              onClick={() => { const cc = countryCode || defaultCountry; navigate(`/search?category=${key}${cc ? `&country=${encodeURIComponent(cc)}` : ''}`); }}>
               <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center group-hover:opacity-90 transition-opacity"
                 style={{ backgroundColor: CATEGORY_COLORS[key] }}>
                 <span className="text-white [&>svg]:w-7 [&>svg]:h-7 sm:[&>svg]:w-9 sm:[&>svg]:h-9">{CATEGORY_ICONS[key]}</span>

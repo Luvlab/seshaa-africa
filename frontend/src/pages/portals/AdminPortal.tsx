@@ -291,6 +291,7 @@ export default function AdminPortal() {
   const [seoLoaded, setSeoLoaded]         = useState(false);
   const [activeCountries, setActiveCountries] = useState<string[]>(['UG']);
   const [countryLanguages, setCountryLanguages] = useState<Record<string, string>>({ UG: 'en' });
+  const [defaultCountry, setDefaultCountry]   = useState<string>('UG');
   const [countriesSaved, setCountriesSaved]   = useState('');
   const [countriesLoaded, setCountriesLoaded] = useState(false);
   const [printifyApiKey, setPrintifyApiKey] = useState('');
@@ -744,13 +745,14 @@ export default function AdminPortal() {
       const d = r.data;
       if (Array.isArray(d?.activeCountries)) setActiveCountries(d.activeCountries);
       if (d?.countryLanguages && typeof d.countryLanguages === 'object') setCountryLanguages(d.countryLanguages);
+      if (typeof d?.defaultCountry === 'string' && d.defaultCountry) setDefaultCountry(d.defaultCountry);
       setCountriesLoaded(true);
     }).catch(() => setCountriesLoaded(true));
   }, [countriesLoaded]);
 
   const saveCountrySettings = async () => {
     try {
-      await adminApi.saveCountrySettings({ activeCountries, countryLanguages });
+      await adminApi.saveCountrySettings({ activeCountries, countryLanguages, defaultCountry });
       setCountriesSaved('✓ Saved.');
       setTimeout(() => setCountriesSaved(''), 2500);
     } catch {
@@ -4009,6 +4011,47 @@ export default function AdminPortal() {
                   </button>
                 );
               })}
+            </div>
+
+            {/* ── Default Country ── */}
+            <div className="mt-8">
+              <h3 className="text-base font-black text-gray-800 mb-1">Default Country</h3>
+              <p className="text-sm text-gray-500 mb-4">
+                Visitors from countries not yet active on Seshaa will be shown this country's content by default.
+                Also used when IP detection can't determine a match.
+              </p>
+              {activeCountries.length === 0 ? (
+                <p className="text-sm text-gray-400 italic">Activate at least one country above first.</p>
+              ) : (
+                <div className="flex flex-wrap gap-3">
+                  {activeCountries.map(code => {
+                    const c = COUNTRIES.find(x => x.code === code);
+                    if (!c) return null;
+                    const isDefault = defaultCountry === code;
+                    return (
+                      <button
+                        key={code}
+                        onClick={() => setDefaultCountry(code)}
+                        className={`flex items-center gap-3 px-4 py-3 rounded-2xl border-2 transition-all ${
+                          isDefault
+                            ? 'border-green-500 bg-green-50 shadow-sm'
+                            : 'border-gray-200 bg-gray-50 hover:bg-gray-100'
+                        }`}>
+                        <span className="text-2xl leading-none">{c.flag}</span>
+                        <div className="text-left">
+                          <p className="text-sm font-bold text-gray-800">{c.name}</p>
+                          <p className="text-[10px] text-gray-500">{code}</p>
+                        </div>
+                        <div className={`w-5 h-5 rounded-full border-2 ml-2 flex items-center justify-center shrink-0 ${
+                          isDefault ? 'border-green-500 bg-green-500' : 'border-gray-300'
+                        }`}>
+                          {isDefault && <div className="w-2.5 h-2.5 rounded-full bg-white" />}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             {/* ── Geo & Language Config ── */}
