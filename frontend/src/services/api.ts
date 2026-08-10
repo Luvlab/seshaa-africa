@@ -249,6 +249,8 @@ export const adminApi = {
   userAnalytics: () => api.get('/admin/user-analytics'),
   getCountrySettings: () => api.get<{ activeCountries: string[]; countryLanguages: Record<string, string>; defaultCountry: string }>('/admin/country-settings'),
   saveCountrySettings: (data: { activeCountries: string[]; countryLanguages: Record<string, string>; defaultCountry: string }) => api.post('/admin/country-settings', data),
+  getNavSettings: () => api.get<{ visibleNavItems: string[]; allNavItems: string[] }>('/admin/nav-settings'),
+  saveNavSettings: (data: { visibleNavItems: string[] }) => api.post('/admin/nav-settings', data),
 };
 
 // Community Translations

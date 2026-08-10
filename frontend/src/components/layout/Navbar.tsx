@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useAuthStore } from '../../store/auth';
 import { useThemeStore } from '../../store/theme';
+import { useNavStore } from '../../store/nav';
 import { adminApi } from '../../services/api';
 import SeshaaTitle from '../brand/SeshaaTitle';
 import CountryPicker from './CountryPicker';
@@ -139,6 +140,7 @@ export default function Navbar() {
   const location = useLocation();
   const { user, portal, setPortal, logout } = useAuthStore();
   const { theme, countryCode, applyTheme } = useThemeStore();
+  const { visibleNavItems, load: loadNav } = useNavStore();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
   const [portalOpen, setPortalOpen] = useState(false);
@@ -182,7 +184,10 @@ export default function Navbar() {
     setLangOpen(false);
   };
 
+  useEffect(() => { loadNav(); }, [loadNav]);
+
   const visibleTabs = ALL_TABS.filter(tab => {
+    if (!visibleNavItems.includes(tab.id)) return false;
     if (!tab.roles) return true;
     if (!user) return false;
     return tab.roles.includes(user.role);
@@ -556,16 +561,7 @@ export default function Navbar() {
               />
             </div>
 
-            {/* Add Listing CTA */}
-            <Link
-              to="/add-listing"
-              className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl font-bold text-sm shadow-md active:opacity-80 transition-opacity"
-              style={{ backgroundColor: 'rgba(255,255,255,0.95)', color: 'var(--cp)' }}
-              onClick={closeMenu}
-            >
-              <Plus size={16} />
-              List Your Business — Free
-            </Link>
+            {/* Add Listing CTA — hidden by default; enable via Admin > Navigation */}
 
             {/* Nav grid — 4 columns of square icon tiles */}
             <div className="grid grid-cols-4 gap-2">

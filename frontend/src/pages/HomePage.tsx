@@ -522,8 +522,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── SALES REP — full viewport width, edge-to-edge ── */}
-      <section className="w-full py-14 px-6 sm:px-8 lg:px-12"
+      {/* ── SALES REP — hidden by default; enable via Admin > Navigation ── */}
+      {false && <section className="w-full py-14 px-6 sm:px-8 lg:px-12"
         style={{ background: 'linear-gradient(135deg, #7c3aed, #3730a3)' }}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-16 items-start">
           <div className="text-white">
@@ -610,7 +610,7 @@ export default function HomePage() {
             </div>
           </div>
         </div>
-      </section>
+      </section>}
 
       {/* ── VISITOR DASHBOARD — before footer ── */}
       <VisitorDashboard />

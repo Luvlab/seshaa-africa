@@ -94,19 +94,21 @@ export default function FooterPlayer() {
         className="fixed bottom-0 left-0 right-0 z-50 flex flex-col"
         style={{ background: 'linear-gradient(to right, #0f172a, #1e293b)' }}
       >
-        {/* ── Waveform (full width, seekable) ─────────────────────────── */}
-        <div className="w-full px-2 pt-2 pb-0">
-          <Waveform
-            trackId={currentTrack.id}
-            elapsed={elapsed}
-            duration={duration}
-            onSeek={handleSeek}
-            height={36}
-            bars={100}
-            playedColor="#10b981"
-            unplayedColor="rgba(255,255,255,0.15)"
-          />
-        </div>
+        {/* ── Waveform (full width, seekable) — hidden for live streams ── */}
+        {!currentTrack.isLive && (
+          <div className="w-full px-2 pt-2 pb-0">
+            <Waveform
+              trackId={currentTrack.id}
+              elapsed={elapsed}
+              duration={duration}
+              onSeek={handleSeek}
+              height={36}
+              bars={100}
+              playedColor="#10b981"
+              unplayedColor="rgba(255,255,255,0.15)"
+            />
+          </div>
+        )}
 
         {/* ── Controls row ─────────────────────────────────────────────── */}
         <div className="flex items-center gap-3 px-3 py-2 min-w-0">
@@ -130,10 +132,16 @@ export default function FooterPlayer() {
             </div>
           </div>
 
-          {/* Time */}
-          <span className="text-[10px] text-white/40 shrink-0 hidden sm:block tabular-nums">
-            {fmtTime(elapsed)}{duration > 0 ? ` / ${fmtTime(duration)}` : ''}
-          </span>
+          {/* Time / LIVE badge */}
+          {currentTrack.isLive
+            ? <span className="flex items-center gap-1 shrink-0 text-[10px] font-bold text-emerald-400 bg-emerald-400/10 px-1.5 py-0.5 rounded-full">
+                <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
+                LIVE
+              </span>
+            : <span className="text-[10px] text-white/40 shrink-0 hidden sm:block tabular-nums">
+                {fmtTime(elapsed)}{duration > 0 ? ` / ${fmtTime(duration)}` : ''}
+              </span>
+          }
 
           {/* Controls */}
           <div className="flex items-center gap-1 shrink-0">

@@ -8,6 +8,7 @@ import { radioApi } from '../services/api';
 import type { LiveStation } from '../services/api';
 import { useRadioStore } from '../store/radio';
 import type { RadioTrack } from '../store/radio';
+import { useCountriesStore } from '../store/countries';
 import Waveform from '../components/radio/Waveform';
 import {
   Play, Pause, Music, Radio, Headphones, Plus, ExternalLink,
@@ -322,6 +323,7 @@ function SubmitTrackForm({ onDone }: { onDone: () => void }) {
 // ── LIVE TAB ──────────────────────────────────────────────────────────────────
 function LiveTab() {
   const { t } = useTranslation();
+  const { defaultCountry } = useCountriesStore();
   const [stations, setStations] = useState<LiveStation[]>([]);
   const [loading, setLoading]   = useState(true);
   const [country, setCountry]   = useState('');
@@ -329,15 +331,28 @@ function LiveTab() {
 
   useEffect(() => {
     radioApi.stations()
-      .then(r => setStations(r.data))
+      .then(r => {
+        // Sort: defaultCountry first, then alphabetically by country name
+        const sorted = [...r.data].sort((a, b) => {
+          const aFirst = a.country === defaultCountry ? -1 : 0;
+          const bFirst = b.country === defaultCountry ? -1 : 0;
+          if (aFirst !== bFirst) return aFirst - bFirst;
+          return (a.countryName || a.country).localeCompare(b.countryName || b.country);
+        });
+        setStations(sorted);
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }, [defaultCountry]);
 
   // Unique countries from result
   const countries = Array.from(
     new Map(stations.filter(s => s.country).map(s => [s.country, s.countryName || s.country])).entries()
-  ).sort((a, b) => a[1].localeCompare(b[1]));
+  ).sort((a, b) => {
+    if (a[0] === defaultCountry) return -1;
+    if (b[0] === defaultCountry) return 1;
+    return a[1].localeCompare(b[1]);
+  });
 
   const filtered = stations.filter(s => {
     if (country && s.country !== country) return false;

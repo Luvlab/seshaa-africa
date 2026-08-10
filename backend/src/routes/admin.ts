@@ -1170,4 +1170,42 @@ router.get('/public/country-settings', async (_req, res) => {
   return res.json(parseCountrySettings(record?.description));
 });
 
+// ── Nav Visibility Settings ───────────────────────────────────────────────────
+const ALL_NAV_ITEMS = ['home','search','news','classifieds','prices','market','radio','events','translate','diaspora','ride','delivery','transport','archive','advertise','ambassador','salesrep','admin'];
+type NavSettings = { visibleNavItems: string[] };
+const NAV_SETTINGS_DEFAULT: NavSettings = { visibleNavItems: [...ALL_NAV_ITEMS] };
+
+function parseNavSettings(raw: string | null | undefined): NavSettings {
+  if (!raw) return { ...NAV_SETTINGS_DEFAULT };
+  try {
+    const p = JSON.parse(raw) as { visibleNavItems?: string[] };
+    return { visibleNavItems: Array.isArray(p.visibleNavItems) ? p.visibleNavItems : NAV_SETTINGS_DEFAULT.visibleNavItems };
+  } catch { return { ...NAV_SETTINGS_DEFAULT }; }
+}
+
+// GET /admin/nav-settings — fetch nav visibility config (admin auth)
+router.get('/nav-settings', requireAuth, adminOnly, async (_req, res) => {
+  const record = await prisma.listing.findUnique({ where: { osmId: 'seshaa-nav-config' } });
+  return res.json({ ...parseNavSettings(record?.description), allNavItems: ALL_NAV_ITEMS });
+});
+
+// POST /admin/nav-settings — save nav visibility config (admin auth)
+router.post('/nav-settings', requireAuth, adminOnly, async (req, res) => {
+  const body = req.body as { visibleNavItems?: string[] };
+  const visibleNavItems = Array.isArray(body.visibleNavItems) ? body.visibleNavItems.map(String) : NAV_SETTINGS_DEFAULT.visibleNavItems;
+  const payload: NavSettings = { visibleNavItems };
+  await prisma.listing.upsert({
+    where:  { osmId: 'seshaa-nav-config' },
+    update: { name: 'Nav Config', description: JSON.stringify(payload), active: true, verified: true },
+    create: { name: 'Nav Config', description: JSON.stringify(payload), osmId: 'seshaa-nav-config', country: 'ZZ', city: 'Global', type: 'BUSINESS', active: true, verified: true },
+  });
+  res.json({ ok: true, ...payload });
+});
+
+// GET /admin/public/nav-settings — public (no auth) — used by Navbar
+router.get('/public/nav-settings', async (_req, res) => {
+  const record = await prisma.listing.findUnique({ where: { osmId: 'seshaa-nav-config' } });
+  return res.json(parseNavSettings(record?.description));
+});
+
 export default router;

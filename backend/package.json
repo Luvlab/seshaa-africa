@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "nodemon --watch src --ext ts --exec 'ts-node src/index.ts'",
     "postinstall": "prisma generate",
-    "build": "prisma generate",
+    "build": "prisma generate && tsc",
     "start": "node dist/index.js",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",

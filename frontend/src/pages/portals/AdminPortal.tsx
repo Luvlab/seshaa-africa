@@ -8,7 +8,7 @@ import {
   Zap, ArrowUpRight, Plus, Edit2, Trash2, Eye, EyeOff, Play,
   CreditCard, Phone, Mail, Info, Lightbulb, Bug, ChevronUp,
   AlertCircle, Search, Link, Share2, Image as ImageIcon,
-  FileCode, Tag, RotateCcw, ExternalLink,
+  FileCode, Tag, RotateCcw, ExternalLink, Menu,
 } from 'lucide-react';
 import { adminApi, adsApi, analyticsApi, feedbackApi } from '../../services/api';
 import { useAuthStore } from '../../store/auth';
@@ -43,7 +43,7 @@ interface PendingListing {
 interface PendingPayout  { id: string; amount: number; method: string; ambassador: { user: { name: string; phone: string; country: string } } }
 interface LoanApp        { id: string; amount: number; purpose: string; status: string; createdAt: string; user: { name: string; phone: string; country: string } }
 
-type Tab = 'overview' | 'listings' | 'payouts' | 'loans' | 'finance' | 'adcms' | 'promote' | 'scraper' | 'branding' | 'salesreps' | 'analytics' | 'banking' | 'feedback' | 'seo' | 'countries';
+type Tab = 'overview' | 'listings' | 'payouts' | 'loans' | 'finance' | 'adcms' | 'promote' | 'scraper' | 'branding' | 'salesreps' | 'analytics' | 'banking' | 'feedback' | 'seo' | 'countries' | 'nav';
 
 interface HeroConfig {
   mediaType: 'youtube' | 'image' | 'video' | 'default';
@@ -294,6 +294,11 @@ export default function AdminPortal() {
   const [defaultCountry, setDefaultCountry]   = useState<string>('UG');
   const [countriesSaved, setCountriesSaved]   = useState('');
   const [countriesLoaded, setCountriesLoaded] = useState(false);
+  const ALL_NAV_ITEMS = ['home','search','news','classifieds','prices','market','radio','events','translate','diaspora','ride','delivery','transport','archive','advertise','ambassador','salesrep','admin'];
+  const NAV_LABELS: Record<string, string> = { home: 'Home', search: 'Search', news: 'News', classifieds: 'Classifieds', prices: 'Prices', market: 'Market', radio: 'Radio', events: 'Events', translate: 'Translate', diaspora: 'Diaspora', ride: 'Ride', delivery: 'Delivery', transport: 'Transport', archive: 'Archive', advertise: 'Advertise', ambassador: 'Ambassador', salesrep: 'Sales Rep', admin: 'Admin' };
+  const [visibleNavItems, setVisibleNavItems] = useState<string[]>([...ALL_NAV_ITEMS]);
+  const [navSaved, setNavSaved]               = useState('');
+  const [navLoaded, setNavLoaded]             = useState(false);
   const [printifyApiKey, setPrintifyApiKey] = useState('');
   const [printfulApiKey, setPrintfulApiKey] = useState('');
   const [podMsg, setPodMsg] = useState('');
@@ -750,6 +755,25 @@ export default function AdminPortal() {
     }).catch(() => setCountriesLoaded(true));
   }, [countriesLoaded]);
 
+  // Load nav settings once
+  useEffect(() => {
+    if (navLoaded) return;
+    adminApi.getNavSettings().then(r => {
+      if (Array.isArray(r.data?.visibleNavItems)) setVisibleNavItems(r.data.visibleNavItems);
+      setNavLoaded(true);
+    }).catch(() => setNavLoaded(true));
+  }, [navLoaded]);
+
+  const saveNavSettings = async () => {
+    try {
+      await adminApi.saveNavSettings({ visibleNavItems });
+      setNavSaved('✓ Saved.');
+      setTimeout(() => setNavSaved(''), 2500);
+    } catch {
+      setNavSaved('Failed to save.');
+    }
+  };
+
   const saveCountrySettings = async () => {
     try {
       await adminApi.saveCountrySettings({ activeCountries, countryLanguages, defaultCountry });
@@ -872,6 +896,7 @@ export default function AdminPortal() {
     { key: 'feedback',  label: 'Feedback',           icon: <Lightbulb  size={20} strokeWidth={1.5} /> },
     { key: 'seo',       label: 'SEO & Social',       icon: <Search     size={20} strokeWidth={1.5} /> },
     { key: 'countries', label: 'Countries',          icon: <Globe      size={20} strokeWidth={1.5} /> },
+    { key: 'nav',       label: 'Navigation',         icon: <Menu       size={20} strokeWidth={1.5} /> },
   ];
 
   // Derived data for charts
@@ -4086,6 +4111,51 @@ export default function AdminPortal() {
                     );
                   })}
                 </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ── NAV SETTINGS TAB ──────────────────────────────────────────── */}
+        {tab === 'nav' && (
+          <div className="bg-white rounded-2xl border border-gray-100 p-6 max-w-2xl">
+            <h2 className="text-lg font-bold text-gray-800 mb-1">Navigation Visibility</h2>
+            <p className="text-sm text-gray-500 mb-5">Toggle which items appear in the header navigation for all visitors.</p>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-6">
+              {ALL_NAV_ITEMS.map(id => {
+                const on = visibleNavItems.includes(id);
+                return (
+                  <label key={id}
+                    className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl border cursor-pointer transition-all ${
+                      on ? 'border-emerald-200 bg-emerald-50' : 'border-gray-200 bg-gray-50 opacity-60'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={on}
+                      onChange={() => setVisibleNavItems(prev =>
+                        on ? prev.filter(x => x !== id) : [...prev, id]
+                      )}
+                      className="accent-emerald-500"
+                    />
+                    <span className={`text-sm font-semibold ${on ? 'text-gray-800' : 'text-gray-400'}`}>
+                      {NAV_LABELS[id] || id}
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
+
+            <div className="flex items-center gap-4">
+              <button
+                onClick={saveNavSettings}
+                className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold rounded-xl transition-colors flex items-center gap-2"
+              >
+                <CheckCircle size={15} /> Save Navigation
+              </button>
+              {navSaved && (
+                <span className={`text-sm ${navSaved.startsWith('✓') ? 'text-emerald-600' : 'text-red-500'}`}>{navSaved}</span>
               )}
             </div>
           </div>
