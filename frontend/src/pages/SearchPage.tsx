@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { SlidersHorizontal, Plus, Search, Sparkles, X } from 'lucide-react';
+import { SlidersHorizontal, Search, Sparkles, X } from 'lucide-react';
 import clsx from 'clsx';
 import { listingsApi, aiSearchApi } from '../services/api';
 import ListingCard from '../components/directory/ListingCard';
@@ -262,13 +262,6 @@ export default function SearchPage() {
             <>
               <div className="flex items-center justify-between mb-3">
                 <p className="text-sm text-gray-500">{t('search.results', { count: total })}</p>
-                <a
-                  href="/add-listing"
-                  className="flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-full text-white whitespace-nowrap"
-                  style={{ background: 'var(--cp, #008751)' }}
-                >
-                  <Plus size={13} /> Add a Place
-                </a>
               </div>
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 min-w-0">
                 {listings.map((l, i) => (
@@ -325,12 +318,7 @@ export default function SearchPage() {
             <div className="text-center py-16 text-gray-400">
               <Search size={48} className="mx-auto mb-4 opacity-30" />
               <p className="text-lg mb-2">{t('search.noResults')}</p>
-              <p className="text-sm text-gray-400 mb-5">Be the first to add this place to Seshaa!</p>
-              <a href="/add-listing"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-white text-sm"
-                style={{ background: 'var(--cp, #008751)' }}>
-                <Plus size={15} /> Add a Place
-              </a>
+              <p className="text-sm text-gray-400">No results found for this search.</p>
             </div>
           )}
         </div>
