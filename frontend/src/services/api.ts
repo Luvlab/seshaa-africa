@@ -376,6 +376,17 @@ export const ridesApi = {
   verifyDriver:     (id: string) => api.patch(`/rides/admin/drivers/${id}/verify`),
 };
 
+// Obituaries
+export interface ObitItem {
+  id: string; title: string; excerpt: string; link: string;
+  source: string; country: string; priority: number; date: string; image?: string;
+}
+export const obituariesApi = {
+  list: () => api.get<ObitItem[]>('/obituaries'),
+  submit: (data: { name: string; area?: string; tribe?: string; profession?: string; description: string; submittedBy?: string }) =>
+    api.post('/obituaries/submit', data),
+};
+
 // Analytics / Behaviour tracking
 export const analyticsApi = {
   event: (eventType: string, fields?: Record<string, unknown>) =>

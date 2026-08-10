@@ -1171,7 +1171,7 @@ router.get('/public/country-settings', async (_req, res) => {
 });
 
 // ── Nav Visibility Settings ───────────────────────────────────────────────────
-const ALL_NAV_ITEMS = ['home','search','news','classifieds','prices','market','radio','events','translate','diaspora','ride','delivery','transport','archive','advertise','ambassador','salesrep','admin'];
+const ALL_NAV_ITEMS = ['home','search','news','classifieds','prices','market','radio','events','translate','diaspora','ride','delivery','transport','archive','advertise','ambassador','salesrep','obituaries','admin'];
 type NavSettings = { visibleNavItems: string[] };
 const NAV_SETTINGS_DEFAULT: NavSettings = { visibleNavItems: [...ALL_NAV_ITEMS] };
 

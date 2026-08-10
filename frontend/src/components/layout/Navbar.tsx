@@ -5,7 +5,7 @@ import {
   Search, Menu, X, MessageCircle, Bell, User, ChevronDown, Sparkles,
   Home, Newspaper, Tag, BarChart2, Megaphone, PartyPopper,
   Star, Briefcase, Languages, Settings, Globe2, Archive,
-  ShoppingBag, Radio, Car, Package, Truck,
+  ShoppingBag, Radio, Car, Package, Truck, Scroll,
   Wifi, Monitor, Smartphone, Tablet,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/auth';
@@ -91,6 +91,7 @@ const PAGE_SUFFIX_MAP: [string, string][] = [
   ['/ride',        'ride'],
   ['/delivery',    'delivery'],
   ['/transport',   'transport'],
+  ['/obituaries',  'obituaries'],
 ];
 
 const PORTAL_LABELS: Record<PortalType, string> = {
@@ -131,6 +132,7 @@ const ALL_TABS: Tab[] = [
   { id: 'advertise',   path: '/advertise',  tKey: 'nav.advertise',   Icon: Megaphone },
   { id: 'ambassador',  path: '/ambassador', tKey: 'nav.ambassador',  Icon: Star,     roles: ['AMBASSADOR', 'ADMIN'] },
   { id: 'salesrep',    path: '/salesrep',   tKey: 'nav.sales',       Icon: Briefcase, roles: ['SALES_REP', 'ADMIN'] },
+  { id: 'obituaries',  path: '/obituaries', tKey: 'nav.obituaries',  Icon: Scroll },
   { id: 'admin',       path: '/admin',      tKey: 'nav.admin',       Icon: Settings,  roles: ['ADMIN'] },
 ];
 

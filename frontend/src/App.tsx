@@ -59,6 +59,7 @@ import TravelsPage from './pages/TravelsPage';
 import ArchivePage from './pages/ArchivePage';
 import RadioPage from './pages/RadioPage';
 import FooterPlayer from './components/radio/FooterPlayer';
+import ObituariesPage from './pages/ObituariesPage';
 import RidePage from './pages/RidePage';
 import DeliveryPage from './pages/DeliveryPage';
 import TransportPage from './pages/TransportPage';
@@ -161,6 +162,7 @@ function TabContainer() {
     { path: '/travels',     el: <ErrorBoundary key="travels"><TravelsPage /></ErrorBoundary> },
     { path: '/archive',     el: <ErrorBoundary key="archive"><ArchivePage /></ErrorBoundary> },
     { path: '/radio',       el: <ErrorBoundary key="radio"><RadioPage /></ErrorBoundary> },
+    { path: '/obituaries',  el: <ErrorBoundary key="obituaries"><ObituariesPage /></ErrorBoundary> },
     { path: '/ride',        el: <ErrorBoundary key="ride"><RidePage defaultType="RIDE" /></ErrorBoundary> },
     { path: '/delivery',    el: <ErrorBoundary key="delivery"><DeliveryPage /></ErrorBoundary> },
     { path: '/transport',   el: <ErrorBoundary key="transport"><TransportPage /></ErrorBoundary> },

@@ -294,8 +294,8 @@ export default function AdminPortal() {
   const [defaultCountry, setDefaultCountry]   = useState<string>('UG');
   const [countriesSaved, setCountriesSaved]   = useState('');
   const [countriesLoaded, setCountriesLoaded] = useState(false);
-  const ALL_NAV_ITEMS = ['home','search','news','classifieds','prices','market','radio','events','translate','diaspora','ride','delivery','transport','archive','advertise','ambassador','salesrep','admin'];
-  const NAV_LABELS: Record<string, string> = { home: 'Home', search: 'Search', news: 'News', classifieds: 'Classifieds', prices: 'Prices', market: 'Market', radio: 'Radio', events: 'Events', translate: 'Translate', diaspora: 'Diaspora', ride: 'Ride', delivery: 'Delivery', transport: 'Transport', archive: 'Archive', advertise: 'Advertise', ambassador: 'Ambassador', salesrep: 'Sales Rep', admin: 'Admin' };
+  const ALL_NAV_ITEMS = ['home','search','news','classifieds','prices','market','radio','events','translate','diaspora','ride','delivery','transport','archive','advertise','ambassador','salesrep','obituaries','admin'];
+  const NAV_LABELS: Record<string, string> = { home: 'Home', search: 'Search', news: 'News', classifieds: 'Classifieds', prices: 'Prices', market: 'Market', radio: 'Radio', events: 'Events', translate: 'Translate', diaspora: 'Diaspora', ride: 'Ride', delivery: 'Delivery', transport: 'Transport', archive: 'Archive', advertise: 'Advertise', ambassador: 'Ambassador', salesrep: 'Sales Rep', obituaries: 'Obituaries', admin: 'Admin' };
   const [visibleNavItems, setVisibleNavItems] = useState<string[]>([...ALL_NAV_ITEMS]);
   const [navSaved, setNavSaved]               = useState('');
   const [navLoaded, setNavLoaded]             = useState(false);
