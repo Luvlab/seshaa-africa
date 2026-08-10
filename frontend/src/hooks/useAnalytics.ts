@@ -39,7 +39,7 @@ function getDevice(): string {
 
 function getCountry(): string | undefined {
   try {
-    const stored = localStorage.getItem('seshaa-theme');
+    const stored = localStorage.getItem('seshaa-theme-v4');
     if (stored) {
       const { state } = JSON.parse(stored);
       return state?.countryCode ?? undefined;
