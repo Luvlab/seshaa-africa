@@ -79,7 +79,7 @@ const TAB_PATHS = [
   '/messages', '/bookings', '/advertise',
   '/ambassador', '/salesrep', '/admin',
   '/add-listing', '/translate', '/business', '/events', '/diaspora', '/travels', '/archive',
-  '/ride', '/delivery', '/transport',
+  '/ride', '/delivery', '/transport', '/obituaries',
 ];
 
 // ── Error Boundary ──────────────────────────────────────────────────────────
