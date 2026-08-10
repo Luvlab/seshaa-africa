@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
 import { obituariesApi, type ObitItem } from '../services/api';
 import { usePageview } from '../hooks/useAnalytics';
 import { Scroll, ExternalLink, Loader2, RefreshCw, Globe2, PlusCircle, X, CheckCircle2 } from 'lucide-react';
@@ -124,7 +123,6 @@ function SubmitForm({ onClose }: { onClose: () => void }) {
 
 export default function ObituariesPage() {
   usePageview();
-  const { t } = useTranslation();
   const [items, setItems]       = useState<ObitItem[]>([]);
   const [loading, setLoading]   = useState(true);
   const [filter, setFilter]     = useState('');
