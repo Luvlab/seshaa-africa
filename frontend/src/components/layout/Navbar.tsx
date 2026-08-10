@@ -5,7 +5,7 @@ import {
   Search, Menu, X, MessageCircle, Bell, User, ChevronDown, Sparkles,
   Home, Newspaper, Tag, BarChart2, Megaphone, PartyPopper,
   Star, Briefcase, Languages, Settings, Globe2, Archive,
-  ShoppingBag, Radio, Car, Package, Truck, Plus,
+  ShoppingBag, Radio, Car, Package, Truck,
   Wifi, Monitor, Smartphone, Tablet,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/auth';
