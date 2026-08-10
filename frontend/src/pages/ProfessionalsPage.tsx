@@ -12,7 +12,6 @@ const PROFESSION_GROUPS: Record<string, string[]> = {
   '💼 Professional': ['Lawyer', 'Accountant', 'Doctor', 'Nurse', 'Tutor', 'IT Technician', 'Graphic Designer', 'Event Planner', 'Wedding Coordinator', 'Social Media Manager'],
 };
 
-const ALL_PROFESSIONS = Object.values(PROFESSION_GROUPS).flat();
 
 function StarRating({ rating, count }: { rating: number; count: number }) {
   return (
