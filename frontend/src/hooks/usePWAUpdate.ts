@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 
-// Module-level flag: was there already an active SW when the page first loaded?
-// null = not yet checked (before the effect runs)
+// Persists across reload (same tab) so we don't re-show the banner
+// after the user already clicked Update and the page reloaded.
+const RELOADED_KEY = 'seshaa-sw-reloaded';
+
 let _initialController: boolean | null = null;
 
 export function usePWAUpdate() {
@@ -10,15 +12,20 @@ export function usePWAUpdate() {
   useEffect(() => {
     if (!('serviceWorker' in navigator)) return;
 
-    // Snapshot whether there was already a controller (= returning user with existing SW).
-    // If there was no controller, this is a fresh install — don't show "new update" yet.
+    // We just reloaded for an update — the SW's clients.claim() will fire
+    // controllerchange again on this fresh page. Ignore it this time.
+    if (sessionStorage.getItem(RELOADED_KEY)) {
+      sessionStorage.removeItem(RELOADED_KEY);
+      _initialController = !!navigator.serviceWorker.controller;
+      return;
+    }
+
     if (_initialController === null) {
       _initialController = !!navigator.serviceWorker.controller;
     }
 
     const handleControllerChange = () => {
       if (_initialController) {
-        // An existing SW was replaced → real update available
         setUpdateReady(true);
       }
       _initialController = true;
@@ -32,7 +39,8 @@ export function usePWAUpdate() {
 
   return {
     updateReady,
-    applyUpdate: () => window.location.reload(),
+    // Set flag before reload so the reloaded page knows to skip the next controllerchange
+    applyUpdate: () => { sessionStorage.setItem(RELOADED_KEY, '1'); window.location.reload(); },
     dismiss: () => setUpdateReady(false),
   };
 }
