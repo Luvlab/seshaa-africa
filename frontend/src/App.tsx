@@ -352,7 +352,7 @@ export default function App() {
                 className="px-3 py-1.5 rounded-xl bg-white font-bold text-xs"
                 style={{ color: 'var(--cp)' }}
               >
-                Update
+                Refresh
               </button>
               <button onClick={dismiss} className="opacity-60 hover:opacity-100 text-base leading-none">✕</button>
             </div>
