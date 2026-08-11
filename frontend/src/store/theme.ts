@@ -194,13 +194,14 @@ export const useThemeStore = create<ThemeState>()(
             }
           }
         } catch {
-          get().applyTheme(''); // fallback → Africa/global, never a specific country
+          // Detection failed — keep whatever country is currently set; don't flash to Africa.
+          set({ detected: true });
         }
       },
     }),
     {
       name: 'seshaa-theme-v4', // v4: persist countryCode so selected country survives refresh
-      partialize: (s) => ({ countryClicks: s.countryClicks, countryCode: s.countryCode }),
+      partialize: (s) => ({ countryClicks: s.countryClicks, countryCode: s.countryCode, detected: s.detected }),
     }
   )
 );
