@@ -2,7 +2,7 @@
  * Seshaa Service Worker — v2
  * Cache-first for static assets; network-first for pages; skip API calls.
  */
-const CACHE = 'seshaa-v2';
+const CACHE = 'seshaa-v3';
 const PRECACHE = ['/', '/index.html', '/favicon.svg', '/manifest.json', '/og-image.svg'];
 
 // ── Install: pre-cache shell assets ───────────────────────────────────────────

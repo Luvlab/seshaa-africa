@@ -36,6 +36,7 @@ import { useCountriesStore } from './store/countries';
 import { useAuthStore } from './store/auth';
 import SeoHead from './components/SeoHead';
 import InterestSurvey from './components/ads/InterestSurvey';
+import { usePWAUpdate } from './hooks/usePWAUpdate';
 
 
 // Primary tabs — loaded eagerly once, kept alive in the background
@@ -224,6 +225,7 @@ export default function App() {
   const logout = useAuthStore(s => s.logout);
   const [showSurvey, setShowSurvey] = useState(false);
   const authExpiredFiredRef = useRef(false);
+  const { updateReady, applyUpdate, dismiss } = usePWAUpdate();
 
   // Auto-logout when the API intercepts an expired/invalid JWT
   useEffect(() => {
@@ -339,6 +341,22 @@ export default function App() {
           <FooterPlayer />
           {/* Chat is at /messages — no floating overlay needed */}
           {showSurvey && <InterestSurvey onClose={() => setShowSurvey(false)} />}
+          {updateReady && (
+            <div
+              className="fixed bottom-20 left-0 right-0 mx-auto z-50 flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl text-white text-sm font-semibold animate-slide-up"
+              style={{ backgroundColor: 'var(--cp)', maxWidth: '360px', margin: '0 auto 80px' }}
+            >
+              <span className="flex-1">🆕 New version available</span>
+              <button
+                onClick={applyUpdate}
+                className="px-3 py-1.5 rounded-xl bg-white font-bold text-xs"
+                style={{ color: 'var(--cp)' }}
+              >
+                Update
+              </button>
+              <button onClick={dismiss} className="opacity-60 hover:opacity-100 text-base leading-none">✕</button>
+            </div>
+          )}
         </div>
       </BrowserRouter>
     </ErrorBoundary>
