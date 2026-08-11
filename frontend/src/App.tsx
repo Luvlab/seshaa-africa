@@ -1,4 +1,4 @@
-import { Component, useEffect, Suspense, lazy, useState } from 'react';
+import { Component, useEffect, Suspense, lazy, useState, useRef } from 'react';
 import { useAnalytics, usePageview } from './hooks/useAnalytics';
 import type { ReactNode, ErrorInfo } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
@@ -69,7 +69,7 @@ import ProfessionalsPage from './pages/ProfessionalsPage';
 // Detail/modal pages — still lazy-loaded (rarely visited)
 const ListingDetail    = lazy(() => import('./pages/ListingDetail'));
 const VerifyPage       = lazy(() => import('./pages/VerifyPage'));
-const AuthPage         = lazy(() => import('./pages/AuthPage'));
+import AuthPage from './pages/AuthPage';
 const ProfilePage      = lazy(() => import('./pages/ProfilePage'));
 const CountryPage      = lazy(() => import('./pages/CountryPage'));
 const NewsArticlePage  = lazy(() => import('./pages/NewsArticlePage'));
@@ -223,10 +223,19 @@ export default function App() {
   const loadCountries = useCountriesStore(s => s.load);
   const logout = useAuthStore(s => s.logout);
   const [showSurvey, setShowSurvey] = useState(false);
+  const authExpiredFiredRef = useRef(false);
 
   // Auto-logout when the API intercepts an expired/invalid JWT
   useEffect(() => {
-    const handler = () => { logout(); window.location.href = '/auth'; };
+    const handler = () => {
+      if (authExpiredFiredRef.current || window.location.pathname.startsWith('/auth')) return;
+      authExpiredFiredRef.current = true;
+      logout();
+      // Remove the Zustand persist key that logout() just re-wrote with null values
+      // so the next page load starts completely clean (no stale key with null token)
+      localStorage.removeItem('seshaa-auth');
+      window.location.href = '/auth';
+    };
     window.addEventListener('seshaa:auth:expired', handler);
     return () => window.removeEventListener('seshaa:auth:expired', handler);
   }, [logout]);

@@ -611,16 +611,45 @@ model RadioTrack {
   genre         String?
   album         String?
   duration      Int?                  // seconds
-  ownerRights   Boolean  @default(false) // submitter confirmed they own/license the rights
+  ownerRights   Boolean  @default(false)
   approved      Boolean  @default(false)
+  featured      Boolean  @default(false)  // paid featured slot — plays on home page
+  featuredUntil DateTime?
   playCount     Int      @default(0)
   submittedById String?
   submittedBy   User?    @relation(fields: [submittedById], references: [id])
+  featureRequests TrackFeatureRequest[]
   createdAt     DateTime @default(now())
 
   @@index([genre, approved])
   @@index([country, approved])
+  @@index([featured, featuredUntil])
   @@index([submittedById])
+}
+
+// Pay-to-feature: user pays to have their track on the home page player
+model TrackFeatureRequest {
+  id          String               @id @default(uuid())
+  track       RadioTrack           @relation(fields: [trackId], references: [id])
+  trackId     String
+  userId      String
+  weeks       Int                  @default(1)
+  priceUSD    Float                @default(10)
+  paymentRef  String?              // mobile money / bank reference
+  status      FeatureRequestStatus @default(PENDING)
+  adminNote   String?
+  createdAt   DateTime             @default(now())
+
+  @@index([trackId])
+  @@index([userId])
+  @@index([status])
+}
+
+enum FeatureRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  EXPIRED
 }
 
 // ─── User Behaviour Events ───────────────────────────────────────────────────

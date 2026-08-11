@@ -511,4 +511,77 @@ router.delete('/admin/:id', requireAuth, adminOnly, async (req, res) => {
   res.json({ ok: true });
 });
 
+// ── GET /radio/featured — tracks currently featured on home page ──────────────
+router.get('/featured', async (_req, res) => {
+  const now = new Date();
+  const tracks = await prisma.radioTrack.findMany({
+    where: {
+      approved: true,
+      featured: true,
+      OR: [{ featuredUntil: null }, { featuredUntil: { gte: now } }],
+    },
+    orderBy: { playCount: 'desc' },
+    take: 20,
+  });
+  res.json(tracks);
+});
+
+// ── POST /radio/:id/feature-request — request to feature a track ─────────────
+router.post('/:id/feature-request', requireAuth, async (req: AuthRequest, res) => {
+  const trackId = String(req.params.id);
+  const track = await prisma.radioTrack.findUnique({ where: { id: trackId } });
+  if (!track) return res.status(404).json({ error: 'Track not found.' });
+  if (!track.approved) return res.status(400).json({ error: 'Track must be approved before featuring.' });
+
+  const { weeks = 1, paymentRef } = req.body as { weeks?: number; paymentRef?: string };
+  const priceUSD = (weeks || 1) * 10;
+
+  const req_ = await prisma.trackFeatureRequest.create({
+    data: {
+      trackId,
+      userId: req.user!.id,
+      weeks: weeks || 1,
+      priceUSD,
+      paymentRef: paymentRef || null,
+    },
+  });
+  res.status(201).json(req_);
+});
+
+// ── Admin: list all feature requests ─────────────────────────────────────────
+router.get('/admin/feature-requests', requireAuth, adminOnly, async (_req, res) => {
+  const requests = await prisma.trackFeatureRequest.findMany({
+    include: { track: true },
+    orderBy: { createdAt: 'desc' },
+    take: 100,
+  });
+  res.json(requests);
+});
+
+// ── Admin: approve/reject a feature request ───────────────────────────────────
+router.patch('/admin/feature-requests/:id', requireAuth, adminOnly, async (req, res) => {
+  const { status, adminNote } = req.body as { status: string; adminNote?: string };
+  const fr = await prisma.trackFeatureRequest.update({
+    where: { id: String(req.params.id) },
+    data: { status: status as never, adminNote },
+  });
+
+  if (status === 'APPROVED') {
+    const weeks = fr.weeks;
+    const until = new Date();
+    until.setDate(until.getDate() + weeks * 7);
+    await prisma.radioTrack.update({
+      where: { id: fr.trackId },
+      data: { featured: true, featuredUntil: until },
+    });
+  } else if (status === 'REJECTED') {
+    await prisma.radioTrack.update({
+      where: { id: fr.trackId },
+      data: { featured: false },
+    });
+  }
+
+  res.json(fr);
+});
+
 export default router;

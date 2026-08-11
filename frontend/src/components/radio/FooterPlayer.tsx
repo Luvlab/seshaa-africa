@@ -21,13 +21,28 @@ function fmtTime(s: number) {
 
 export default function FooterPlayer() {
   const {
-    currentTrack, playing, volume, muted, elapsed,
-    pause, resume, next, prev, close, setVolume, toggleMute, setElapsed,
+    currentTrack, playing, playlist, volume, muted, elapsed,
+    pause, resume, next, prev, close, setVolume, toggleMute, setElapsed, setPlaylist,
   } = useRadioStore();
 
   const audioRef = useRef<HTMLAudioElement>(null);
   const [duration, setDuration] = useState(0);
   const playCountedRef = useRef<string | null>(null);
+
+  // ── Pre-load featured tracks as default playlist ──────────────────────────
+  useEffect(() => {
+    if (playlist.length) return; // already loaded
+    radioApi.featured().then(res => {
+      if (!res.data.length) return;
+      const tracks = res.data.map(t => ({
+        id: t.id, title: t.title, artist: t.artist,
+        audioUrl: t.audioUrl, imageUrl: t.imageUrl,
+        country: t.country, genre: t.genre,
+        source: 'featured' as const, approved: true,
+      }));
+      setPlaylist(tracks as never);
+    }).catch(() => {});
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Sync playing state ────────────────────────────────────────────────────
   useEffect(() => {

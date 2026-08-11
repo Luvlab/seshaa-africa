@@ -13,9 +13,10 @@ import Waveform from '../components/radio/Waveform';
 import {
   Play, Pause, Music, Radio, Headphones, Plus, ExternalLink,
   CheckCircle, Loader2, UploadCloud, Signal, ChevronLeft, ChevronRight,
-  Clock, Globe2, Users, Archive,
+  Clock, Globe2, Users, Archive, Star, X,
 } from 'lucide-react';
 import FavoriteButton from '../components/ui/FavoriteButton';
+import { useAuthStore } from '../store/auth';
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 function fmtDur(s?: number) {
@@ -690,6 +691,111 @@ function ArchiveTab() {
   );
 }
 
+// ── Feature-request form ──────────────────────────────────────────────────────
+function FeatureRequestModal({ onClose }: { onClose: () => void }) {
+  const { user } = useAuthStore();
+  const [form, setForm] = useState({ trackId: '', weeks: 1, paymentRef: '' });
+  const [submitting, setSubmitting] = useState(false);
+  const [done, setDone] = useState(false);
+  const [err, setErr] = useState('');
+  const upd = (k: string, v: string | number) => setForm(f => ({ ...f, [k]: v }));
+  const priceUSD = form.weeks * 10;
+
+  if (!user) return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl p-8 w-full max-w-sm text-center" onClick={e => e.stopPropagation()}>
+        <p className="font-bold text-lg mb-4">Sign in to feature a track</p>
+        <button onClick={onClose} className="text-sm text-gray-400 underline">Close</button>
+      </div>
+    </div>
+  );
+
+  const handleSubmit = async () => {
+    if (!form.trackId.trim()) { setErr('Enter your track ID.'); return; }
+    setSubmitting(true); setErr('');
+    try {
+      await radioApi.featureRequest(form.trackId.trim(), { weeks: form.weeks, paymentRef: form.paymentRef || undefined });
+      setDone(true);
+    } catch (e: unknown) {
+      setErr((e as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Submission failed.');
+    } finally { setSubmitting(false); }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl w-full max-w-md p-6" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-black">🌟 Feature your track</h3>
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-xl"><X size={18} /></button>
+        </div>
+        {done ? (
+          <div className="text-center py-6">
+            <CheckCircle size={40} className="text-emerald-500 mx-auto mb-3" />
+            <p className="font-bold">Request received!</p>
+            <p className="text-sm text-gray-500 mt-1">Our team will verify your payment and activate your feature slot.</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-sm text-amber-800">
+              <p className="font-bold mb-1">🎵 How it works</p>
+              <p>Your approved track plays on the Seshaa home page media player — heard by all visitors across Africa.</p>
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Your track ID *</label>
+              <input
+                type="text"
+                placeholder="Paste the track ID from the community list"
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-emerald-400"
+                value={form.trackId}
+                onChange={e => upd('trackId', e.target.value)}
+              />
+              <p className="text-xs text-gray-400 mt-1">Find it by hovering your track — it shows in the URL or contact us at info@seshaa.africa</p>
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Duration</label>
+              <div className="grid grid-cols-4 gap-2">
+                {[1,2,3,4].map(w => (
+                  <button key={w} onClick={() => upd('weeks', w)}
+                    className={`py-2 rounded-xl text-sm font-bold border transition-colors ${form.weeks === w ? 'bg-emerald-600 text-white border-emerald-600' : 'border-gray-200 text-gray-600'}`}>
+                    {w}wk
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="bg-gray-50 rounded-xl px-4 py-3 flex items-center justify-between">
+              <span className="text-sm text-gray-600">Total cost</span>
+              <span className="font-black text-xl text-gray-900">${priceUSD} USD</span>
+            </div>
+            <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 text-sm text-blue-800">
+              <p className="font-bold mb-1">💳 Payment instructions</p>
+              <p>Send ${priceUSD} USD via mobile money, bank or USDT to:</p>
+              <p className="font-mono text-xs mt-1 bg-white rounded px-2 py-1 border border-blue-100">info@seshaa.africa or WhatsApp +256-XXX</p>
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Payment reference (optional)</label>
+              <input
+                type="text"
+                placeholder="e.g. mobile money ref, TxID, bank ref"
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-emerald-400"
+                value={form.paymentRef}
+                onChange={e => upd('paymentRef', e.target.value)}
+              />
+            </div>
+            {err && <p className="text-sm text-red-600">{err}</p>}
+            <button
+              onClick={handleSubmit}
+              disabled={submitting}
+              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 rounded-2xl transition-colors disabled:opacity-60"
+            >
+              {submitting ? 'Submitting…' : 'Submit Feature Request'}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── COMMUNITY TAB ─────────────────────────────────────────────────────────────
 function CommunityTab() {
   const { t } = useTranslation();
@@ -697,6 +803,7 @@ function CommunityTab() {
   const [total,       setTotal]       = useState(0);
   const [loading,     setLoading]     = useState(true);
   const [showSubmit,  setShowSubmit]  = useState(false);
+  const [showFeature, setShowFeature] = useState(false);
   const [filterGenre, setFilterGenre] = useState('');
   const [communityLimit, setCommunityLimit] = useState(50);
 
@@ -730,14 +837,24 @@ function CommunityTab() {
           <p className="text-sm font-bold text-purple-800">{t('radio.community')}</p>
           <p className="text-xs text-purple-700 mt-0.5">Submit a link to music you own or are licensed to share. After review it appears here.</p>
         </div>
-        <button
-          onClick={() => setShowSubmit(v => !v)}
-          className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-bold text-white"
-          style={{ background: 'var(--cp, #008751)' }}
-        >
-          <Plus size={14} /> {t('radio.submit')}
-        </button>
+        <div className="flex gap-2 shrink-0">
+          <button
+            onClick={() => setShowFeature(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-bold text-amber-700 bg-amber-100 hover:bg-amber-200 transition-colors"
+          >
+            <Star size={14} /> Feature
+          </button>
+          <button
+            onClick={() => setShowSubmit(v => !v)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-bold text-white"
+            style={{ background: 'var(--cp, #008751)' }}
+          >
+            <Plus size={14} /> {t('radio.submit')}
+          </button>
+        </div>
       </div>
+
+      {showFeature && <FeatureRequestModal onClose={() => setShowFeature(false)} />}
 
       {showSubmit && (
         <div className="mb-5 bg-white rounded-2xl border border-gray-100 shadow-sm p-5">

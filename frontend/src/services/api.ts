@@ -21,12 +21,18 @@ api.interceptors.response.use(
   res => res,
   err => {
     const status = err?.response?.status;
-    const msg = err?.response?.data?.error as string | undefined;
-    if (status === 401 && msg?.toLowerCase().includes('token')) {
-      // Clear persisted auth state
-      localStorage.removeItem('seshaa-auth');
-      // Notify any listeners (App.tsx) to reset Zustand state
-      window.dispatchEvent(new CustomEvent('seshaa:auth:expired'));
+    const msg = (err?.response?.data?.error as string | undefined)?.toLowerCase();
+    // Only fire on the exact "Invalid token" message from the JWT middleware
+    // (not "Invalid credentials" from login, "Invalid Google token", etc.)
+    if (status === 401 && msg === 'invalid token') {
+      try {
+        const stored = localStorage.getItem('seshaa-auth');
+        const token: string | null = stored ? (JSON.parse(stored)?.state?.token ?? null) : null;
+        if (token && !window.location.pathname.startsWith('/auth')) {
+          localStorage.removeItem('seshaa-auth');
+          window.dispatchEvent(new CustomEvent('seshaa:auth:expired'));
+        }
+      } catch { /* ignore parse errors */ }
     }
     return Promise.reject(err);
   }
@@ -343,6 +349,13 @@ export const radioApi = {
   community:   (params?: { genre?: string; country?: string; limit?: number; page?: number }) => api.get('/radio/community', { params }),
   submit:      (data: { title: string; artist: string; audioUrl: string; imageUrl?: string; country?: string; genre?: string; album?: string; duration?: number; ownerRights: boolean }) => api.post('/radio/submit', data),
   recordPlay:  (id: string) => api.post(`/radio/${id}/play`),
+  featured:    () => api.get<{ id: string; title: string; artist: string; audioUrl: string; imageUrl?: string; country?: string; genre?: string }[]>('/radio/featured'),
+  featureRequest: (trackId: string, data: { weeks: number; paymentRef?: string }) => api.post(`/radio/${trackId}/feature-request`, data),
+  adminFeatureRequests: () => api.get('/radio/admin/feature-requests'),
+  adminUpdateFeatureRequest: (id: string, status: string, adminNote?: string) => api.patch(`/radio/admin/feature-requests/${id}`, { status, adminNote }),
+  adminPendingTracks: () => api.get('/radio/admin/pending'),
+  adminApproveTrack: (id: string) => api.patch(`/radio/admin/${id}/approve`),
+  adminDeleteTrack:  (id: string) => api.delete(`/radio/admin/${id}`),
 };
 
 // Messages / Chat channels
