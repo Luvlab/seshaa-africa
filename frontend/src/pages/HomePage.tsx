@@ -266,9 +266,11 @@ export default function HomePage() {
         if (p < 1) {
           requestAnimationFrame(step);
         } else {
-          // Scroll done — wait 2s then switch to Uganda theme
+          // Scroll done — wait 2s then switch to Uganda theme (only when on home page)
           themeTimer = setTimeout(() => {
-            useThemeStore.getState().applyTheme('UG');
+            if (window.location.pathname === '/') {
+              useThemeStore.getState().applyTheme('UG');
+            }
           }, 2000);
         }
       }

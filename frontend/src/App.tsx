@@ -307,7 +307,10 @@ export default function App() {
     const langDir = LANGUAGES.find(l => l.code === storedLang)?.dir || 'ltr';
     document.documentElement.dir = langDir;
     loadThemeOverrides().catch(() => {});
-    applyTheme(''); // always start at Africa — detectFromIP will set the real geo country
+    // Re-apply the persisted country theme (prevents flash on every page load).
+    // Falls back to Africa ('') for first-time visitors with no saved country.
+    const savedCode = useThemeStore.getState().countryCode;
+    applyTheme(savedCode || '');
     detectFromIP();
     loadSeo();
     loadCountries();    // fetch active country list

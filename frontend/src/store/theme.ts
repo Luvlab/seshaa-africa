@@ -145,7 +145,7 @@ export const useThemeStore = create<ThemeState>()(
         const countryClicks = code
           ? { ...prev, [code]: (prev[code] || 0) + 1 }
           : prev;
-        set({ countryCode: code, theme, detected: true, countryClicks });
+        set({ countryCode: code, theme, countryClicks });
       },
 
       loadThemeOverrides: async () => {
