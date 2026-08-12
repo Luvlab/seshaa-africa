@@ -152,11 +152,13 @@ export const useThemeStore = create<ThemeState>()(
         try {
           const r = await fetch(`${BASE_URL}/admin/public/theme-settings`);
           const data = await r.json() as { overrides?: Record<string, ThemeOverride> };
-          set({ overrides: data.overrides || {} });
-          get().applyTheme(get().countryCode);
-        } catch {
-          set({ overrides: {} });
-        }
+          const newOverrides = data.overrides || {};
+          // Only re-apply if overrides actually changed (avoids a needless flash)
+          if (JSON.stringify(get().overrides) !== JSON.stringify(newOverrides)) {
+            set({ overrides: newOverrides });
+            get().applyTheme(get().countryCode);
+          }
+        } catch { /* keep existing overrides */ }
       },
 
       detectFromIP: async () => {
