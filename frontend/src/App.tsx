@@ -310,9 +310,9 @@ export default function App() {
     document.documentElement.dir = langDir;
     loadThemeOverrides().catch(() => {});
     // Re-apply the persisted country theme (prevents flash on every page load).
-    // Falls back to Africa ('') for first-time visitors with no saved country.
+    // Falls back to Uganda ('UG') for first-time visitors with no saved country.
     const savedCode = useThemeStore.getState().countryCode;
-    applyTheme(savedCode || '');
+    applyTheme(savedCode || 'UG');
     detectFromIP();
     loadSeo();
     loadCountries();    // fetch active country list

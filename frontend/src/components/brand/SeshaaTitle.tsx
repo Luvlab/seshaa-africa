@@ -125,11 +125,11 @@ export default function SeshaaTitle({ countryCode, size = 'sm', className = '', 
           // Decelerate: 60ms → 360ms over 10 ticks
           run(60 + (ticks - FAST_TICKS) * 30);
         } else {
-          // Land on "africa" — immediately mark as settled so country-change
+          // Land on "uganda" — immediately mark as settled so country-change
           // useEffect can fire as soon as applyTheme() sets a real countryCode
           setFading(true);
           timerRef.current = setTimeout(() => {
-            setSuffix('africa');
+            setSuffix('uganda');
             setFading(false);
             setSettled(true);
           }, 260);
