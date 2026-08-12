@@ -1,24 +1,31 @@
 /**
- * Seshaa Service Worker — v2
+ * Seshaa Service Worker — v4
  * Cache-first for static assets; network-first for pages; skip API calls.
+ * Update flow: waits for explicit SKIP_WAITING message (no auto-takeover).
  */
-const CACHE = 'seshaa-v3';
+const CACHE = 'seshaa-v4';
 const PRECACHE = ['/', '/index.html', '/favicon.svg', '/manifest.json', '/og-image.svg'];
 
-// ── Install: pre-cache shell assets ───────────────────────────────────────────
+// ── Install: pre-cache shell assets. Do NOT call skipWaiting() here —
+// the page will send SKIP_WAITING when the user clicks the update banner.
 self.addEventListener('install', e => {
   e.waitUntil(
-    caches.open(CACHE).then(c => c.addAll(PRECACHE)).then(() => self.skipWaiting())
+    caches.open(CACHE).then(c => c.addAll(PRECACHE))
   );
 });
 
-// ── Activate: remove old caches ───────────────────────────────────────────────
+// ── Activate: remove old caches then claim existing clients ───────────────────
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys().then(keys =>
       Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
     ).then(() => self.clients.claim())
   );
+});
+
+// ── Message: page sends SKIP_WAITING to trigger the update ───────────────────
+self.addEventListener('message', e => {
+  if (e.data?.type === 'SKIP_WAITING') self.skipWaiting();
 });
 
 // ── Fetch: strategy per request type ─────────────────────────────────────────

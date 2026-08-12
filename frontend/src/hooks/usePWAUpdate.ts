@@ -1,46 +1,55 @@
-import { useState, useEffect } from 'react';
-
-// Persists across reload (same tab) so we don't re-show the banner
-// after the user already clicked Update and the page reloaded.
-const RELOADED_KEY = 'seshaa-sw-reloaded';
-
-let _initialController: boolean | null = null;
+import { useState, useEffect, useRef } from 'react';
 
 export function usePWAUpdate() {
   const [updateReady, setUpdateReady] = useState(false);
+  const regRef = useRef<ServiceWorkerRegistration | null>(null);
 
   useEffect(() => {
     if (!('serviceWorker' in navigator)) return;
 
-    // We just reloaded for an update — the SW's clients.claim() will fire
-    // controllerchange again on this fresh page. Ignore it this time.
-    if (sessionStorage.getItem(RELOADED_KEY)) {
-      sessionStorage.removeItem(RELOADED_KEY);
-      _initialController = !!navigator.serviceWorker.controller;
-      return;
-    }
-
-    if (_initialController === null) {
-      _initialController = !!navigator.serviceWorker.controller;
-    }
-
-    const handleControllerChange = () => {
-      if (_initialController) {
+    const setup = (reg: ServiceWorkerRegistration) => {
+      // New SW already waiting (e.g. page reloaded mid-install)
+      if (reg.waiting && navigator.serviceWorker.controller) {
+        regRef.current = reg;
         setUpdateReady(true);
+        return;
       }
-      _initialController = true;
+      // Watch for a new SW being installed
+      reg.addEventListener('updatefound', () => {
+        const sw = reg.installing;
+        if (!sw) return;
+        sw.addEventListener('statechange', () => {
+          // 'installed' = SW is ready but waiting. Only show banner when
+          // there was already an active controller (i.e. this is an UPDATE,
+          // not the very first install).
+          if (sw.state === 'installed' && navigator.serviceWorker.controller) {
+            regRef.current = reg;
+            setUpdateReady(true);
+          }
+        });
+      });
     };
 
-    navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange);
-    return () => {
-      navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange);
-    };
+    navigator.serviceWorker.getRegistration('/').then(reg => {
+      if (reg) setup(reg);
+    }).catch(() => {});
   }, []);
+
+  const applyUpdate = async () => {
+    const reg = regRef.current ?? await navigator.serviceWorker.getRegistration('/').catch(() => undefined);
+    if (reg?.waiting) {
+      // Tell the waiting SW to skip the wait and take over
+      reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+    }
+    // When the controller changes (new SW took over), reload once
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      window.location.reload();
+    }, { once: true });
+  };
 
   return {
     updateReady,
-    // Set flag before reload so the reloaded page knows to skip the next controllerchange
-    applyUpdate: () => { sessionStorage.setItem(RELOADED_KEY, '1'); window.location.reload(); },
+    applyUpdate,
     dismiss: () => setUpdateReady(false),
   };
 }

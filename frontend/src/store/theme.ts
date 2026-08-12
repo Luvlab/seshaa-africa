@@ -169,10 +169,9 @@ export const useThemeStore = create<ThemeState>()(
             const active = useCountriesStore.getState().activeCountries;
             if (active.length === 0 || active.includes(data.countryCode)) {
               get().applyTheme(data.countryCode);
-            } else {
-              // IP country not active — keep persisted/default theme but mark detected
-              set({ detected: true });
             }
+            // Always mark detected so we don't re-run on every page load
+            set({ detected: true });
           }
 
           // Auto-set language only if the user has never explicitly picked one
