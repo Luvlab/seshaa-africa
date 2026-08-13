@@ -30,12 +30,10 @@ interface HeroSlide {
 }
 
 // ── Fallback hardcoded slides (used when no DB slides configured) ──────────
+// Uses 'default' (country-flag gradient) so the hero never shows a broken
+// YouTube "video unavailable" message. Add real slides via the Admin panel.
 const FALLBACK_SLIDES: HeroSlide[] = [
-  { youtubeId: 'T2RpwsMIhRg', advertiser: 'Uganda Tourism Board',  ctaUrl: '/advertise', mediaType: 'youtube', startTime: 0, endTime: 9 },
-  { youtubeId: 'mCEJBpBpX1s', advertiser: 'Pearl of Africa',       ctaUrl: '/advertise', mediaType: 'youtube', startTime: 0, endTime: 9 },
-  { youtubeId: 'GCDJBaFKKyE', advertiser: 'Visit Uganda',          ctaUrl: '/advertise', mediaType: 'youtube', startTime: 0, endTime: 9 },
-  { youtubeId: 'oCr_M7dQ3_Y', advertiser: 'Stanbic Bank Uganda',   ctaUrl: '/advertise', mediaType: 'youtube', startTime: 0, endTime: 9 },
-  { youtubeId: 'h3yRY3OwJlc', advertiser: 'MTN Uganda',            ctaUrl: '/advertise', mediaType: 'youtube', startTime: 0, endTime: 9 },
+  { advertiser: 'Seshaa Uganda', ctaUrl: '/advertise', mediaType: 'default' },
 ];
 
 // ── Per-slide display duration ──────────────────────────────────────────────
