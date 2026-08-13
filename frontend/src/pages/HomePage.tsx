@@ -307,7 +307,7 @@ export default function HomePage() {
                 <video key={`${slideIdx}-${rawUrl}`} src={rawUrl} autoPlay muted loop playsInline
                   className="absolute inset-0 w-full h-full object-cover" />
               ) : mediaType === 'default' ? (
-                <div className="absolute inset-0 w-full h-full" style={{ background: 'linear-gradient(135deg, var(--cp,#008751) 0%, #1a1a2e 100%)' }} />
+                <div className="absolute inset-0 w-full h-full" style={{ background: 'linear-gradient(135deg, var(--cp,#008751) 0%, var(--cs,#FCD116) 50%, var(--ca,#D90000) 100%)' }} />
               ) : (
                 <iframe
                   key={`${slideIdx}-${ytId}-${muted}`}
