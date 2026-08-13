@@ -74,20 +74,27 @@ router.post('/login', async (req, res) => {
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
   const { identifier, password } = parsed.data;
-  const user = await prisma.user.findFirst({
-    where: { OR: [{ email: identifier }, { phone: identifier }] },
-  });
 
-  if (!user) return res.status(401).json({ error: 'Invalid credentials' });
+  try {
+    const user = await prisma.user.findFirst({
+      where: { OR: [{ email: identifier }, { phone: identifier }] },
+    });
 
-  // Verify password if hash exists; allow no-password legacy rows
-  if (user.passwordHash) {
-    const ok = await bcrypt.compare(password, user.passwordHash);
-    if (!ok) return res.status(401).json({ error: 'Invalid credentials' });
+    if (!user) return res.status(401).json({ error: 'Invalid credentials' });
+
+    // Verify password if hash exists; allow no-password legacy rows
+    if (user.passwordHash) {
+      const ok = await bcrypt.compare(password, user.passwordHash);
+      if (!ok) return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    const token = makeToken(user);
+    res.json({ token, user: safeUser(user) });
+  } catch (err) {
+    console.error('Login DB error:', err);
+    const msg = err instanceof Error ? err.message : String(err);
+    res.status(500).json({ error: 'Database error', detail: msg });
   }
-
-  const token = makeToken(user);
-  res.json({ token, user: safeUser(user) });
 });
 
 // ── Change password (authenticated) ──────────────────────────────────────────
