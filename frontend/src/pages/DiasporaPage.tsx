@@ -166,8 +166,8 @@ function AddPlaceDrawer({ onClose, isDiaspora = true }: { onClose: () => void; i
                       className={`flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border-2 transition-all text-center ${
                         form.category === cat.id ? 'border-current' : 'border-gray-100 hover:border-gray-200'
                       }`}
-                      style={form.category === cat.id ? { borderColor: cat.color, backgroundColor: cat.color + '15' } : {}}>
-                      <cat.icon size={18} style={{ color: form.category === cat.id ? cat.color : '#9ca3af' }} />
+                      style={form.category === cat.id ? { borderColor: 'var(--cp)', backgroundColor: 'var(--cp-light, #e6f4ec)' } : {}}>
+                      <cat.icon size={18} style={{ color: form.category === cat.id ? 'var(--cp)' : '#9ca3af' }} />
                       <span className="text-xs font-semibold text-gray-700 leading-tight">{cat.label}</span>
                     </button>
                   ))}
@@ -568,10 +568,9 @@ export default function DiasporaPage() {
                 className="group flex flex-col items-center gap-3 p-5 rounded-2xl bg-gray-900 border border-gray-800 hover:border-gray-600 text-center transition-all hover:scale-[1.02] active:scale-[0.98]"
               >
                 <div
-                  className="w-11 h-11 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110"
-                  style={{ backgroundColor: cat.color + '22', border: `1.5px solid ${cat.color}44` }}
+                  className="w-11 h-11 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110 bg-white/10 border border-white/20"
                 >
-                  <cat.icon size={20} style={{ color: cat.color }} />
+                  <cat.icon size={20} className="text-white/80" />
                 </div>
                 <div>
                   <p className="text-sm font-bold text-white leading-tight">{cat.label}</p>

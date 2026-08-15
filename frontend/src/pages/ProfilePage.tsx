@@ -207,9 +207,9 @@ export default function ProfilePage() {
           {/* Quick stats */}
           <div className="grid grid-cols-3 gap-3">
             {[
-              { label: t('profile.messages'),  value: unread,           icon: <MessageCircle size={18} />,  color: '#008751', section: 'messages' as const },
-              { label: t('profile.bookings'),  value: upcomingCount,    icon: <CalendarDays size={18} />,   color: '#3b82f6', section: 'bookings' as const },
-              { label: t('profile.myPlaces'),  value: myListings.length, icon: <Building2 size={18} />,    color: '#f59e0b', section: 'listings' as const },
+              { label: t('profile.messages'),  value: unread,           icon: <MessageCircle size={18} />,  color: 'var(--cp)', section: 'messages' as const },
+              { label: t('profile.bookings'),  value: upcomingCount,    icon: <CalendarDays size={18} />,   color: 'var(--cp)', section: 'bookings' as const },
+              { label: t('profile.myPlaces'),  value: myListings.length, icon: <Building2 size={18} />,    color: 'var(--cp)', section: 'listings' as const },
             ].map(s => (
               <button key={s.label} onClick={() => setSection(s.section)}
                 className="bg-white rounded-2xl border p-4 text-center hover:shadow-md transition-shadow">
@@ -389,13 +389,13 @@ export default function ProfilePage() {
 
           {/* Seshaa AI shortcut */}
           <button onClick={() => navigate('/messages')}
-            className="w-full flex items-center gap-3 bg-purple-50 border border-purple-200 rounded-2xl px-5 py-4 hover:bg-purple-100 transition-colors">
-            <Sparkles size={20} className="text-purple-600 shrink-0" />
+            className="w-full flex items-center gap-3 bg-theme-light border border-theme rounded-2xl px-5 py-4 hover:bg-theme-light/80 transition-colors">
+            <Sparkles size={20} className="text-theme shrink-0" />
             <div className="flex-1 text-left">
-              <p className="text-sm font-bold text-purple-800">Seshaa AI</p>
-              <p className="text-xs text-purple-500">Ask anything — find businesses, get directions, discover events</p>
+              <p className="text-sm font-bold text-theme">Seshaa AI</p>
+              <p className="text-xs text-gray-500">Ask anything — find businesses, get directions, discover events</p>
             </div>
-            <ArrowRight size={16} className="text-purple-400 shrink-0" />
+            <ArrowRight size={16} className="text-theme shrink-0" />
           </button>
         </div>
       )}

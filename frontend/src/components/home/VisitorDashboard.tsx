@@ -114,9 +114,9 @@ function InfoRow({ icon, label, value, mono = false }: {
 }
 
 const DEVICE_ICON = {
-  mobile:  <Smartphone size={22} className="text-emerald-400" />,
-  tablet:  <Tablet     size={22} className="text-blue-400" />,
-  desktop: <Monitor    size={22} className="text-purple-400" />,
+  mobile:  <Smartphone size={22} className="text-white/80" />,
+  tablet:  <Tablet     size={22} className="text-white/80" />,
+  desktop: <Monitor    size={22} className="text-white/80" />,
 };
 
 // ── Main component ────────────────────────────────────────────────────────────
@@ -152,10 +152,10 @@ export default function VisitorDashboard() {
         {/* ── App Stats ── */}
         {stats && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <StatTile icon={<LayoutGrid size={20} />} value={fmt(stats.listings)} label="Verified Listings" color="text-emerald-400" />
-            <StatTile icon={<Globe        size={20} />} value={String(stats.countries)} label="Countries" color="text-blue-400" />
-            <StatTile icon={<Users        size={20} />} value={fmt(stats.users)} label="Members" color="text-violet-400" />
-            <StatTile icon={<ShoppingBag  size={20} />} value={fmt(stats.classifieds)} label="Classifieds" color="text-amber-400" />
+            <StatTile icon={<LayoutGrid size={20} />} value={fmt(stats.listings)} label="Verified Listings" color="text-white/80" />
+            <StatTile icon={<Globe        size={20} />} value={String(stats.countries)} label="Countries" color="text-white/80" />
+            <StatTile icon={<Users        size={20} />} value={fmt(stats.users)} label="Members" color="text-white/80" />
+            <StatTile icon={<ShoppingBag  size={20} />} value={fmt(stats.classifieds)} label="Classifieds" color="text-white/80" />
           </div>
         )}
 

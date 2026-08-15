@@ -133,12 +133,12 @@ export default function FooterPlayer() {
             <div className="relative shrink-0">
               {image
                 ? <img src={image} alt="" className="w-9 h-9 rounded-lg object-cover" />
-                : <div className="w-9 h-9 rounded-lg bg-emerald-700 flex items-center justify-center">
-                    <Radio size={16} className="text-emerald-300" />
+                : <div className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center">
+                    <Radio size={16} className="text-white/80" />
                   </div>
               }
               {playing && (
-                <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-400 rounded-full border-2 border-slate-900 animate-pulse" />
+                <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-white/90 rounded-full border-2 border-slate-900 animate-pulse" />
               )}
             </div>
             <div className="min-w-0">
@@ -149,8 +149,8 @@ export default function FooterPlayer() {
 
           {/* Time / LIVE badge */}
           {currentTrack.isLive
-            ? <span className="flex items-center gap-1 shrink-0 text-[10px] font-bold text-emerald-400 bg-emerald-400/10 px-1.5 py-0.5 rounded-full">
-                <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
+            ? <span className="flex items-center gap-1 shrink-0 text-[10px] font-bold text-white/90 bg-white/10 px-1.5 py-0.5 rounded-full">
+                <span className="w-1.5 h-1.5 bg-white/80 rounded-full animate-pulse" />
                 LIVE
               </span>
             : <span className="text-[10px] text-white/40 shrink-0 hidden sm:block tabular-nums">

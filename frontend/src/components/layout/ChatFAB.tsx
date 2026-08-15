@@ -292,7 +292,7 @@ export default function ChatFAB() {
           <div className="flex-1 overflow-y-auto p-3 space-y-3 overscroll-contain">
             {aiMsgs.length === 0 && (
               <div className="text-center py-6 px-2">
-                <Sparkles size={28} className="mx-auto mb-2 text-purple-400" />
+                <Sparkles size={28} className="mx-auto mb-2 text-theme" />
                 <p className="text-sm font-semibold text-gray-700">Ask Seshaa AI</p>
                 <p className="text-xs text-gray-400 mt-1">Businesses, hotels, prices, news across Africa</p>
                 <div className="flex flex-wrap gap-1.5 justify-center mt-3">
@@ -300,7 +300,7 @@ export default function ChatFAB() {
                     <button
                       key={s}
                       onClick={() => setAiInput(s)}
-                      className="text-xs bg-purple-50 text-purple-700 px-2.5 py-1 rounded-full border border-purple-200 hover:bg-purple-100"
+                      className="text-xs bg-gray-100 text-gray-700 px-2.5 py-1 rounded-full border border-gray-200 hover:bg-gray-200"
                     >
                       {s}
                     </button>
