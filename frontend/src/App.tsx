@@ -328,9 +328,9 @@ export default function App() {
       <BrowserRouter>
         <ScrollToTop />
         <SeoHead />
-        <div className="min-h-screen flex flex-col bg-gray-50">
+        <div className="min-h-screen flex flex-col">
           <Navbar />
-          <main className="flex-1 pt-14 md:pt-[92px]" style={{ paddingBottom: 'calc(4rem + var(--player-bar-h, 0px))' }}>
+          <main className="flex-1 pt-14 md:pt-[92px] bg-gray-50" style={{ paddingBottom: 'calc(4rem + var(--player-bar-h, 0px))' }}>
             <TabContainer />
           </main>
           {/* footer-pull-up slides footer background up over main's paddingBottom gap */}

@@ -140,6 +140,7 @@ export const useThemeStore = create<ThemeState>()(
         root.style.setProperty('--cs', t.secondary);
         root.style.setProperty('--ca', t.accent);
         root.style.setProperty('--ct', t.text || contrastText(t.primary));
+        root.style.setProperty('--app-bg', `linear-gradient(135deg, ${t.primary} 0%, ${t.secondary} 50%, ${t.accent} 100%)`);
         // Track frequency (only for real country codes, not empty/default)
         const prev = get().countryClicks;
         const countryClicks = code
